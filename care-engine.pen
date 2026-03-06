@@ -4,7 +4,7 @@
     {
       "type": "frame",
       "id": "AZjTx",
-      "x": 0,
+      "x": 1009,
       "y": 0,
       "name": "Mobile - Chat",
       "width": 402,
@@ -286,7 +286,8 @@
                       "content": "早安！☁️ 現在 10 點了，你今天打算做什麼？",
                       "lineHeight": 1.5,
                       "fontFamily": "IBM Plex Sans",
-                      "fontSize": 15
+                      "fontSize": 15,
+                      "fontWeight": "normal"
                     },
                     {
                       "type": "text",
@@ -295,7 +296,8 @@
                       "fill": "$text-muted",
                       "content": "10:00",
                       "fontFamily": "IBM Plex Sans",
-                      "fontSize": 11
+                      "fontSize": 11,
+                      "fontWeight": "normal"
                     }
                   ]
                 }
@@ -337,7 +339,8 @@
                       "content": "我剛到公司，準備開始寫報告",
                       "lineHeight": 1.5,
                       "fontFamily": "IBM Plex Sans",
-                      "fontSize": 15
+                      "fontSize": 15,
+                      "fontWeight": "normal"
                     },
                     {
                       "type": "text",
@@ -346,7 +349,8 @@
                       "fill": "#FFFFFF99",
                       "content": "10:01",
                       "fontFamily": "IBM Plex Sans",
-                      "fontSize": 11
+                      "fontSize": 11,
+                      "fontWeight": "normal"
                     }
                   ]
                 }
@@ -393,7 +397,8 @@
                       "content": "記下了！加油 💪\n\n另外，你追蹤的 3 個 YouTube 頻道昨天有新影片，要看摘要嗎？",
                       "lineHeight": 1.5,
                       "fontFamily": "IBM Plex Sans",
-                      "fontSize": 15
+                      "fontSize": 15,
+                      "fontWeight": "normal"
                     },
                     {
                       "type": "frame",
@@ -461,7 +466,8 @@
                       "fill": "$text-muted",
                       "content": "10:01",
                       "fontFamily": "IBM Plex Sans",
-                      "fontSize": 11
+                      "fontSize": 11,
+                      "fontWeight": "normal"
                     }
                   ]
                 }
@@ -500,7 +506,8 @@
                       "fill": "$text-white",
                       "content": "看摘要！",
                       "fontFamily": "IBM Plex Sans",
-                      "fontSize": 15
+                      "fontSize": 15,
+                      "fontWeight": "normal"
                     },
                     {
                       "type": "text",
@@ -509,7 +516,8 @@
                       "fill": "#FFFFFF99",
                       "content": "10:02",
                       "fontFamily": "IBM Plex Sans",
-                      "fontSize": 11
+                      "fontSize": 11,
+                      "fontWeight": "normal"
                     }
                   ]
                 }
@@ -582,7 +590,8 @@
                   "fill": "$text-muted",
                   "content": "說點什麼...",
                   "fontFamily": "IBM Plex Sans",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -729,7 +738,8 @@
                   "fill": "$text-secondary",
                   "content": "2月28日 週五·今天有 3 件事等著你",
                   "fontFamily": "IBM Plex Sans",
-                  "fontSize": 14
+                  "fontSize": 14,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -844,7 +854,8 @@
                           "fill": "$text-muted",
                           "content": "寫完報告",
                           "fontFamily": "IBM Plex Sans",
-                          "fontSize": 14
+                          "fontSize": 14,
+                          "fontWeight": "normal"
                         }
                       ]
                     },
@@ -992,7 +1003,8 @@
                       "fill": "$text-muted",
                       "content": "YouTube · 張老師頭條日報",
                       "fontFamily": "IBM Plex Sans",
-                      "fontSize": 12
+                      "fontSize": 12,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -1027,7 +1039,8 @@
                       "fill": "$text-muted",
                       "content": "RSS · Hacker News",
                       "fontFamily": "IBM Plex Sans",
-                      "fontSize": 12
+                      "fontSize": 12,
+                      "fontWeight": "normal"
                     }
                   ]
                 }
@@ -1371,7 +1384,7 @@
     {
       "type": "frame",
       "id": "ciGlQ",
-      "x": 1004,
+      "x": -10,
       "y": 0,
       "name": "Mobile - Onboarding",
       "width": 402,
@@ -1515,7 +1528,8 @@
                   "lineHeight": 1.5,
                   "textAlign": "center",
                   "fontFamily": "IBM Plex Sans",
-                  "fontSize": 15
+                  "fontSize": 15,
+                  "fontWeight": "normal"
                 }
               ]
             },
@@ -1597,7 +1611,8 @@
                           "fill": "$text-secondary",
                           "content": "定時問你在幹嘛，記錄你的生活",
                           "fontFamily": "IBM Plex Sans",
-                          "fontSize": 13
+                          "fontSize": 13,
+                          "fontWeight": "normal"
                         }
                       ]
                     }
@@ -1669,7 +1684,8 @@
                           "fill": "$text-secondary",
                           "content": "自動抓取 YouTube、RSS、X 摘要",
                           "fontFamily": "IBM Plex Sans",
-                          "fontSize": 13
+                          "fontSize": 13,
+                          "fontWeight": "normal"
                         }
                       ]
                     }
@@ -1741,7 +1757,8 @@
                           "fill": "$text-secondary",
                           "content": "分析你的時間花在哪，給你建議",
                           "fontFamily": "IBM Plex Sans",
-                          "fontSize": 13
+                          "fontSize": 13,
+                          "fontWeight": "normal"
                         }
                       ]
                     }
@@ -1964,7 +1981,8 @@
                       "fill": "$text-secondary",
                       "content": "ming@example.com",
                       "fontFamily": "IBM Plex Sans",
-                      "fontSize": 13
+                      "fontSize": 13,
+                      "fontWeight": "normal"
                     }
                   ]
                 },
@@ -2724,7 +2742,8 @@
                           "fill": "$text-muted",
                           "content": "每小時自動同步",
                           "fontFamily": "IBM Plex Sans",
-                          "fontSize": 12
+                          "fontSize": 12,
+                          "fontWeight": "normal"
                         }
                       ]
                     },
@@ -2784,7 +2803,8 @@
                           "fill": "$text-muted",
                           "content": "最近 30 天",
                           "fontFamily": "IBM Plex Sans",
-                          "fontSize": 12
+                          "fontSize": 12,
+                          "fontWeight": "normal"
                         }
                       ]
                     },

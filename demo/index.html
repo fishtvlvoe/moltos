@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Moltos — 把生活的噪音，變成你內心的聲音</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        cream: '#FAF8F4',
+        terracotta: '#C67A52',
+        'terracotta-light': '#E8D5C4',
+        'terracotta-dark': '#A85F3A',
+        ink: '#2D2D2D',
+        muted: '#8B8B8B',
+        success: '#4CAF50',
+        warning: '#FF9800',
+        danger: '#E53935',
+      },
+      fontFamily: {
+        sans: ['IBM Plex Sans', 'system-ui', 'sans-serif'],
+      },
+      borderRadius: {
+        'card': '16px',
+        'pill': '36px',
+      },
+    }
+  }
+}
+</script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'IBM Plex Sans', sans-serif; background: #E8E6E2; }
+
+  /* 手機框 */
+  .phone-frame {
+    width: 375px; height: 812px;
+    border-radius: 44px;
+    border: 8px solid #1a1a1a;
+    background: #FAF8F4;
+    position: relative;
+    overflow: hidden;
+    box-shadow:
+      0 0 0 2px #333,
+      0 40px 80px rgba(0,0,0,0.25),
+      inset 0 0 0 1px rgba(255,255,255,0.1);
+  }
+
+  /* 動態島 */
+  .dynamic-island {
+    width: 120px; height: 32px;
+    background: #1a1a1a;
+    border-radius: 20px;
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
+  }
+
+  /* 畫面切換 */
+  .screen {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+  }
+  .screen.active {
+    display: flex;
+    flex-direction: column;
+    opacity: 1;
+  }
+
+  /* 打字動畫 */
+  .typing-dot {
+    width: 7px; height: 7px;
+    background: #8B8B8B;
+    border-radius: 50%;
+    display: inline-block;
+    animation: typingBounce 1.2s infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+  .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes typingBounce {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-6px); opacity: 1; }
+  }
+
+  /* 訊息進場 */
+  .msg-enter { animation: msgSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  @keyframes msgSlideUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Tab bar */
+  .tab-item {
+    transition: color 0.2s ease;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  .tab-item.active { color: #C67A52; }
+  .tab-item:not(.active) { color: #8B8B8B; }
+
+  /* 卡片 */
+  .dash-card {
+    transition: box-shadow 0.25s ease, transform 0.25s ease;
+  }
+  .dash-card:hover {
+    box-shadow: 0 8px 24px rgba(198, 122, 82, 0.12);
+    transform: translateY(-1px);
+  }
+
+  /* 快捷按鈕 */
+  .quick-btn {
+    transition: background 0.2s ease, transform 0.15s ease;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .quick-btn:active { transform: scale(0.95); }
+
+  /* 捲軸隱藏 */
+  .hide-scrollbar::-webkit-scrollbar { display: none; }
+  .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* Toast */
+  .toast {
+    position: absolute;
+    top: 60px; left: 50%; transform: translateX(-50%);
+    background: #2D2D2D; color: #fff;
+    padding: 10px 20px; border-radius: 36px;
+    font-size: 13px; font-weight: 500;
+    opacity: 0; transition: opacity 0.3s ease;
+    z-index: 100; white-space: nowrap;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+
+  /* 送出按鈕 */
+  .send-btn { transition: background 0.2s ease, transform 0.15s ease; }
+  .send-btn:active { transform: scale(0.9); }
+
+  /* Onboarding 功能卡 */
+  .feature-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+  .feature-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(198, 122, 82, 0.1);
+  }
+
+  /* 平靜指數環 */
+  .stress-ring-bg { stroke: #E8D5C4; }
+  .stress-ring-fill {
+    transition: stroke-dashoffset 1.5s cubic-bezier(0.16, 1, 0.3, 1),
+                stroke 0.5s ease;
+    transform: rotate(-90deg);
+    transform-origin: center;
+  }
+
+  /* 通話覆蓋層 */
+  .call-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(45, 45, 45, 0.95);
+    z-index: 200;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  .call-overlay.active {
+    display: flex;
+    opacity: 1;
+  }
+
+  /* 通話波紋 */
+  .call-ripple {
+    position: absolute;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    border: 2px solid rgba(198, 122, 82, 0.3);
+    animation: rippleExpand 2s ease-out infinite;
+  }
+  .call-ripple:nth-child(2) { animation-delay: 0.6s; }
+  .call-ripple:nth-child(3) { animation-delay: 1.2s; }
+  @keyframes rippleExpand {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(2.5); opacity: 0; }
+  }
+
+  /* Toggle 開關 */
+  .toggle-switch {
+    width: 44px; height: 24px;
+    border-radius: 12px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  .toggle-switch.on { background: #C67A52; }
+  .toggle-switch.off { background: #D1D1D1; }
+  .toggle-knob {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: white;
+    position: absolute;
+    top: 2px;
+    transition: left 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .toggle-switch.on .toggle-knob { left: 22px; }
+  .toggle-switch.off .toggle-knob { left: 2px; }
+
+  /* 情緒圓圈 */
+  .mood-circle {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transition: transform 0.2s ease;
+  }
+  .mood-circle:hover { transform: scale(1.15); }
+
+  /* RWD：手機直接全螢幕 */
+  @media (max-width: 420px) {
+    body { background: #FAF8F4; }
+    .phone-wrapper { padding: 0 !important; min-height: 100dvh; display: flex; }
+    .phone-frame {
+      width: 100%; height: 100dvh;
+      border-radius: 0; border: none;
+      box-shadow: none;
+    }
+    .dynamic-island { display: none; }
+    .phone-label { display: none !important; }
+  }
+
+  /* 心跳線動畫 */
+  .heartbeat-line {
+    stroke-dasharray: 200;
+    stroke-dashoffset: 200;
+    animation: drawHeartbeat 2s ease forwards;
+  }
+  @keyframes drawHeartbeat {
+    to { stroke-dashoffset: 0; }
+  }
+</style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+
+<div class="phone-wrapper p-6 flex flex-col items-center gap-4">
+  <p class="phone-label text-sm font-medium text-muted tracking-wide">Moltos Interactive Demo</p>
+
+  <div class="phone-frame" id="phone">
+    <div class="dynamic-island"></div>
+    <div class="toast" id="toast"></div>
+
+    <!-- ==================== 通話覆蓋層 ==================== -->
+    <div class="call-overlay" id="callOverlay">
+      <div class="relative flex items-center justify-center mb-8">
+        <div class="call-ripple"></div>
+        <div class="call-ripple"></div>
+        <div class="call-ripple"></div>
+        <div class="w-[120px] h-[120px] rounded-full flex items-center justify-center" style="background: #C67A52;">
+          <svg width="48" height="48" viewBox="0 0 60 40" fill="none">
+            <polyline points="0,20 12,20 16,8 20,32 24,14 28,26 32,18 36,22 40,20 60,20"
+              stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+      <p class="text-white text-xl font-semibold mb-2">Moltos</p>
+      <p class="text-white text-sm opacity-70 mb-1">語音通話中</p>
+      <p class="text-white text-lg font-mono mb-10" id="callTimer">00:00</p>
+      <button onclick="endCall()" class="w-16 h-16 rounded-full flex items-center justify-center mb-6" style="background: #E53935;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="white">
+          <path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08c-.18-.18-.29-.43-.29-.71 0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.71l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.69-1.36-2.67-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"/>
+        </svg>
+      </button>
+      <p class="text-white text-xs opacity-50">這是一個安全的空間，說什麼都可以</p>
+    </div>
+
+    <!-- ==================== 畫面 0：Onboarding ==================== -->
+    <div class="screen active" id="screen-onboarding">
+      <div class="flex-1 flex flex-col items-center justify-center px-8 pt-14 pb-4">
+        <!-- Logo：赤陶色圓形 + 白色心跳線 -->
+        <div class="w-20 h-20 rounded-full flex items-center justify-center mb-5" style="background: #C67A52;">
+          <svg width="40" height="28" viewBox="0 0 60 40" fill="none">
+            <polyline points="0,20 12,20 16,8 20,32 24,14 28,26 32,18 36,22 40,20 60,20"
+              stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round" class="heartbeat-line"/>
+          </svg>
+        </div>
+        <h1 class="text-2xl font-bold text-ink mb-2">歡迎來到 Moltos</h1>
+        <p class="text-sm text-muted text-center leading-relaxed mb-8">把生活的噪音，變成你內心的聲音</p>
+
+        <!-- 功能卡片 -->
+        <div class="w-full space-y-3 mb-8">
+          <div class="feature-card bg-white rounded-card p-4 flex items-center gap-4">
+            <div class="w-10 h-10 rounded-full bg-terracotta-light flex items-center justify-center flex-shrink-0">
+              <span class="text-lg">🫂</span>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-ink">主動關懷</p>
+              <p class="text-xs text-muted">壓力快爆表時，我會主動找你聊聊</p>
+            </div>
+          </div>
+          <div class="feature-card bg-white rounded-card p-4 flex items-center gap-4">
+            <div class="w-10 h-10 rounded-full bg-terracotta-light flex items-center justify-center flex-shrink-0">
+              <span class="text-lg">🔗</span>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-ink">訊息整合</p>
+              <p class="text-xs text-muted">幫你整理 LINE、Gmail、Slack 的訊息洪流</p>
+            </div>
+          </div>
+          <div class="feature-card bg-white rounded-card p-4 flex items-center gap-4">
+            <div class="w-10 h-10 rounded-full bg-terracotta-light flex items-center justify-center flex-shrink-0">
+              <span class="text-lg">🔒</span>
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-ink">隱私守護</p>
+              <p class="text-xs text-muted">你的秘密只屬於你，隨時可刪除</p>
+            </div>
+          </div>
+        </div>
+
+        <button onclick="switchScreen('dashboard')" class="w-full py-3.5 rounded-pill text-white font-semibold text-sm tracking-wide" style="background:#C67A52;">
+          開始使用
+        </button>
+      </div>
+    </div>
+
+    <!-- ==================== 畫面 1：Dashboard ==================== -->
+    <div class="screen" id="screen-dashboard">
+      <div class="flex-1 overflow-y-auto hide-scrollbar px-5 pt-14 pb-20">
+        <!-- 問候 -->
+        <div class="mb-5">
+          <h2 class="text-xl font-bold text-ink">早安，啓彰 ☁️</h2>
+          <p class="text-xs text-muted mt-1">3月6日 週四</p>
+        </div>
+
+        <!-- 平靜指數卡片 -->
+        <div class="dash-card bg-white rounded-card p-5 mb-3">
+          <p class="text-sm font-semibold text-ink mb-4">平靜指數</p>
+          <div class="flex items-center gap-5">
+            <div class="relative flex-shrink-0">
+              <svg width="100" height="100" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="42" fill="none" stroke="#E8D5C4" stroke-width="8"/>
+                <circle cx="50" cy="50" r="42" fill="none"
+                  stroke="#FF9800" stroke-width="8"
+                  stroke-linecap="round"
+                  stroke-dasharray="263.89"
+                  stroke-dashoffset="263.89"
+                  class="stress-ring-fill"
+                  id="stressRing"/>
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <span class="text-2xl font-bold text-ink" id="stressNumber">0</span>
+                <span class="text-[10px] text-muted">/100</span>
+              </div>
+            </div>
+            <div class="flex-1">
+              <p class="text-sm font-medium mb-1" style="color: #E53935;" id="stressLabel">需要關注</p>
+              <p class="text-xs text-muted leading-relaxed">還有一些事情佔據著你的心，試著給自己一點空間</p>
+              <p class="text-[10px] text-muted mt-2 opacity-70">根據今日訊息量和生活記錄分析</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 今日訊息統計 -->
+        <div class="dash-card bg-white rounded-card p-4 mb-3">
+          <p class="text-sm font-semibold text-ink mb-3">今日訊息統計</p>
+          <div class="grid grid-cols-3 gap-3 mb-2">
+            <div class="text-center">
+              <p class="text-lg font-bold text-ink">47</p>
+              <p class="text-[10px] text-muted">LINE 訊息</p>
+            </div>
+            <div class="text-center">
+              <p class="text-lg font-bold text-ink">23</p>
+              <p class="text-[10px] text-muted">Gmail 郵件</p>
+            </div>
+            <div class="text-center">
+              <p class="text-lg font-bold text-ink">18</p>
+              <p class="text-[10px] text-muted">Slack 訊息</p>
+            </div>
+          </div>
+          <p class="text-[10px] text-muted text-center">比昨天多 25%，注意節奏 ⚡</p>
+        </div>
+
+        <!-- Moltos 建議 -->
+        <div class="dash-card rounded-card p-4 mb-3" style="background: linear-gradient(135deg, #C67A52 0%, #A85F3A 100%);">
+          <p class="text-sm text-white leading-relaxed mb-3">📞 你已經連續忙了 4 小時，要不要給自己 5 分鐘，聊聊現在的感覺？</p>
+          <button onclick="startCall()" class="w-full py-2.5 rounded-pill text-sm font-semibold flex items-center justify-center gap-2" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/></svg>
+            接受通話邀請
+          </button>
+        </div>
+
+        <!-- 今日待辦 -->
+        <div class="dash-card bg-white rounded-card p-4">
+          <p class="text-sm font-semibold text-ink mb-3">今日待辦</p>
+          <div class="space-y-2.5">
+            <div class="flex items-center gap-3">
+              <div class="w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0" style="border-color:#4CAF50; background:#4CAF50;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div class="flex-1">
+                <p class="text-xs text-muted line-through">完成報告初稿</p>
+              </div>
+              <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-terracotta-light text-terracotta">Gmail</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-5 h-5 rounded border-2 flex-shrink-0" style="border-color:#E8D5C4;"></div>
+              <div class="flex-1">
+                <p class="text-xs text-ink">回覆客戶提案</p>
+              </div>
+              <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-green-50 text-green-700">LINE</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-5 h-5 rounded border-2 flex-shrink-0" style="border-color:#E8D5C4;"></div>
+              <div class="flex-1">
+                <p class="text-xs text-ink">團隊週會準備</p>
+              </div>
+              <span class="text-[10px] px-1.5 py-0.5 rounded-full" style="background: #EDE7F6; color: #5E35B1;">Slack</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 畫面 2：Chat ==================== -->
+    <div class="screen" id="screen-chat">
+      <!-- Chat Header -->
+      <div class="flex items-center gap-3 px-5 pt-14 pb-3 border-b" style="border-color: #E8D5C4;">
+        <div class="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style="background:#C67A52;">
+          <svg width="20" height="14" viewBox="0 0 60 40" fill="none">
+            <polyline points="0,20 12,20 16,8 20,32 24,14 28,26 32,18 36,22 40,20 60,20"
+              stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <p class="text-sm font-semibold text-ink leading-tight">Moltos</p>
+          <p class="text-xs text-muted flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span>線上中
+          </p>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div class="flex-1 overflow-y-auto hide-scrollbar px-4 py-4 space-y-3" id="chatMessages">
+        <!-- Moltos 1 -->
+        <div class="flex gap-2 items-end">
+          <div class="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-1" style="background:#C67A52;">
+            <svg width="14" height="10" viewBox="0 0 60 40" fill="none"><polyline points="0,20 12,20 16,8 20,32 24,14 28,26 32,18 36,22 40,20 60,20" stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div>
+            <div class="bg-white rounded-card rounded-bl-sm px-3.5 py-2.5 max-w-[240px]">
+              <p class="text-sm text-ink leading-relaxed">早安！☀️ 我看到你今天已經收到 47 則 LINE 訊息了。你今天收到蠻多訊息的。在這些噪音之間，你自己還好嗎？</p>
+            </div>
+            <p class="text-[10px] text-muted mt-1 ml-1">上午 10:00</p>
+          </div>
+        </div>
+        <!-- User 1 -->
+        <div class="flex justify-end">
+          <div>
+            <div class="rounded-card rounded-br-sm px-3.5 py-2.5 max-w-[240px]" style="background:#C67A52;">
+              <p class="text-sm text-white leading-relaxed">還好啦，就是事情很多，有點煩</p>
+            </div>
+            <p class="text-[10px] text-muted mt-1 text-right mr-1">上午 10:01</p>
+          </div>
+        </div>
+        <!-- Moltos 2 -->
+        <div class="flex gap-2 items-end">
+          <div class="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-1" style="background:#C67A52;">
+            <svg width="14" height="10" viewBox="0 0 60 40" fill="none"><polyline points="0,20 12,20 16,8 20,32 24,14 28,26 32,18 36,22 40,20 60,20" stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div>
+            <div class="bg-white rounded-card rounded-bl-sm px-3.5 py-2.5 max-w-[240px]">
+              <p class="text-sm text-ink leading-relaxed">我理解，忙的時候很容易焦慮。我幫你看了一下，最緊急的是客戶提案的回覆，其他的我先幫你排好優先順序了。要看嗎？</p>
+            </div>
+            <p class="text-[10px] text-muted mt-1 ml-1">上午 10:01</p>
+          </div>
+        </div>
+        <!-- User 2 -->
+        <div class="flex justify-end">
+          <div>
+            <div class="rounded-card rounded-br-sm px-3.5 py-2.5 max-w-[240px]" style="background:#C67A52;">
+              <p class="text-sm text-white leading-relaxed">好，給我看</p>
+            </div>
+            <p class="text-[10px] text-muted mt-1 text-right mr-1">上午 10:02</p>
+          </div>
+        </div>
+        <!-- Moltos 3：優先級卡片 -->
+        <div class="flex gap-2 items-end">
+          <div class="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-1" style="background:#C67A52;">
+            <svg width="14" height="10" viewBox="0 0 60 40" fill="none"><polyline points="0,20 12,20 16,8 20,32 24,14 28,26 32,18 36,22 40,20 60,20" stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div>
+            <div class="bg-white rounded-card rounded-bl-sm px-3.5 py-2.5 max-w-[240px]">
+              <div class="border rounded-lg p-3 mb-2" style="border-color: #E8D5C4;">
+                <p class="text-xs font-semibold text-ink mb-2">📋 今日優先級</p>
+                <div class="space-y-1.5">
+                  <p class="text-xs text-ink">1. 🔴 回覆客戶提案（截止今天）</p>
+                  <p class="text-xs text-ink">2. 🟡 團隊週會準備（明天早上）</p>
+                  <p class="text-xs text-ink">3. 🟢 整理本週進度報告（週五前）</p>
+                </div>
+              </div>
+            </div>
+            <p class="text-[10px] text-muted mt-1 ml-1">上午 10:02</p>
+          </div>
+        </div>
+        <!-- Moltos 4 -->
+        <div class="flex gap-2 items-end">
+          <div class="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-1" style="background:#C67A52;">
+            <svg width="14" height="10" viewBox="0 0 60 40" fill="none"><polyline points="0,20 12,20 16,8 20,32 24,14 28,26 32,18 36,22 40,20 60,20" stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div>
+            <div class="bg-white rounded-card rounded-bl-sm px-3.5 py-2.5 max-w-[240px]">
+              <p class="text-sm text-ink leading-relaxed">處理完第一項後跟我說一聲，我晚點會問你狀況。如果你中間需要喘口氣，隨時可以打給我聊聊 💙</p>
+            </div>
+            <p class="text-[10px] text-muted mt-1 ml-1">上午 10:02</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="px-4 pb-1.5 flex gap-2 overflow-x-auto hide-scrollbar">
+        <button class="quick-btn text-xs px-3 py-1.5 rounded-pill border font-medium flex-shrink-0" style="border-color:#E8D5C4; color:#C67A52; background:#FFF8F4;" onclick="startCall()">📞 語音通話</button>
+        <button class="quick-btn text-xs px-3 py-1.5 rounded-pill border font-medium flex-shrink-0" style="border-color:#E8D5C4; color:#C67A52; background:#FFF8F4;" onclick="sendQuick('我現在心裡有些話想說...')">😤 我想抒發</button>
+        <button class="quick-btn text-xs px-3 py-1.5 rounded-pill border font-medium flex-shrink-0" style="border-color:#E8D5C4; color:#C67A52; background:#FFF8F4;" onclick="sendQuick('幫我看待辦')">📋 看待辦</button>
+      </div>
+
+      <!-- Input -->
+      <div class="px-4 pb-5 pt-2 flex gap-2 items-end" style="padding-bottom: env(safe-area-inset-bottom, 20px);">
+        <input type="text" id="chatInput" placeholder="輸入訊息..."
+          class="flex-1 bg-white rounded-pill px-4 py-2.5 text-sm text-ink outline-none border"
+          style="border-color:#E8D5C4;"
+          onkeydown="if(event.key==='Enter')sendMessage()">
+        <button class="send-btn w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background:#C67A52;" onclick="sendMessage()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+        <button class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 border" style="border-color:#E8D5C4; background: white;" onclick="startCall()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C67A52" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ==================== 畫面 3：Insights（回顧） ==================== -->
+    <div class="screen" id="screen-insights">
+      <div class="flex-1 overflow-y-auto hide-scrollbar px-5 pt-14 pb-20">
+        <h2 class="text-xl font-bold text-ink mb-5">你的一週</h2>
+
+        <!-- 壓力趨勢圖 -->
+        <div class="dash-card bg-white rounded-card p-4 mb-3">
+          <p class="text-sm font-semibold text-ink mb-3">平靜指數趨勢</p>
+          <div class="relative" style="height: 140px;">
+            <svg width="100%" height="140" viewBox="0 0 300 140" preserveAspectRatio="none">
+              <!-- 格線 -->
+              <line x1="30" y1="10" x2="290" y2="10" stroke="#f0f0f0" stroke-width="0.5"/>
+              <line x1="30" y1="40" x2="290" y2="40" stroke="#f0f0f0" stroke-width="0.5"/>
+              <line x1="30" y1="70" x2="290" y2="70" stroke="#f0f0f0" stroke-width="0.5"/>
+              <line x1="30" y1="100" x2="290" y2="100" stroke="#f0f0f0" stroke-width="0.5"/>
+              <!-- Y 軸標籤 -->
+              <text x="20" y="14" fill="#8B8B8B" font-size="9" text-anchor="end">100</text>
+              <text x="20" y="44" fill="#8B8B8B" font-size="9" text-anchor="end">70</text>
+              <text x="20" y="74" fill="#8B8B8B" font-size="9" text-anchor="end">40</text>
+              <text x="20" y="104" fill="#8B8B8B" font-size="9" text-anchor="end">10</text>
+              <!-- 漸層 -->
+              <defs>
+                <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#C67A52" stop-opacity="0.3"/>
+                  <stop offset="100%" stop-color="#C67A52" stop-opacity="0.02"/>
+                </linearGradient>
+              </defs>
+              <!-- 面積 (55,48,32,25,38,60,65) → Y: 100-(val/100)*90 -->
+              <path d="M67,50.5 L104,56.8 L141,71.2 L178,77.5 L215,65.8 L252,46.0 L289,41.5 L289,100 L67,100 Z" fill="url(#lineGrad)"/>
+              <!-- 折線 -->
+              <polyline points="67,50.5 104,56.8 141,71.2 178,77.5 215,65.8 252,46.0 289,41.5"
+                fill="none" stroke="#C67A52" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <!-- 數據點：0-40 紅色、41-70 橘色、71-100 綠色 -->
+              <circle cx="67" cy="50.5" r="3.5" fill="white" stroke="#FF9800" stroke-width="2"/>
+              <circle cx="104" cy="56.8" r="3.5" fill="white" stroke="#FF9800" stroke-width="2"/>
+              <circle cx="141" cy="71.2" r="3.5" fill="white" stroke="#E53935" stroke-width="2"/>
+              <circle cx="178" cy="77.5" r="4.5" fill="white" stroke="#E53935" stroke-width="2.5"/>
+              <circle cx="215" cy="65.8" r="3.5" fill="white" stroke="#E53935" stroke-width="2"/>
+              <circle cx="252" cy="46.0" r="3.5" fill="white" stroke="#FF9800" stroke-width="2"/>
+              <circle cx="289" cy="41.5" r="3.5" fill="white" stroke="#FF9800" stroke-width="2"/>
+              <!-- 週四標籤（最低點） -->
+              <text x="178" y="91" fill="#E53935" font-size="9" text-anchor="middle" font-weight="600">25</text>
+              <!-- X 軸標籤 -->
+              <text x="67" y="120" fill="#8B8B8B" font-size="10" text-anchor="middle">一</text>
+              <text x="104" y="120" fill="#8B8B8B" font-size="10" text-anchor="middle">二</text>
+              <text x="141" y="120" fill="#8B8B8B" font-size="10" text-anchor="middle">三</text>
+              <text x="178" y="120" fill="#E53935" font-size="10" text-anchor="middle" font-weight="600">四</text>
+              <text x="215" y="120" fill="#8B8B8B" font-size="10" text-anchor="middle">五</text>
+              <text x="252" y="120" fill="#8B8B8B" font-size="10" text-anchor="middle">六</text>
+              <text x="289" y="120" fill="#8B8B8B" font-size="10" text-anchor="middle">日</text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- 週報摘要 -->
+        <div class="dash-card bg-white rounded-card p-4 mb-3">
+          <p class="text-sm font-semibold text-ink mb-3">週報摘要</p>
+          <div class="space-y-2.5">
+            <div class="flex items-start gap-2.5">
+              <span class="text-sm flex-shrink-0">📨</span>
+              <p class="text-xs text-ink leading-relaxed">這週你處理了 <b>312 則訊息</b>，比上週多 18%</p>
+            </div>
+            <div class="flex items-start gap-2.5">
+              <span class="text-sm flex-shrink-0">📉</span>
+              <p class="text-xs text-ink leading-relaxed">平靜指數最低的一天是<b style="color:#E53935;">週四（25）</b>，可能跟客戶提案截止有關</p>
+            </div>
+            <div class="flex items-start gap-2.5">
+              <span class="text-sm flex-shrink-0">🌿</span>
+              <p class="text-xs text-ink leading-relaxed">週末明顯恢復到 <b>65</b>，休息對你很有幫助</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Moltos 觀察 -->
+        <div class="dash-card rounded-card p-4 mb-3" style="background: linear-gradient(135deg, #C67A52 0%, #A85F3A 100%);">
+          <p class="text-sm font-semibold text-white mb-2">💡 Moltos 的觀察</p>
+          <p class="text-xs text-white leading-relaxed" style="opacity:0.92;">我注意到你平靜指數低於 40 的時候，隔天的工作效率也會下降。建議在感到不平靜時，先處理最重要的一件事就好，其他的可以跟我說，我幫你排。</p>
+        </div>
+
+        <!-- 情緒日記 -->
+        <div class="dash-card bg-white rounded-card p-4">
+          <p class="text-sm font-semibold text-ink mb-3">情緒日記</p>
+          <div class="flex items-center justify-between">
+            <div class="flex flex-col items-center gap-1">
+              <div class="mood-circle">😊</div>
+              <span class="text-[10px] text-muted">一</span>
+            </div>
+            <div class="flex flex-col items-center gap-1">
+              <div class="mood-circle">😐</div>
+              <span class="text-[10px] text-muted">二</span>
+            </div>
+            <div class="flex flex-col items-center gap-1">
+              <div class="mood-circle">😟</div>
+              <span class="text-[10px] text-muted">三</span>
+            </div>
+            <div class="flex flex-col items-center gap-1">
+              <div class="mood-circle" style="box-shadow: 0 0 0 2px #E53935, 0 2px 8px rgba(229,57,53,0.2);">😫</div>
+              <span class="text-[10px] font-semibold" style="color:#E53935;">四</span>
+            </div>
+            <div class="flex flex-col items-center gap-1">
+              <div class="mood-circle">😊</div>
+              <span class="text-[10px] text-muted">五</span>
+            </div>
+            <div class="flex flex-col items-center gap-1">
+              <div class="mood-circle">😌</div>
+              <span class="text-[10px] text-muted">六</span>
+            </div>
+            <div class="flex flex-col items-center gap-1">
+              <div class="mood-circle">😊</div>
+              <span class="text-[10px] text-muted">日</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== 畫面 4：Settings ==================== -->
+    <div class="screen" id="screen-settings">
+      <div class="flex-1 overflow-y-auto hide-scrollbar px-5 pt-14 pb-20">
+        <h2 class="text-xl font-bold text-ink mb-5">設定</h2>
+
+        <!-- 用戶資料 -->
+        <div class="dash-card bg-white rounded-card p-4 mb-3 flex items-center gap-4">
+          <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-lg" style="background: #C67A52;">余</div>
+          <div>
+            <p class="text-sm font-semibold text-ink">余啓彰</p>
+            <p class="text-xs text-muted">fish@fishot.com</p>
+          </div>
+        </div>
+
+        <!-- 整合管道 -->
+        <div class="dash-card bg-white rounded-card p-4 mb-3">
+          <p class="text-sm font-semibold text-ink mb-3">整合管道</p>
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="text-lg">💬</span>
+                <div>
+                  <p class="text-xs font-medium text-ink">LINE</p>
+                  <p class="text-[10px] text-success">已連結</p>
+                </div>
+              </div>
+              <div class="toggle-switch on" onclick="toggleSwitch(this)"><div class="toggle-knob"></div></div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="text-lg">📧</span>
+                <div>
+                  <p class="text-xs font-medium text-ink">Gmail</p>
+                  <p class="text-[10px] text-success">已連結</p>
+                </div>
+              </div>
+              <div class="toggle-switch on" onclick="toggleSwitch(this)"><div class="toggle-knob"></div></div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="text-lg">💼</span>
+                <div>
+                  <p class="text-xs font-medium text-ink">Slack</p>
+                  <p class="text-[10px] text-success">已連結</p>
+                </div>
+              </div>
+              <div class="toggle-switch on" onclick="toggleSwitch(this)"><div class="toggle-knob"></div></div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <span class="text-lg">✈️</span>
+                <div>
+                  <p class="text-xs font-medium text-ink">Telegram</p>
+                  <p class="text-[10px] text-muted">未連結</p>
+                </div>
+              </div>
+              <button class="text-xs px-3 py-1 rounded-pill font-medium" style="color:#C67A52; background:#FFF8F4; border: 1px solid #E8D5C4;">連結</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 關懷設定 -->
+        <div class="dash-card bg-white rounded-card p-4 mb-3">
+          <p class="text-sm font-semibold text-ink mb-3">關懷設定</p>
+          <div class="space-y-4">
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <p class="text-xs text-ink">主動 check-in 頻率</p>
+                <span class="text-xs font-medium text-terracotta">每天 3 次</span>
+              </div>
+              <div class="w-full h-2 rounded-full" style="background:#E8D5C4;">
+                <div class="h-2 rounded-full" style="background:#C67A52; width:60%;"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <p class="text-xs text-ink">平靜指數提醒：低於 40 時主動關心</p>
+                <span class="text-xs font-medium text-terracotta">40 分以下</span>
+              </div>
+              <div class="w-full h-2 rounded-full" style="background:#E8D5C4;">
+                <div class="h-2 rounded-full" style="background:#C67A52; width:40%;"></div>
+              </div>
+            </div>
+            <div class="flex items-center justify-between">
+              <p class="text-xs text-ink">允許 Moltos 主動發起語音通話</p>
+              <div class="toggle-switch on" onclick="toggleSwitch(this)"><div class="toggle-knob"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 隱私與安全 -->
+        <div class="dash-card bg-white rounded-card p-4 mb-3">
+          <div class="flex items-center gap-2 mb-3">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C67A52" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <p class="text-sm font-semibold text-ink">隱私與安全</p>
+          </div>
+          <div class="space-y-2.5 mb-4">
+            <div class="flex items-start gap-2.5">
+              <span class="text-xs flex-shrink-0 mt-0.5">🔐</span>
+              <p class="text-xs text-muted leading-relaxed">所有對話記錄僅儲存在你的裝置上</p>
+            </div>
+            <div class="flex items-start gap-2.5">
+              <span class="text-xs flex-shrink-0 mt-0.5">🛡️</span>
+              <p class="text-xs text-muted leading-relaxed">端對端加密保護你的隱私</p>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <button onclick="showToast('所有資料已安全刪除')" class="w-full py-2.5 rounded-pill text-sm font-medium border-2 text-center" style="border-color:#E53935; color:#E53935;">
+              刪除所有資料
+            </button>
+            <button onclick="showToast('資料匯出中...')" class="w-full py-2.5 rounded-pill text-sm font-medium border text-center" style="border-color:#E8D5C4; color:#2D2D2D;">
+              匯出我的資料
+            </button>
+          </div>
+        </div>
+
+        <!-- 其他 -->
+        <div class="dash-card bg-white rounded-card p-4">
+          <div class="space-y-0">
+            <div class="flex items-center justify-between py-2.5 border-b" style="border-color:#f5f5f5;">
+              <p class="text-xs text-ink">深色模式</p>
+              <div class="toggle-switch off" onclick="toggleSwitch(this)"><div class="toggle-knob"></div></div>
+            </div>
+            <div class="flex items-center justify-between py-2.5 border-b" style="border-color:#f5f5f5; cursor:pointer;" onclick="showToast('Moltos v1.0.0')">
+              <p class="text-xs text-ink">關於 Moltos</p>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8B8B8B" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+            <div class="flex items-center justify-between py-2.5 cursor-pointer" onclick="showToast('已登出')">
+              <p class="text-xs" style="color:#E53935;">登出</p>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E53935" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== Tab Bar ==================== -->
+    <div class="absolute bottom-0 left-0 right-0 bg-white border-t flex items-center justify-around py-2 z-40" style="border-color:#E8D5C4; padding-bottom: env(safe-area-inset-bottom, 8px);" id="tabBar">
+      <div class="tab-item flex flex-col items-center gap-0.5 px-3 py-1" onclick="switchTab('dashboard')" data-tab="dashboard">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span class="text-[10px] font-medium">首頁</span>
+      </div>
+      <div class="tab-item flex flex-col items-center gap-0.5 px-3 py-1" onclick="switchTab('chat')" data-tab="chat">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        <span class="text-[10px] font-medium">對話</span>
+      </div>
+      <div class="tab-item flex flex-col items-center gap-0.5 px-3 py-1" onclick="switchTab('insights')" data-tab="insights">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        <span class="text-[10px] font-medium">回顧</span>
+      </div>
+      <div class="tab-item flex flex-col items-center gap-0.5 px-3 py-1" onclick="switchTab('settings')" data-tab="settings">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        <span class="text-[10px] font-medium">設定</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ===== 畫面管理 =====
+let currentScreen = 'onboarding';
+
+function switchScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.remove('active');
+    s.style.display = 'none';
+  });
+  const target = document.getElementById('screen-' + name);
+  if (target) {
+    target.style.display = 'flex';
+    void target.offsetWidth;
+    target.classList.add('active');
+  }
+  currentScreen = name;
+
+  // Tab 狀態同步
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  const activeTab = document.querySelector(`[data-tab="${name}"]`);
+  if (activeTab) activeTab.classList.add('active');
+
+  // Tab bar 在 onboarding 時隱藏
+  document.getElementById('tabBar').style.display = name === 'onboarding' ? 'none' : 'flex';
+
+  // Dashboard 平靜指數環動畫
+  if (name === 'dashboard') {
+    setTimeout(() => animateStressRing(38), 300);
+  }
+}
+
+function switchTab(name) {
+  switchScreen(name);
+}
+
+// ===== Toast =====
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+// ===== 平靜指數環動畫 =====
+function animateStressRing(targetValue) {
+  const ring = document.getElementById('stressRing');
+  const numEl = document.getElementById('stressNumber');
+  const labelEl = document.getElementById('stressLabel');
+  const circumference = 2 * Math.PI * 42; // 263.89
+
+  // 顏色判定（平靜指數：低=紅色需要關注、中=橘色還可以、高=綠色很好）
+  let color;
+  if (targetValue <= 40) color = '#E53935';
+  else if (targetValue <= 70) color = '#FF9800';
+  else color = '#4CAF50';
+
+  ring.style.stroke = color;
+  labelEl.style.color = color;
+
+  // Label
+  if (targetValue <= 40) labelEl.textContent = '需要關注';
+  else if (targetValue <= 70) labelEl.textContent = '還可以';
+  else labelEl.textContent = '很好';
+
+  // 進度
+  const offset = circumference - (targetValue / 100) * circumference;
+  ring.style.strokeDashoffset = offset;
+
+  // 數字計數動畫
+  let current = 0;
+  const step = targetValue / 40;
+  const counter = setInterval(() => {
+    current += step;
+    if (current >= targetValue) {
+      current = targetValue;
+      clearInterval(counter);
+    }
+    numEl.textContent = Math.round(current);
+  }, 25);
+}
+
+// ===== Toggle =====
+function toggleSwitch(el) {
+  if (el.classList.contains('on')) {
+    el.classList.remove('on');
+    el.classList.add('off');
+  } else {
+    el.classList.remove('off');
+    el.classList.add('on');
+  }
+}
+
+// ===== 通話模擬 =====
+let callTimerInterval = null;
+let callSeconds = 0;
+
+function startCall() {
+  const overlay = document.getElementById('callOverlay');
+  overlay.style.display = 'flex';
+  void overlay.offsetWidth;
+  overlay.classList.add('active');
+  callSeconds = 0;
+  updateCallTimer();
+  callTimerInterval = setInterval(() => {
+    callSeconds++;
+    updateCallTimer();
+    if (callSeconds >= 30) endCall();
+  }, 1000);
+}
+
+function endCall() {
+  clearInterval(callTimerInterval);
+  const overlay = document.getElementById('callOverlay');
+  overlay.classList.remove('active');
+  setTimeout(() => { overlay.style.display = 'none'; }, 400);
+
+  // 如果在對話畫面，追加訊息
+  if (currentScreen === 'chat') {
+    setTimeout(() => {
+      addMessage('剛才聊得很好，記得今天給自己一點休息時間 💙', false);
+    }, 800);
+  }
+}
+
+function updateCallTimer() {
+  const m = String(Math.floor(callSeconds / 60)).padStart(2, '0');
+  const s = String(callSeconds % 60).padStart(2, '0');
+  document.getElementById('callTimer').textContent = m + ':' + s;
+}
+
+// ===== Chat =====
+let isProcessing = false;
+
+function getTime() {
+  const d = new Date();
+  const h = d.getHours();
+  const m = String(d.getMinutes()).padStart(2, '0');
+  const period = h < 12 ? '上午' : '下午';
+  const hour12 = h % 12 || 12;
+  return `${period} ${hour12}:${m}`;
+}
+
+// Moltos 心跳線 icon SVG（小）
+const moltosIconSmall = `<svg width="14" height="10" viewBox="0 0 60 40" fill="none"><polyline points="0,20 12,20 16,8 20,32 24,14 28,26 32,18 36,22 40,20 60,20" stroke="white" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+function addMessage(text, isUser) {
+  const container = document.getElementById('chatMessages');
+  const wrapper = document.createElement('div');
+  wrapper.className = 'msg-enter';
+
+  if (isUser) {
+    wrapper.innerHTML = `
+      <div class="flex justify-end">
+        <div>
+          <div class="rounded-card rounded-br-sm px-3.5 py-2.5 max-w-[240px]" style="background:#C67A52;">
+            <p class="text-sm text-white leading-relaxed">${escapeHtml(text)}</p>
+          </div>
+          <p class="text-[10px] text-muted mt-1 text-right mr-1">${getTime()}</p>
+        </div>
+      </div>`;
+  } else {
+    wrapper.innerHTML = `
+      <div class="flex gap-2 items-end">
+        <div class="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-1" style="background:#C67A52;">
+          ${moltosIconSmall}
+        </div>
+        <div>
+          <div class="bg-white rounded-card rounded-bl-sm px-3.5 py-2.5 max-w-[240px]">
+            <p class="text-sm text-ink leading-relaxed">${text}</p>
+          </div>
+          <p class="text-[10px] text-muted mt-1 ml-1">${getTime()}</p>
+        </div>
+      </div>`;
+  }
+
+  container.appendChild(wrapper);
+  container.scrollTop = container.scrollHeight;
+}
+
+function addTypingIndicator() {
+  const container = document.getElementById('chatMessages');
+  const wrapper = document.createElement('div');
+  wrapper.id = 'typingIndicator';
+  wrapper.className = 'msg-enter';
+  wrapper.innerHTML = `
+    <div class="flex gap-2 items-end">
+      <div class="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-1" style="background:#C67A52;">
+        ${moltosIconSmall}
+      </div>
+      <div class="bg-white rounded-card rounded-bl-sm px-4 py-3">
+        <div class="flex gap-1.5">
+          <span class="typing-dot"></span>
+          <span class="typing-dot"></span>
+          <span class="typing-dot"></span>
+        </div>
+      </div>
+    </div>`;
+  container.appendChild(wrapper);
+  container.scrollTop = container.scrollHeight;
+}
+
+function removeTypingIndicator() {
+  const el = document.getElementById('typingIndicator');
+  if (el) el.remove();
+}
+
+function getReply(text) {
+  const t = text.toLowerCase();
+
+  // 壓力 / 累 / 煩 / 焦慮
+  if (t.includes('壓力') || t.includes('累') || t.includes('煩') || t.includes('焦慮') || t.includes('撐不住') || t.includes('崩潰')) {
+    return '我聽到你了 🫂 忙碌的時候，情緒很容易被忽略。你願意跟我多說一點嗎？或者我們可以<b>語音聊 5 分鐘</b>，有時候說出來就會好很多。';
+  }
+
+  // 待辦 / 工作 / 任務
+  if (t.includes('待辦') || t.includes('工作') || t.includes('任務') || t.includes('事情')) {
+    return `我幫你整理了一下：<div class="border rounded-lg p-3 mt-2" style="border-color: #E8D5C4;">
+      <p class="text-xs font-semibold text-ink mb-2">📋 今日優先級</p>
+      <div class="space-y-1.5">
+        <p class="text-xs text-ink">1. 🔴 回覆客戶提案（截止今天）</p>
+        <p class="text-xs text-ink">2. 🟡 團隊週會準備（明天早上）</p>
+        <p class="text-xs text-ink">3. 🟢 整理本週進度報告（週五前）</p>
+      </div></div>`;
+  }
+
+  // 通話 / 打電話 / 聊聊
+  if (t.includes('通話') || t.includes('打電話') || t.includes('聊聊') || t.includes('語音')) {
+    setTimeout(() => startCall(), 500);
+    return '好的，我來打給你，準備好了嗎？ 📞';
+  }
+
+  // 預設回覆
+  return '我記住了，有什麼需要隨時跟我說 😊';
+}
+
+function sendMessage() {
+  if (isProcessing) return;
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  isProcessing = true;
+  input.value = '';
+  addMessage(text, true);
+
+  setTimeout(() => {
+    addTypingIndicator();
+    const delay = 800 + Math.random() * 800;
+    setTimeout(() => {
+      removeTypingIndicator();
+      addMessage(getReply(text), false);
+      isProcessing = false;
+    }, delay);
+  }, 300);
+}
+
+function sendQuick(text) {
+  if (isProcessing) return;
+  const input = document.getElementById('chatInput');
+
+  // 如果是「我想抒發」，填入輸入框但不送出
+  if (text === '我現在心裡有些話想說...') {
+    input.value = text;
+    input.focus();
+    return;
+  }
+
+  input.value = '';
+  isProcessing = true;
+  addMessage(text, true);
+
+  setTimeout(() => {
+    addTypingIndicator();
+    const delay = 800 + Math.random() * 800;
+    setTimeout(() => {
+      removeTypingIndicator();
+      addMessage(getReply(text), false);
+      isProcessing = false;
+    }, delay);
+  }, 300);
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ===== 初始化 =====
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('tabBar').style.display = 'none';
+});
+</script>
+
+</body>
+</html>
