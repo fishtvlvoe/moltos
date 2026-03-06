@@ -148,6 +148,48 @@ tailwind.config = {
   .send-btn { transition: background 0.2s ease, transform 0.15s ease; }
   .send-btn:active { transform: scale(0.9); }
 
+  /* 輸入區圖標按鈕 */
+  .input-icon-btn {
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; cursor: pointer;
+    transition: transform 0.15s ease, background 0.2s ease;
+    background: transparent; border: none; padding: 0;
+    flex-shrink: 0;
+  }
+  .input-icon-btn:hover { transform: scale(1.1); background: rgba(232, 213, 196, 0.3); }
+  .input-icon-btn:active { transform: scale(0.95); }
+
+  /* 語音按鈕 */
+  .voice-btn {
+    width: 40px; height: 40px;
+    border-radius: 50%; display: flex;
+    align-items: center; justify-content: center;
+    cursor: pointer; border: none; flex-shrink: 0;
+    transition: transform 0.15s ease, background 0.2s ease;
+  }
+  .voice-btn:hover { transform: scale(1.1); }
+  .voice-btn:active { transform: scale(0.95); }
+
+  /* 錄音脈衝動畫 */
+  .recording-pulse {
+    animation: recPulse 1.2s ease-in-out infinite;
+  }
+  @keyframes recPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.4); }
+    50% { box-shadow: 0 0 0 10px rgba(229, 57, 53, 0); }
+  }
+
+  /* 語音氣泡波形 */
+  .voice-bubble-bar {
+    display: inline-block;
+    width: 3px; border-radius: 2px;
+    background: rgba(255,255,255,0.7);
+  }
+
+  /* 隱藏 file input */
+  .hidden-file-input { display: none; }
+
   /* Onboarding 功能卡 */
   .feature-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
   .feature-card:hover {
@@ -536,23 +578,47 @@ tailwind.config = {
       <!-- Quick Actions -->
       <div class="px-4 pb-1.5 flex gap-2 overflow-x-auto hide-scrollbar">
         <button class="quick-btn text-xs px-3 py-1.5 rounded-pill border font-medium flex-shrink-0" style="border-color:#E8D5C4; color:#C67A52; background:#FFF8F4;" onclick="startCall()">📞 語音通話</button>
-        <button class="quick-btn text-xs px-3 py-1.5 rounded-pill border font-medium flex-shrink-0" style="border-color:#E8D5C4; color:#C67A52; background:#FFF8F4;" onclick="sendQuick('我現在心裡有些話想說...')">😤 我想抒發</button>
+        <button class="quick-btn text-xs px-3 py-1.5 rounded-pill border font-medium flex-shrink-0" style="border-color:#E8D5C4; color:#C67A52; background:#FFF8F4;" onclick="sendQuick('我想跟你聊聊最近的事...')">💭 我想聊聊</button>
         <button class="quick-btn text-xs px-3 py-1.5 rounded-pill border font-medium flex-shrink-0" style="border-color:#E8D5C4; color:#C67A52; background:#FFF8F4;" onclick="sendQuick('幫我看待辦')">📋 看待辦</button>
       </div>
 
-      <!-- Input -->
-      <div class="px-4 pb-5 pt-2 flex gap-2 items-end" style="padding-bottom: env(safe-area-inset-bottom, 20px);">
-        <input type="text" id="chatInput" placeholder="輸入訊息..."
-          class="flex-1 bg-white rounded-pill px-4 py-2.5 text-sm text-ink outline-none border"
-          style="border-color:#E8D5C4;"
-          onkeydown="if(event.key==='Enter')sendMessage()">
-        <button class="send-btn w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background:#C67A52;" onclick="sendMessage()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        </button>
-        <button class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 border" style="border-color:#E8D5C4; background: white;" onclick="startCall()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C67A52" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-        </button>
+      <!-- Input Area -->
+      <div class="px-3 pb-5 pt-2" style="padding-bottom: env(safe-area-inset-bottom, 20px);">
+        <div class="flex items-end gap-1.5">
+          <!-- 左側圖標列 -->
+          <div class="flex items-center gap-0.5 pb-1">
+            <button class="input-icon-btn" onclick="showToast('相機功能即將推出')" title="拍照">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B8B8B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            </button>
+            <button class="input-icon-btn" onclick="triggerImageUpload()" title="圖片">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B8B8B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </button>
+            <button class="input-icon-btn" onclick="showToast('檔案上傳功能即將推出')" title="附件">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B8B8B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+            </button>
+          </div>
+          <!-- 中間輸入框 -->
+          <input type="text" id="chatInput" placeholder="說說你的想法..."
+            class="flex-1 bg-white rounded-pill px-4 py-2.5 text-sm text-ink outline-none border"
+            style="border-color:#E8D5C4; min-width: 0;"
+            oninput="toggleSendVoiceBtn()"
+            onkeydown="if(event.key==='Enter')sendMessage()">
+          <!-- 右側：語音 / 送出按鈕（互斥） -->
+          <button id="voiceBtn" class="voice-btn" style="background:#C67A52;" onclick="toggleRecording()" title="語音訊息">
+            <svg id="voiceMicIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          </button>
+          <button id="sendBtn" class="send-btn w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background:#C67A52; display:none;" onclick="sendMessage()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+        <!-- 錄音時長（隱藏，錄音時顯示） -->
+        <div id="recordingTimer" class="text-center mt-1.5" style="display:none;">
+          <span class="text-xs font-medium" style="color:#E53935;">● 正在錄音</span>
+          <span id="recordingDuration" class="text-xs font-medium ml-1" style="color:#E53935;">00:00</span>
+        </div>
       </div>
+      <!-- 隱藏的 file input -->
+      <input type="file" id="imageFileInput" class="hidden-file-input" accept="image/*" onchange="handleImageUpload(event)">
     </div>
 
     <!-- ==================== 畫面 3：Insights（回顧） ==================== -->
@@ -1073,6 +1139,7 @@ function sendMessage() {
 
   isProcessing = true;
   input.value = '';
+  toggleSendVoiceBtn();
   addMessage(text, true);
 
   setTimeout(() => {
@@ -1090,10 +1157,11 @@ function sendQuick(text) {
   if (isProcessing) return;
   const input = document.getElementById('chatInput');
 
-  // 如果是「我想抒發」，填入輸入框但不送出
-  if (text === '我現在心裡有些話想說...') {
+  // 如果是「我想聊聊」，填入輸入框但不送出
+  if (text === '我想跟你聊聊最近的事...') {
     input.value = text;
     input.focus();
+    toggleSendVoiceBtn();
     return;
   }
 
@@ -1116,6 +1184,197 @@ function escapeHtml(str) {
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;
+}
+
+// ===== 輸入區：語音 / 送出按鈕切換 =====
+function toggleSendVoiceBtn() {
+  const input = document.getElementById('chatInput');
+  const voiceBtn = document.getElementById('voiceBtn');
+  const sendBtn = document.getElementById('sendBtn');
+  if (input.value.trim()) {
+    voiceBtn.style.display = 'none';
+    sendBtn.style.display = 'flex';
+  } else {
+    voiceBtn.style.display = 'flex';
+    sendBtn.style.display = 'none';
+  }
+}
+
+// ===== 語音錄音 =====
+let isRecording = false;
+let recordingInterval = null;
+let recordingSeconds = 0;
+
+function toggleRecording() {
+  if (isRecording) {
+    stopRecording();
+  } else {
+    startRecording();
+  }
+}
+
+function startRecording() {
+  isRecording = true;
+  recordingSeconds = 0;
+  const voiceBtn = document.getElementById('voiceBtn');
+  const input = document.getElementById('chatInput');
+  const timer = document.getElementById('recordingTimer');
+  const duration = document.getElementById('recordingDuration');
+
+  // 按鈕變紅 + 脈衝
+  voiceBtn.style.background = '#E53935';
+  voiceBtn.classList.add('recording-pulse');
+
+  // 輸入框顯示「正在聆聽...」
+  input.dataset.prevPlaceholder = input.placeholder;
+  input.dataset.prevValue = input.value;
+  input.value = '';
+  input.placeholder = '正在聆聽...';
+  input.style.fontStyle = 'italic';
+  input.style.color = '#8B8B8B';
+  input.disabled = true;
+
+  // 顯示計時器
+  timer.style.display = 'block';
+  duration.textContent = '00:00';
+  recordingInterval = setInterval(() => {
+    recordingSeconds++;
+    const m = String(Math.floor(recordingSeconds / 60)).padStart(2, '0');
+    const s = String(recordingSeconds % 60).padStart(2, '0');
+    duration.textContent = `${m}:${s}`;
+  }, 1000);
+}
+
+function stopRecording() {
+  isRecording = false;
+  clearInterval(recordingInterval);
+  const voiceBtn = document.getElementById('voiceBtn');
+  const input = document.getElementById('chatInput');
+  const timer = document.getElementById('recordingTimer');
+
+  // 還原按鈕
+  voiceBtn.style.background = '#C67A52';
+  voiceBtn.classList.remove('recording-pulse');
+
+  // 還原輸入框
+  input.placeholder = '說說你的想法...';
+  input.style.fontStyle = '';
+  input.style.color = '';
+  input.disabled = false;
+  input.value = input.dataset.prevValue || '';
+  toggleSendVoiceBtn();
+
+  // 隱藏計時器
+  timer.style.display = 'none';
+
+  // 計算時長
+  const totalSec = recordingSeconds;
+  const dispMin = Math.floor(totalSec / 60);
+  const dispSec = String(totalSec % 60).padStart(2, '0');
+  const durationText = `${dispMin}:${dispSec}`;
+
+  // 產生隨機波形高度
+  const bars = [];
+  for (let i = 0; i < 20; i++) {
+    bars.push(4 + Math.floor(Math.random() * 16));
+  }
+  const barsSvg = bars.map((h, i) => {
+    const x = 4 + i * 8;
+    const y = 12 - h / 2;
+    return `<rect x="${x}" y="${y}" width="3" height="${h}" rx="1.5" fill="rgba(255,255,255,0.75)"/>`;
+  }).join('');
+
+  // 新增語音氣泡到聊天區
+  addVoiceBubble(durationText, barsSvg);
+}
+
+function addVoiceBubble(durationText, barsSvg) {
+  const container = document.getElementById('chatMessages');
+  const wrapper = document.createElement('div');
+  wrapper.className = 'msg-enter';
+  wrapper.innerHTML = `
+    <div class="flex justify-end">
+      <div>
+        <div class="rounded-card rounded-br-sm px-3.5 py-2.5 flex items-center gap-2" style="background:#C67A52; min-width: 160px;">
+          <button class="flex-shrink-0" onclick="showToast('語音播放功能即將推出')" style="background:none;border:none;cursor:pointer;padding:0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          </button>
+          <svg width="164" height="24" viewBox="0 0 164 24">${barsSvg}</svg>
+          <span class="text-xs text-white/80 flex-shrink-0 font-medium">${durationText}</span>
+        </div>
+        <p class="text-[10px] text-muted mt-1 text-right mr-1">${getTime()}</p>
+      </div>
+    </div>`;
+  container.appendChild(wrapper);
+  container.scrollTop = container.scrollHeight;
+
+  // Moltos 回覆
+  setTimeout(() => {
+    addTypingIndicator();
+    setTimeout(() => {
+      removeTypingIndicator();
+      addMessage('我聽到你說的了，讓我想想... 🎧<br><br>聽起來你最近承受了不少，光是願意開口說出來，就已經很棒了。我們可以慢慢聊，不急 🫂', false);
+    }, 1200);
+  }, 400);
+}
+
+// ===== 圖片上傳 =====
+function triggerImageUpload() {
+  document.getElementById('imageFileInput').click();
+}
+
+function handleImageUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const container = document.getElementById('chatMessages');
+  const wrapper = document.createElement('div');
+  wrapper.className = 'msg-enter';
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    wrapper.innerHTML = `
+      <div class="flex justify-end">
+        <div>
+          <div class="rounded-xl overflow-hidden" style="max-width: 200px;">
+            <img src="${e.target.result}" alt="上傳的圖片" style="width:100%; display:block; border-radius:12px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div style="display:none; width:200px; height:160px; background:#E8E6E2; border-radius:12px; align-items:center; justify-content:center;">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#8B8B8B" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
+          </div>
+          <p class="text-[10px] text-muted mt-1 text-right mr-1">${getTime()}</p>
+        </div>
+      </div>`;
+    container.appendChild(wrapper);
+    container.scrollTop = container.scrollHeight;
+
+    // Moltos 回覆
+    setTimeout(() => {
+      addTypingIndicator();
+      setTimeout(() => {
+        removeTypingIndicator();
+        addMessage('收到你的照片了，看起來...讓我想想要怎麼幫你整理 📸', false);
+      }, 1000);
+    }, 400);
+  };
+
+  reader.onerror = function() {
+    wrapper.innerHTML = `
+      <div class="flex justify-end">
+        <div>
+          <div style="width:200px; height:160px; background:#E8E6E2; border-radius:12px; display:flex; align-items:center; justify-content:center;">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#8B8B8B" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          </div>
+          <p class="text-[10px] text-muted mt-1 text-right mr-1">${getTime()}</p>
+        </div>
+      </div>`;
+    container.appendChild(wrapper);
+    container.scrollTop = container.scrollHeight;
+  };
+
+  reader.readAsDataURL(file);
+  // 重置 input 以允許重複上傳同一檔案
+  event.target.value = '';
 }
 
 // ===== 初始化 =====
