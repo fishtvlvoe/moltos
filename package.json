@@ -1,0 +1,38 @@
+{
+  "name": "@moltos/calm-index",
+  "version": "0.1.0",
+  "description": "Moltos Calm Index - 平靜指數演算法核心框架 | Core algorithm framework for personal mental wellness monitoring",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "mental-health",
+    "wellness",
+    "calm-index",
+    "anomaly-detection",
+    "baseline",
+    "z-score",
+    "voice-emotion",
+    "moltos"
+  ],
+  "author": "核流有限公司 (Moltos Inc.) <hello@moltos.net>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/moltos-inc/calm-index"
+  },
+  "homepage": "https://moltos.net",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}
