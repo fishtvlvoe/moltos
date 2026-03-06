@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>競品定位矩陣</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #FAF8F4;
+    font-family: system-ui, -apple-system, sans-serif;
+    display: flex; justify-content: center; align-items: center;
+    min-height: 100vh;
+  }
+  .chart-container {
+    width: 800px; height: 500px;
+    background: #FAF8F4;
+    position: relative;
+    padding: 36px 40px 40px 40px;
+  }
+  h2 {
+    text-align: center;
+    color: #3A2E2E;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+</style>
+</head>
+<body>
+<div class="chart-container">
+  <h2>競品定位矩陣</h2>
+  <svg viewBox="0 0 720 400" width="720" height="400">
+    <!-- 四象限背景 -->
+    <rect x="110" y="10" width="280" height="175" rx="8" fill="#F3EDE8" opacity="0.7"/>
+    <rect x="390" y="10" width="280" height="175" rx="8" fill="#EDE8F3" opacity="0.7"/>
+    <rect x="110" y="185" width="280" height="175" rx="8" fill="#F8F4EE" opacity="0.7"/>
+    <rect x="390" y="185" width="280" height="175" rx="8" fill="#F0ECF6" opacity="0.7"/>
+
+    <!-- 象限標籤 -->
+    <text x="250" y="38" text-anchor="middle" font-size="11" fill="#AAA">被動 × 心理健康</text>
+    <text x="530" y="38" text-anchor="middle" font-size="11" fill="#AAA">主動 × 心理健康</text>
+    <text x="250" y="348" text-anchor="middle" font-size="11" fill="#AAA">被動 × 工具</text>
+    <text x="530" y="348" text-anchor="middle" font-size="11" fill="#AAA">主動 × 工具</text>
+
+    <!-- 軸線 -->
+    <line x1="110" y1="185" x2="670" y2="185" stroke="#CCC" stroke-width="1.5"/>
+    <line x1="390" y1="10" x2="390" y2="360" stroke="#CCC" stroke-width="1.5"/>
+
+    <!-- X 軸標籤 -->
+    <text x="120" y="195" font-size="12" fill="#888" dominant-baseline="hanging">被動（用戶主動）</text>
+    <text x="670" y="195" text-anchor="end" font-size="12" fill="#888" dominant-baseline="hanging">主動（AI 先行）</text>
+
+    <!-- Y 軸標籤 -->
+    <text x="100" y="370" text-anchor="end" font-size="12" fill="#888" transform="rotate(-90, 100, 370)">工具導向</text>
+    <text x="100" y="110" text-anchor="end" font-size="12" fill="#888" transform="rotate(-90, 100, 110)">心理健康導向</text>
+
+    <!-- 箭頭 X -->
+    <polygon points="668,181 678,185 668,189" fill="#CCC"/>
+    <!-- 箭頭 Y -->
+    <polygon points="386,12 390,2 394,12" fill="#CCC"/>
+
+    <!-- ChatGPT：左下（被動 × 工具）-->
+    <circle cx="210" cy="280" r="26" fill="#E8DDD4" stroke="#C67A52" stroke-width="2"/>
+    <text x="210" y="276" text-anchor="middle" font-size="11" font-weight="600" fill="#8B5E3C">Chat</text>
+    <text x="210" y="290" text-anchor="middle" font-size="11" font-weight="600" fill="#8B5E3C">GPT</text>
+
+    <!-- Replika / Pi：左邊中間（被動 × 略偏心理健康）-->
+    <circle cx="200" cy="165" r="24" fill="#E8DDD4" stroke="#C67A52" stroke-width="2"/>
+    <text x="200" y="162" text-anchor="middle" font-size="10" font-weight="600" fill="#8B5E3C">Replika</text>
+    <text x="200" y="175" text-anchor="middle" font-size="10" font-weight="600" fill="#8B5E3C">/ Pi</text>
+
+    <!-- Woebot / Wysa：左上（被動 × 心理健康）-->
+    <circle cx="240" cy="70" r="26" fill="#E8DDD4" stroke="#C67A52" stroke-width="2"/>
+    <text x="240" y="66" text-anchor="middle" font-size="10" font-weight="600" fill="#8B5E3C">Woebot</text>
+    <text x="240" y="80" text-anchor="middle" font-size="10" font-weight="600" fill="#8B5E3C">/ Wysa</text>
+
+    <!-- Headspace Ebb：中上方（輕度主動 × 心理健康）-->
+    <circle cx="430" cy="65" r="24" fill="#E8DDD4" stroke="#C67A52" stroke-width="2"/>
+    <text x="430" y="60" text-anchor="middle" font-size="9" font-weight="600" fill="#8B5E3C">Headspace</text>
+    <text x="430" y="73" text-anchor="middle" font-size="9" font-weight="600" fill="#8B5E3C">Ebb</text>
+
+    <!-- Moltos：右上（主動 × 心理健康）— 突出 -->
+    <circle cx="590" cy="50" r="34" fill="#7B5EA7" fill-opacity="0.15" stroke="#7B5EA7" stroke-width="3"/>
+    <circle cx="590" cy="50" r="28" fill="#7B5EA7" fill-opacity="0.25"/>
+    <text x="590" y="47" text-anchor="middle" font-size="14" font-weight="800" fill="#5A3D8A">Moltos</text>
+    <text x="590" y="63" text-anchor="middle" font-size="9" font-weight="500" fill="#7B5EA7">主動關懷</text>
+
+  </svg>
+</div>
+</body>
+</html>

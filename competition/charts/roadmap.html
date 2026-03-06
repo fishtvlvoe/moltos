@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>Moltos 開發路線圖</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #FAF8F4;
+    font-family: system-ui, -apple-system, sans-serif;
+    display: flex; justify-content: center; align-items: center;
+    min-height: 100vh;
+  }
+  .chart-container {
+    width: 800px; height: 500px;
+    background: #FAF8F4;
+    position: relative;
+    padding: 30px 30px 30px 30px;
+  }
+  h2 {
+    text-align: center;
+    color: #3A2E2E;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+</style>
+</head>
+<body>
+<div class="chart-container">
+  <h2>Moltos 開發路線圖</h2>
+  <svg viewBox="0 0 740 420" width="740" height="420">
+    <defs>
+      <linearGradient id="timelineGrad" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#C67A52"/>
+        <stop offset="50%" stop-color="#7B5EA7"/>
+        <stop offset="100%" stop-color="#87CEEB"/>
+      </linearGradient>
+      <filter id="cardShadow" x="-2%" y="-2%" width="104%" height="108%">
+        <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#00000010"/>
+      </filter>
+    </defs>
+
+    <!-- 時間軸線 -->
+    <line x1="40" y1="60" x2="700" y2="60" stroke="url(#timelineGrad)" stroke-width="4" stroke-linecap="round"/>
+
+    <!-- 時間軸節點 -->
+    <circle cx="130" cy="60" r="10" fill="#C67A52" stroke="#FFF" stroke-width="3"/>
+    <circle cx="370" cy="60" r="10" fill="#7B5EA7" stroke="#FFF" stroke-width="3"/>
+    <circle cx="610" cy="60" r="10" fill="#87CEEB" stroke="#FFF" stroke-width="3"/>
+
+    <!-- Phase 1 卡片 -->
+    <line x1="130" y1="70" x2="130" y2="100" stroke="#C67A52" stroke-width="2"/>
+    <rect x="20" y="100" width="220" height="300" rx="12" fill="#FFF" stroke="#C67A52" stroke-width="2" filter="url(#cardShadow)"/>
+
+    <!-- Phase 1 標頭 -->
+    <rect x="20" y="100" width="220" height="50" rx="12" fill="#C67A52"/>
+    <rect x="20" y="130" width="220" height="20" fill="#C67A52"/>
+    <text x="130" y="122" text-anchor="middle" font-size="13" font-weight="700" fill="#FFF">Phase 1 — MVP</text>
+    <text x="130" y="142" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.8)">2026 Q2</text>
+
+    <!-- Phase 1 內容 -->
+    <text x="40" y="176" font-size="12" fill="#555">功能</text>
+    <circle cx="42" cy="196" r="3" fill="#C67A52"/>
+    <text x="52" y="200" font-size="11" fill="#3A2E2E">Telegram Bot</text>
+    <circle cx="42" cy="218" r="3" fill="#C67A52"/>
+    <text x="52" y="222" font-size="11" fill="#3A2E2E">平靜指數</text>
+    <circle cx="42" cy="240" r="3" fill="#C67A52"/>
+    <text x="52" y="244" font-size="11" fill="#3A2E2E">每日 Check-in</text>
+    <circle cx="42" cy="262" r="3" fill="#C67A52"/>
+    <text x="52" y="266" font-size="11" fill="#3A2E2E">語音通話</text>
+
+    <line x1="40" y1="284" x2="220" y2="284" stroke="#F0E6DD" stroke-width="1"/>
+    <text x="40" y="304" font-size="12" fill="#555">目標</text>
+    <rect x="40" y="314" width="90" height="28" rx="14" fill="#C67A52" fill-opacity="0.12"/>
+    <text x="85" y="333" text-anchor="middle" font-size="13" font-weight="700" fill="#C67A52">100 用戶</text>
+
+    <!-- Phase 2 連線 -->
+    <path d="M 240 250 L 260 250" stroke="#DDD" stroke-width="1.5" stroke-dasharray="4,3"/>
+
+    <!-- Phase 2 卡片 -->
+    <line x1="370" y1="70" x2="370" y2="100" stroke="#7B5EA7" stroke-width="2"/>
+    <rect x="260" y="100" width="220" height="300" rx="12" fill="#FFF" stroke="#7B5EA7" stroke-width="2" filter="url(#cardShadow)"/>
+
+    <!-- Phase 2 標頭 -->
+    <rect x="260" y="100" width="220" height="50" rx="12" fill="#7B5EA7"/>
+    <rect x="260" y="130" width="220" height="20" fill="#7B5EA7"/>
+    <text x="370" y="122" text-anchor="middle" font-size="13" font-weight="700" fill="#FFF">Phase 2 — 擴展</text>
+    <text x="370" y="142" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.8)">2026 Q3–Q4</text>
+
+    <!-- Phase 2 內容 -->
+    <text x="280" y="176" font-size="12" fill="#555">功能</text>
+    <circle cx="282" cy="196" r="3" fill="#7B5EA7"/>
+    <text x="292" y="200" font-size="11" fill="#3A2E2E">LINE / Gmail / Slack</text>
+    <circle cx="282" cy="218" r="3" fill="#7B5EA7"/>
+    <text x="292" y="222" font-size="11" fill="#3A2E2E">語音情緒分析</text>
+    <circle cx="282" cy="240" r="3" fill="#7B5EA7"/>
+    <text x="292" y="244" font-size="11" fill="#3A2E2E">企業試點</text>
+    <circle cx="282" cy="262" r="3" fill="#7B5EA7"/>
+    <text x="292" y="266" font-size="11" fill="#3A2E2E">週報 / 月報</text>
+
+    <line x1="280" y1="284" x2="460" y2="284" stroke="#EDE8F3" stroke-width="1"/>
+    <text x="280" y="304" font-size="12" fill="#555">目標</text>
+    <rect x="280" y="314" width="110" height="28" rx="14" fill="#7B5EA7" fill-opacity="0.12"/>
+    <text x="335" y="333" text-anchor="middle" font-size="13" font-weight="700" fill="#7B5EA7">1,000 用戶</text>
+
+    <!-- Phase 3 連線 -->
+    <path d="M 480 250 L 500 250" stroke="#DDD" stroke-width="1.5" stroke-dasharray="4,3"/>
+
+    <!-- Phase 3 卡片 -->
+    <line x1="610" y1="70" x2="610" y2="100" stroke="#87CEEB" stroke-width="2"/>
+    <rect x="500" y="100" width="220" height="300" rx="12" fill="#FFF" stroke="#6BB8D6" stroke-width="2" filter="url(#cardShadow)"/>
+
+    <!-- Phase 3 標頭 -->
+    <rect x="500" y="100" width="220" height="50" rx="12" fill="#6BB8D6"/>
+    <rect x="500" y="130" width="220" height="20" fill="#6BB8D6"/>
+    <text x="610" y="122" text-anchor="middle" font-size="13" font-weight="700" fill="#FFF">Phase 3 — 規模化</text>
+    <text x="610" y="142" text-anchor="middle" font-size="11" fill="rgba(255,255,255,0.8)">2027</text>
+
+    <!-- Phase 3 內容 -->
+    <text x="520" y="176" font-size="12" fill="#555">功能</text>
+    <circle cx="522" cy="196" r="3" fill="#6BB8D6"/>
+    <text x="532" y="200" font-size="11" fill="#3A2E2E">WhatsApp 整合</text>
+    <circle cx="522" cy="218" r="3" fill="#6BB8D6"/>
+    <text x="532" y="222" font-size="11" fill="#3A2E2E">獨立 App</text>
+    <circle cx="522" cy="240" r="3" fill="#6BB8D6"/>
+    <text x="532" y="244" font-size="11" fill="#3A2E2E">B2B 企業方案</text>
+    <circle cx="522" cy="262" r="3" fill="#6BB8D6"/>
+    <text x="532" y="266" font-size="11" fill="#3A2E2E">洞察數據服務</text>
+
+    <line x1="520" y1="284" x2="700" y2="284" stroke="#DBF0F8" stroke-width="1"/>
+    <text x="520" y="304" font-size="12" fill="#555">目標</text>
+    <rect x="520" y="314" width="120" height="28" rx="14" fill="#6BB8D6" fill-opacity="0.15"/>
+    <text x="580" y="333" text-anchor="middle" font-size="13" font-weight="700" fill="#4A9AB8">10,000+ 用戶</text>
+  </svg>
+</div>
+</body>
+</html>

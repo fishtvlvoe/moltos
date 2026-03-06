@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>Moltos 四層系統架構</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #FAF8F4;
+    font-family: system-ui, -apple-system, sans-serif;
+    display: flex; justify-content: center; align-items: center;
+    min-height: 100vh;
+  }
+  .chart-container {
+    width: 800px; height: 500px;
+    background: #FAF8F4;
+    position: relative;
+    padding: 30px 40px 30px 40px;
+  }
+  h2 {
+    text-align: center;
+    color: #3A2E2E;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+</style>
+</head>
+<body>
+<div class="chart-container">
+  <h2>Moltos 四層系統架構</h2>
+  <svg viewBox="0 0 720 420" width="720" height="420">
+    <defs>
+      <filter id="shadow" x="-4%" y="-4%" width="108%" height="116%">
+        <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#00000012"/>
+      </filter>
+    </defs>
+
+    <!-- 第一層：通訊管道層 -->
+    <rect x="60" y="10" width="600" height="78" rx="12" fill="#F5E6DC" stroke="#D4926E" stroke-width="1.5" filter="url(#shadow)"/>
+    <text x="80" y="36" font-size="14" font-weight="700" fill="#8B4726">通訊管道層</text>
+    <rect x="80" y="46" width="100" height="30" rx="6" fill="#FFF" stroke="#D4926E" stroke-width="1"/>
+    <text x="130" y="66" text-anchor="middle" font-size="11" fill="#8B5E3C">LINE</text>
+    <rect x="192" y="46" width="100" height="30" rx="6" fill="#FFF" stroke="#D4926E" stroke-width="1"/>
+    <text x="242" y="66" text-anchor="middle" font-size="11" fill="#8B5E3C">Telegram</text>
+    <rect x="304" y="46" width="100" height="30" rx="6" fill="#FFF" stroke="#D4926E" stroke-width="1"/>
+    <text x="354" y="66" text-anchor="middle" font-size="11" fill="#8B5E3C">WhatsApp</text>
+    <rect x="416" y="46" width="100" height="30" rx="6" fill="#FFF" stroke="#D4926E" stroke-width="1"/>
+    <text x="466" y="66" text-anchor="middle" font-size="11" fill="#8B5E3C">Gmail</text>
+    <rect x="528" y="46" width="100" height="30" rx="6" fill="#FFF" stroke="#D4926E" stroke-width="1"/>
+    <text x="578" y="66" text-anchor="middle" font-size="11" fill="#8B5E3C">Slack</text>
+
+    <!-- 箭頭 1→2 -->
+    <path d="M 360 88 L 360 108" stroke="#C67A52" stroke-width="2" marker-end="url(#arrowDown)"/>
+    <defs>
+      <marker id="arrowDown" markerWidth="8" markerHeight="6" refX="4" refY="3" orient="auto">
+        <polygon points="0,0 8,3 0,6" fill="#C67A52"/>
+      </marker>
+    </defs>
+
+    <!-- 第二層：AI 大腦層 -->
+    <rect x="60" y="112" width="600" height="78" rx="12" fill="#EEDDD0" stroke="#C67A52" stroke-width="1.5" filter="url(#shadow)"/>
+    <text x="80" y="138" font-size="14" font-weight="700" fill="#8B4726">AI 大腦層</text>
+    <rect x="80" y="148" width="130" height="30" rx="6" fill="#FFF" stroke="#C67A52" stroke-width="1"/>
+    <text x="145" y="168" text-anchor="middle" font-size="11" fill="#8B5E3C">平靜指數引擎</text>
+    <rect x="222" y="148" width="130" height="30" rx="6" fill="#FFF" stroke="#C67A52" stroke-width="1"/>
+    <text x="287" y="168" text-anchor="middle" font-size="11" fill="#8B5E3C">語音情緒分析</text>
+    <rect x="364" y="148" width="130" height="30" rx="6" fill="#FFF" stroke="#C67A52" stroke-width="1"/>
+    <text x="429" y="168" text-anchor="middle" font-size="11" fill="#8B5E3C">對話引擎</text>
+    <rect x="506" y="148" width="130" height="30" rx="6" fill="#FFF" stroke="#C67A52" stroke-width="1"/>
+    <text x="571" y="168" text-anchor="middle" font-size="11" fill="#8B5E3C">行為基線偵測</text>
+
+    <!-- 箭頭 2→3 -->
+    <path d="M 360 190 L 360 210" stroke="#C67A52" stroke-width="2" marker-end="url(#arrowDown)"/>
+
+    <!-- 第三層：主動關懷層 -->
+    <rect x="60" y="214" width="600" height="78" rx="12" fill="#E4CFC0" stroke="#A85F3A" stroke-width="1.5" filter="url(#shadow)"/>
+    <text x="80" y="240" font-size="14" font-weight="700" fill="#6E3B1E">主動關懷層</text>
+    <rect x="80" y="250" width="130" height="30" rx="6" fill="#FFF" stroke="#A85F3A" stroke-width="1"/>
+    <text x="145" y="270" text-anchor="middle" font-size="11" fill="#8B5E3C">排程引擎</text>
+    <rect x="222" y="250" width="130" height="30" rx="6" fill="#FFF" stroke="#A85F3A" stroke-width="1"/>
+    <text x="287" y="270" text-anchor="middle" font-size="11" fill="#8B5E3C">介入決策器</text>
+    <rect x="364" y="250" width="130" height="30" rx="6" fill="#FFF" stroke="#A85F3A" stroke-width="1"/>
+    <text x="429" y="270" text-anchor="middle" font-size="11" fill="#8B5E3C">語音通話</text>
+    <rect x="506" y="250" width="130" height="30" rx="6" fill="#FFF" stroke="#A85F3A" stroke-width="1"/>
+    <text x="571" y="270" text-anchor="middle" font-size="11" fill="#8B5E3C">回顧產生器</text>
+
+    <!-- 箭頭 3→4 -->
+    <path d="M 360 292 L 360 312" stroke="#C67A52" stroke-width="2" marker-end="url(#arrowDown)"/>
+
+    <!-- 第四層：隱私保護層 -->
+    <rect x="60" y="316" width="600" height="78" rx="12" fill="#D9C4B4" stroke="#8B4726" stroke-width="1.5" filter="url(#shadow)"/>
+    <text x="80" y="342" font-size="14" font-weight="700" fill="#5C2E10">隱私保護層</text>
+    <rect x="80" y="352" width="130" height="30" rx="6" fill="#FFF" stroke="#8B4726" stroke-width="1"/>
+    <text x="145" y="372" text-anchor="middle" font-size="11" fill="#8B5E3C">端對端加密</text>
+    <rect x="222" y="352" width="130" height="30" rx="6" fill="#FFF" stroke="#8B4726" stroke-width="1"/>
+    <text x="287" y="372" text-anchor="middle" font-size="11" fill="#8B5E3C">本地計算</text>
+    <rect x="364" y="352" width="130" height="30" rx="6" fill="#FFF" stroke="#8B4726" stroke-width="1"/>
+    <text x="429" y="372" text-anchor="middle" font-size="11" fill="#8B5E3C">資料控制</text>
+    <rect x="506" y="352" width="130" height="30" rx="6" fill="#FFF" stroke="#8B4726" stroke-width="1"/>
+    <text x="571" y="372" text-anchor="middle" font-size="11" fill="#8B5E3C">匿名化處理</text>
+
+    <!-- 右側資料流標籤 -->
+    <text x="690" y="100" font-size="10" fill="#C67A52" transform="rotate(90, 690, 100)">資料流</text>
+    <line x1="680" y1="88" x2="680" y2="316" stroke="#C67A52" stroke-width="1" stroke-dasharray="4,3"/>
+    <polygon points="676,314 680,324 684,314" fill="#C67A52"/>
+  </svg>
+</div>
+</body>
+</html>

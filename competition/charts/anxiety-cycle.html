@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>訊息焦慮惡性循環</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #FAF8F4;
+    font-family: system-ui, -apple-system, sans-serif;
+    display: flex; justify-content: center; align-items: center;
+    min-height: 100vh;
+  }
+  .chart-container {
+    width: 800px; height: 500px;
+    background: #FAF8F4;
+    position: relative;
+    padding: 30px 40px 30px 40px;
+  }
+  h2 {
+    text-align: center;
+    color: #3A2E2E;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+</style>
+</head>
+<body>
+<div class="chart-container">
+  <h2>訊息焦慮惡性循環</h2>
+  <svg viewBox="0 0 720 420" width="720" height="420">
+    <defs>
+      <marker id="arrowCurve" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+        <polygon points="0,0 8,3 0,6" fill="#C67A52"/>
+      </marker>
+      <linearGradient id="moltosGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#7B5EA7"/>
+        <stop offset="100%" stop-color="#87CEEB"/>
+      </linearGradient>
+    </defs>
+
+    <!-- 中心座標 (360, 210)，半徑 150 -->
+    <!-- 6 個節點，角度：-90, -30, 30, 90, 150, 210 度 -->
+    <!-- 節點 1：訊息爆量（頂部，-90°）→ (360, 60) -->
+    <!-- 節點 2：處理不完（-30°）→ (490, 135) -->
+    <!-- 節點 3：焦慮累積（30°）→ (490, 285) -->
+    <!-- 節點 4：不敢說、沒人問（90°）→ (360, 360) -->
+    <!-- 節點 5：壓力內化（150°）→ (230, 285) -->
+    <!-- 節點 6：工作效率下降（210°）→ (230, 135) -->
+
+    <!-- 連線弧（箭頭）1→2 -->
+    <path d="M 400 72 Q 465 70 478 120" stroke="#C67A52" stroke-width="2" fill="none" marker-end="url(#arrowCurve)"/>
+    <!-- 2→3 -->
+    <path d="M 508 155 Q 530 210 508 268" stroke="#C67A52" stroke-width="2" fill="none" marker-end="url(#arrowCurve)"/>
+    <!-- 3→4 -->
+    <path d="M 478 302 Q 445 348 400 358" stroke="#C67A52" stroke-width="2" fill="none" marker-end="url(#arrowCurve)"/>
+    <!-- 4→5 -->
+    <path d="M 320 358 Q 268 348 242 302" stroke="#C67A52" stroke-width="2" fill="none" marker-end="url(#arrowCurve)"/>
+    <!-- 5→6 -->
+    <path d="M 212 268 Q 192 210 212 155" stroke="#C67A52" stroke-width="2" fill="none" marker-end="url(#arrowCurve)"/>
+    <!-- 6→1 -->
+    <path d="M 242 120 Q 275 72 320 62" stroke="#C67A52" stroke-width="2" fill="none" marker-end="url(#arrowCurve)"/>
+
+    <!-- 節點 1：訊息爆量 -->
+    <circle cx="360" cy="60" r="40" fill="#FFF" stroke="#C67A52" stroke-width="2.5"/>
+    <text x="360" y="56" text-anchor="middle" font-size="13" font-weight="600" fill="#8B4726">訊息</text>
+    <text x="360" y="72" text-anchor="middle" font-size="13" font-weight="600" fill="#8B4726">爆量</text>
+
+    <!-- 節點 2：處理不完 -->
+    <circle cx="490" cy="135" r="40" fill="#FFF" stroke="#C67A52" stroke-width="2.5"/>
+    <text x="490" y="131" text-anchor="middle" font-size="13" font-weight="600" fill="#8B4726">處理</text>
+    <text x="490" y="147" text-anchor="middle" font-size="13" font-weight="600" fill="#8B4726">不完</text>
+
+    <!-- 節點 3：焦慮累積 -->
+    <circle cx="490" cy="285" r="40" fill="#FFF" stroke="#C67A52" stroke-width="2.5"/>
+    <text x="490" y="281" text-anchor="middle" font-size="13" font-weight="600" fill="#8B4726">焦慮</text>
+    <text x="490" y="297" text-anchor="middle" font-size="13" font-weight="600" fill="#8B4726">累積</text>
+
+    <!-- 節點 4：不敢說、沒人問 — 特殊標註 -->
+    <circle cx="360" cy="360" r="44" fill="#F3ECF8" stroke="#7B5EA7" stroke-width="3"/>
+    <text x="360" y="353" text-anchor="middle" font-size="12" font-weight="700" fill="#5A3D8A">不敢說</text>
+    <text x="360" y="371" text-anchor="middle" font-size="12" font-weight="700" fill="#5A3D8A">沒人問</text>
+
+    <!-- Moltos 介入標註 -->
+    <line x1="405" y1="360" x2="530" y2="360" stroke="url(#moltosGrad)" stroke-width="2" stroke-dasharray="5,3"/>
+    <rect x="530" y="340" width="170" height="42" rx="10" fill="#7B5EA7" fill-opacity="0.1" stroke="#7B5EA7" stroke-width="1.5"/>
+    <text x="615" y="358" text-anchor="middle" font-size="12" font-weight="700" fill="#7B5EA7">Moltos</text>
+    <text x="615" y="374" text-anchor="middle" font-size="11" fill="#7B5EA7">在這裡介入</text>
+
+    <!-- 節點 5：壓力內化 -->
+    <circle cx="230" cy="285" r="40" fill="#FFF" stroke="#C67A52" stroke-width="2.5"/>
+    <text x="230" y="278" text-anchor="middle" font-size="12" font-weight="600" fill="#8B4726">壓力內化</text>
+    <text x="230" y="296" text-anchor="middle" font-size="10" fill="#AA7755">失眠、倦怠</text>
+
+    <!-- 節點 6：工作效率下降 -->
+    <circle cx="230" cy="135" r="40" fill="#FFF" stroke="#C67A52" stroke-width="2.5"/>
+    <text x="230" y="128" text-anchor="middle" font-size="12" font-weight="600" fill="#8B4726">工作效率</text>
+    <text x="230" y="146" text-anchor="middle" font-size="12" font-weight="600" fill="#8B4726">下降</text>
+
+    <!-- 中心循環圖標 -->
+    <circle cx="360" cy="210" r="28" fill="none" stroke="#E8DDD4" stroke-width="1.5" stroke-dasharray="4,3"/>
+    <text x="360" y="207" text-anchor="middle" font-size="10" fill="#C67A52">惡性</text>
+    <text x="360" y="220" text-anchor="middle" font-size="10" fill="#C67A52">循環</text>
+  </svg>
+</div>
+</body>
+</html>
