@@ -145,20 +145,8 @@ tailwind.config = {
   .toast.show { opacity: 1; }
 
   /* 送出按鈕 */
-  .send-btn { transition: background 0.2s ease, transform 0.15s ease; }
+  .send-btn { transition: background 0.2s ease, transform 0.15s ease, opacity 0.2s ease; }
   .send-btn:active { transform: scale(0.9); }
-
-  /* 輸入區圖標按鈕 */
-  .input-icon-btn {
-    width: 32px; height: 32px;
-    display: flex; align-items: center; justify-content: center;
-    border-radius: 50%; cursor: pointer;
-    transition: transform 0.15s ease, background 0.2s ease;
-    background: transparent; border: none; padding: 0;
-    flex-shrink: 0;
-  }
-  .input-icon-btn:hover { transform: scale(1.1); background: rgba(232, 213, 196, 0.3); }
-  .input-icon-btn:active { transform: scale(0.95); }
 
   /* 語音按鈕 */
   .voice-btn {
@@ -584,30 +572,19 @@ tailwind.config = {
 
       <!-- Input Area -->
       <div class="px-3 pb-5 pt-2" style="padding-bottom: env(safe-area-inset-bottom, 20px);">
-        <div class="flex items-end gap-1.5">
-          <!-- 左側圖標列 -->
-          <div class="flex items-center gap-0.5 pb-1">
-            <button class="input-icon-btn" onclick="showToast('相機功能即將推出')" title="拍照">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B8B8B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
-            </button>
-            <button class="input-icon-btn" onclick="triggerImageUpload()" title="圖片">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B8B8B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-            </button>
-            <button class="input-icon-btn" onclick="showToast('檔案上傳功能即將推出')" title="附件">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8B8B8B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
-            </button>
-          </div>
+        <div class="flex items-center gap-2">
+          <!-- 左側：麥克風按鈕 -->
+          <button id="voiceBtn" class="voice-btn" style="background:#C67A52;" onclick="toggleRecording()" title="語音訊息">
+            <svg id="voiceMicIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          </button>
           <!-- 中間輸入框 -->
           <input type="text" id="chatInput" placeholder="說說你的想法..."
             class="flex-1 bg-white rounded-pill px-4 py-2.5 text-sm text-ink outline-none border"
             style="border-color:#E8D5C4; min-width: 0;"
             oninput="toggleSendVoiceBtn()"
             onkeydown="if(event.key==='Enter')sendMessage()">
-          <!-- 右側：語音 / 送出按鈕（互斥） -->
-          <button id="voiceBtn" class="voice-btn" style="background:#C67A52;" onclick="toggleRecording()" title="語音訊息">
-            <svg id="voiceMicIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-          </button>
-          <button id="sendBtn" class="send-btn w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background:#C67A52; display:none;" onclick="sendMessage()">
+          <!-- 右側：送出按鈕 -->
+          <button id="sendBtn" class="send-btn w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style="background:#C67A52; opacity:0.4; pointer-events:none;" onclick="sendMessage()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
           </button>
         </div>
@@ -1194,14 +1171,13 @@ function escapeHtml(str) {
 // ===== 輸入區：語音 / 送出按鈕切換 =====
 function toggleSendVoiceBtn() {
   const input = document.getElementById('chatInput');
-  const voiceBtn = document.getElementById('voiceBtn');
   const sendBtn = document.getElementById('sendBtn');
   if (input.value.trim()) {
-    voiceBtn.style.display = 'none';
-    sendBtn.style.display = 'flex';
+    sendBtn.style.opacity = '1';
+    sendBtn.style.pointerEvents = 'auto';
   } else {
-    voiceBtn.style.display = 'flex';
-    sendBtn.style.display = 'none';
+    sendBtn.style.opacity = '0.4';
+    sendBtn.style.pointerEvents = 'none';
   }
 }
 
