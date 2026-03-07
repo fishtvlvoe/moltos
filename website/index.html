@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moltos — 主動式心理健康守護 AI</title>
+  <meta name="description" content="Moltos 透過平靜指數演算法，量化你的心理平靜程度。把生活的噪音，變成你內心的聲音。">
+  <link rel="canonical" href="https://moltos.net">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: '#3B82F6',
+            cta: '#F97316',
+            surface: '#F8FAFC',
+            ink: '#1E293B',
+          },
+          fontFamily: {
+            heading: ['Lora', 'serif'],
+            body: ['Raleway', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html { font-family: 'Raleway', sans-serif; color: #1E293B; }
+    h1, h2, h3, h4, h5, h6 { font-family: 'Lora', serif; }
+
+    /* ---- Reveal animation ---- */
+    .reveal {
+      opacity: 0;
+      transform: translateY(32px);
+      transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+                  transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .reveal-delay-1 { transition-delay: 0.12s; }
+    .reveal-delay-2 { transition-delay: 0.24s; }
+    .reveal-delay-3 { transition-delay: 0.36s; }
+    .reveal-delay-4 { transition-delay: 0.48s; }
+
+    /* ---- Calm gauge animation ---- */
+    .gauge-ring {
+      transition: stroke-dasharray 1.8s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    /* ---- Navbar ---- */
+    .nav-blur {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      background: rgba(248, 250, 252, 0.85);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    /* ---- Step connector ---- */
+    .step-connector {
+      position: absolute;
+      top: 36px;
+      left: calc(50% + 36px);
+      width: calc(100% - 72px);
+      height: 2px;
+      background: repeating-linear-gradient(
+        90deg, #3B82F6 0, #3B82F6 6px, transparent 6px, transparent 12px
+      );
+    }
+
+    /* ---- Code block ---- */
+    .code-block {
+      background: #0F172A;
+      color: #E2E8F0;
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.85rem;
+      line-height: 1.7;
+      border-radius: 2px;
+      padding: 1.5rem;
+      overflow-x: auto;
+    }
+    .code-block .kw { color: #7DD3FC; }
+    .code-block .fn { color: #FDE68A; }
+    .code-block .st { color: #86EFAC; }
+    .code-block .cm { color: #64748B; }
+    .code-block .nb { color: #FDA4AF; }
+
+    /* ---- Reduced motion ---- */
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { transition: none; opacity: 1; transform: none; }
+      .gauge-ring { transition: none; }
+    }
+  </style>
+</head>
+
+<body class="bg-surface font-body antialiased">
+
+  <!-- ========== NAVBAR ========== -->
+  <nav id="navbar" class="fixed top-0 inset-x-0 z-50 transition-all duration-300">
+    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <a href="#" class="font-heading text-xl font-bold tracking-tight text-ink">Moltos</a>
+      <div class="hidden md:flex items-center gap-8 text-sm font-medium text-ink/70">
+        <a href="#solution" class="hover:text-brand transition-colors cursor-pointer">功能</a>
+        <a href="#tech" class="hover:text-brand transition-colors cursor-pointer">技術</a>
+        <a href="#opensource" class="hover:text-brand transition-colors cursor-pointer">開源</a>
+        <a href="https://github.com/fishtvlvoe/moltos" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 hover:text-brand transition-colors cursor-pointer">
+          <i data-lucide="github" class="w-4 h-4"></i>GitHub
+        </a>
+      </div>
+      <!-- Mobile menu button -->
+      <button id="mobile-menu-btn" class="md:hidden cursor-pointer p-1" aria-label="開啟選單">
+        <i data-lucide="menu" class="w-5 h-5"></i>
+      </button>
+    </div>
+    <!-- Mobile dropdown -->
+    <div id="mobile-menu" class="md:hidden hidden bg-white/95 backdrop-blur-md border-t border-gray-100 px-6 pb-4 pt-2 space-y-3 text-sm font-medium">
+      <a href="#solution" class="block py-1 cursor-pointer">功能</a>
+      <a href="#tech" class="block py-1 cursor-pointer">技術</a>
+      <a href="#opensource" class="block py-1 cursor-pointer">開源</a>
+      <a href="https://github.com/fishtvlvoe/moltos" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 py-1 cursor-pointer">
+        <i data-lucide="github" class="w-4 h-4"></i>GitHub
+      </a>
+    </div>
+  </nav>
+
+  <!-- ========== HERO ========== -->
+  <section class="relative min-h-screen flex items-center pt-16 overflow-hidden">
+    <!-- Subtle geometric accents -->
+    <div class="absolute top-20 -left-20 w-72 h-72 rounded-full bg-brand/5 blur-3xl"></div>
+    <div class="absolute bottom-20 -right-20 w-96 h-96 rounded-full bg-cta/5 blur-3xl"></div>
+
+    <div class="max-w-6xl mx-auto px-6 w-full grid lg:grid-cols-2 gap-12 lg:gap-16 items-center py-20">
+      <!-- Left: copy -->
+      <div class="reveal">
+        <h1 class="font-heading text-4xl sm:text-5xl lg:text-[3.4rem] font-bold leading-tight tracking-tight text-ink">
+          把生活的噪音，<br>變成你內心的聲音
+        </h1>
+        <p class="mt-4 text-base sm:text-lg text-ink/50 font-body italic tracking-wide">
+          Turn life's noise into your inner voice.
+        </p>
+        <p class="mt-6 text-base sm:text-lg text-ink/70 leading-relaxed max-w-lg">
+          主動式心理健康守護 AI &mdash; 透過行為模式分析，量化你的心理平靜程度。
+        </p>
+        <div class="mt-10 flex flex-wrap gap-4">
+          <a href="#problem" class="inline-flex items-center gap-2 px-7 py-3 bg-brand text-white font-semibold text-sm rounded-sm hover:bg-brand/90 transition-colors cursor-pointer">
+            <i data-lucide="arrow-down" class="w-4 h-4"></i>了解更多
+          </a>
+          <a href="https://github.com/fishtvlvoe/moltos" target="_blank" rel="noopener"
+             class="inline-flex items-center gap-2 px-7 py-3 border-2 border-cta text-cta font-semibold text-sm rounded-sm hover:bg-cta hover:text-white transition-colors cursor-pointer">
+            <i data-lucide="github" class="w-4 h-4"></i>GitHub
+          </a>
+        </div>
+      </div>
+
+      <!-- Right: Calm Index gauge -->
+      <div class="reveal reveal-delay-2 flex justify-center lg:justify-end">
+        <div class="relative w-64 h-64 sm:w-72 sm:h-72">
+          <svg viewBox="0 0 200 200" class="w-full h-full" aria-label="平靜指數 82 分">
+            <!-- Background ring -->
+            <circle cx="100" cy="100" r="88" fill="none" stroke="#E2E8F0" stroke-width="10" />
+            <!-- Score ring -->
+            <circle cx="100" cy="100" r="88" fill="none" stroke="#3B82F6" stroke-width="10"
+                    stroke-linecap="round"
+                    stroke-dasharray="0 553"
+                    data-target="454"
+                    class="gauge-ring"
+                    transform="rotate(-90 100 100)" />
+            <!-- Inner subtle ring -->
+            <circle cx="100" cy="100" r="72" fill="none" stroke="#F1F5F9" stroke-width="1" />
+          </svg>
+          <!-- Center text -->
+          <div class="absolute inset-0 flex flex-col items-center justify-center">
+            <span class="text-5xl sm:text-6xl font-heading font-bold text-ink" id="gauge-number">0</span>
+            <span class="text-xs font-body font-semibold tracking-[0.2em] text-brand mt-1 uppercase">Calm</span>
+            <span class="text-xs text-ink/40 mt-1">平靜指數</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== PROBLEM ========== -->
+  <section id="problem" class="py-24 sm:py-32 bg-white">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="text-center max-w-2xl mx-auto reveal">
+        <h2 class="font-heading text-3xl sm:text-4xl font-bold text-ink">你有多久沒好好照顧自己的心？</h2>
+        <p class="mt-3 text-ink/50 italic text-sm sm:text-base">When was the last time you truly checked in with yourself?</p>
+      </div>
+
+      <div class="mt-16 grid sm:grid-cols-3 gap-8">
+        <!-- Card 1 -->
+        <div class="reveal reveal-delay-1 border-l-2 border-cta pl-6 py-2">
+          <div class="w-10 h-10 flex items-center justify-center bg-cta/10 rounded-sm mb-4">
+            <i data-lucide="eye-off" class="w-5 h-5 text-cta"></i>
+          </div>
+          <h3 class="font-heading text-lg font-semibold text-ink">忽略訊號</h3>
+          <p class="mt-2 text-sm text-ink/60 leading-relaxed">壓力累積時，身體早已發出警訊，但我們往往視而不見。</p>
+        </div>
+        <!-- Card 2 -->
+        <div class="reveal reveal-delay-2 border-l-2 border-cta pl-6 py-2">
+          <div class="w-10 h-10 flex items-center justify-center bg-cta/10 rounded-sm mb-4">
+            <i data-lucide="alarm-clock" class="w-5 h-5 text-cta"></i>
+          </div>
+          <h3 class="font-heading text-lg font-semibold text-ink">事後才知</h3>
+          <p class="mt-2 text-sm text-ink/60 leading-relaxed">總是等到情緒崩潰，才意識到問題已經存在很久。</p>
+        </div>
+        <!-- Card 3 -->
+        <div class="reveal reveal-delay-3 border-l-2 border-cta pl-6 py-2">
+          <div class="w-10 h-10 flex items-center justify-center bg-cta/10 rounded-sm mb-4">
+            <i data-lucide="search-x" class="w-5 h-5 text-cta"></i>
+          </div>
+          <h3 class="font-heading text-lg font-semibold text-ink">缺乏工具</h3>
+          <p class="mt-2 text-sm text-ink/60 leading-relaxed">沒有一個持續、客觀的方式來追蹤自己的心理狀態。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== SOLUTION (Five Dimensions) ========== -->
+  <section id="solution" class="py-24 sm:py-32 bg-surface">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="text-center max-w-2xl mx-auto reveal">
+        <h2 class="font-heading text-3xl sm:text-4xl font-bold text-ink">五個維度，一個平靜指數</h2>
+        <p class="mt-3 text-ink/50 italic text-sm sm:text-base">Five dimensions, one Calm Index</p>
+      </div>
+
+      <div class="mt-16 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Dimension cards -->
+        <div class="reveal reveal-delay-1 bg-white p-6 border border-gray-100 hover:border-brand/30 hover:shadow-lg hover:shadow-brand/5 transition-all duration-300 cursor-default rounded-sm">
+          <div class="w-10 h-10 flex items-center justify-center bg-brand/10 rounded-sm mb-4">
+            <i data-lucide="message-square" class="w-5 h-5 text-brand"></i>
+          </div>
+          <h3 class="font-heading text-base font-semibold text-ink">訊息量趨勢</h3>
+          <p class="text-xs text-ink/40 mb-2">Message Volume</p>
+          <p class="text-sm text-ink/60 leading-relaxed">與個人 14 天基線比較，偵測訊息量異常波動。</p>
+        </div>
+
+        <div class="reveal reveal-delay-2 bg-white p-6 border border-gray-100 hover:border-brand/30 hover:shadow-lg hover:shadow-brand/5 transition-all duration-300 cursor-default rounded-sm">
+          <div class="w-10 h-10 flex items-center justify-center bg-brand/10 rounded-sm mb-4">
+            <i data-lucide="timer" class="w-5 h-5 text-brand"></i>
+          </div>
+          <h3 class="font-heading text-base font-semibold text-ink">回覆速度變化</h3>
+          <p class="text-xs text-ink/40 mb-2">Reply Latency</p>
+          <p class="text-sm text-ink/60 leading-relaxed">回覆延遲的趨勢分析，反映注意力與能量狀態。</p>
+        </div>
+
+        <div class="reveal reveal-delay-3 bg-white p-6 border border-gray-100 hover:border-brand/30 hover:shadow-lg hover:shadow-brand/5 transition-all duration-300 cursor-default rounded-sm">
+          <div class="w-10 h-10 flex items-center justify-center bg-brand/10 rounded-sm mb-4">
+            <i data-lucide="moon" class="w-5 h-5 text-brand"></i>
+          </div>
+          <h3 class="font-heading text-base font-semibold text-ink">深夜活躍度</h3>
+          <p class="text-xs text-ink/40 mb-2">Night Activity</p>
+          <p class="text-sm text-ink/60 leading-relaxed">23:00&ndash;05:00 的活躍程度，睡眠品質的間接指標。</p>
+        </div>
+
+        <div class="reveal reveal-delay-1 bg-white p-6 border border-gray-100 hover:border-brand/30 hover:shadow-lg hover:shadow-brand/5 transition-all duration-300 cursor-default rounded-sm sm:col-span-1 lg:col-span-1">
+          <div class="w-10 h-10 flex items-center justify-center bg-brand/10 rounded-sm mb-4">
+            <i data-lucide="mail" class="w-5 h-5 text-brand"></i>
+          </div>
+          <h3 class="font-heading text-base font-semibold text-ink">未讀堆積趨勢</h3>
+          <p class="text-xs text-ink/40 mb-2">Unread Pileup</p>
+          <p class="text-sm text-ink/60 leading-relaxed">未讀訊息的累積趨勢，反映處理負荷與迴避傾向。</p>
+        </div>
+
+        <div class="reveal reveal-delay-2 bg-white p-6 border border-gray-100 hover:border-brand/30 hover:shadow-lg hover:shadow-brand/5 transition-all duration-300 cursor-default rounded-sm">
+          <div class="w-10 h-10 flex items-center justify-center bg-brand/10 rounded-sm mb-4">
+            <i data-lucide="mic" class="w-5 h-5 text-brand"></i>
+          </div>
+          <h3 class="font-heading text-base font-semibold text-ink">語音情緒特徵</h3>
+          <p class="text-xs text-ink/40 mb-2">Voice Emotion</p>
+          <p class="text-sm text-ink/60 leading-relaxed">語速、音調、停頓、音量，聲音裡藏著真實的情緒。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== HOW IT WORKS ========== -->
+  <section id="how" class="py-24 sm:py-32 bg-white">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="text-center max-w-2xl mx-auto reveal">
+        <h2 class="font-heading text-3xl sm:text-4xl font-bold text-ink">只跟自己比，不跟別人比</h2>
+        <p class="mt-3 text-ink/50 italic text-sm sm:text-base">Compare only to yourself, never to others</p>
+      </div>
+
+      <div class="mt-16 grid md:grid-cols-3 gap-8 md:gap-0 relative">
+        <!-- Connector lines (desktop) -->
+        <div class="hidden md:block absolute top-[36px] left-[calc(16.67%+36px)] right-[calc(16.67%+36px)] h-[2px]"
+             style="background: repeating-linear-gradient(90deg, #3B82F6 0, #3B82F6 6px, transparent 6px, transparent 12px);">
+        </div>
+
+        <!-- Step 1 -->
+        <div class="reveal reveal-delay-1 text-center relative">
+          <div class="w-[72px] h-[72px] mx-auto flex items-center justify-center bg-brand text-white rounded-full text-lg font-heading font-bold relative z-10">
+            1
+          </div>
+          <h3 class="font-heading text-lg font-semibold text-ink mt-6">收集</h3>
+          <p class="mt-2 text-sm text-ink/60 max-w-[240px] mx-auto leading-relaxed">日常行為數據自動匯入，採 14 天滾動視窗。</p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="reveal reveal-delay-2 text-center relative">
+          <div class="w-[72px] h-[72px] mx-auto flex items-center justify-center bg-brand text-white rounded-full text-lg font-heading font-bold relative z-10">
+            2
+          </div>
+          <h3 class="font-heading text-lg font-semibold text-ink mt-6">建立基線</h3>
+          <p class="mt-2 text-sm text-ink/60 max-w-[240px] mx-auto leading-relaxed">EWMA 指數加權移動平均，建立你的個人常態。</p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="reveal reveal-delay-3 text-center relative">
+          <div class="w-[72px] h-[72px] mx-auto flex items-center justify-center bg-brand text-white rounded-full text-lg font-heading font-bold relative z-10">
+            3
+          </div>
+          <h3 class="font-heading text-lg font-semibold text-ink mt-6">偵測偏離</h3>
+          <p class="mt-2 text-sm text-ink/60 max-w-[240px] mx-auto leading-relaxed">Z-score 異常偵測，過濾噪音聚焦趨勢。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== TECH HIGHLIGHTS ========== -->
+  <section id="tech" class="py-24 sm:py-32 bg-surface">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="text-center max-w-2xl mx-auto reveal">
+        <h2 class="font-heading text-3xl sm:text-4xl font-bold text-ink">用最少的資源，做最好的守護</h2>
+        <p class="mt-3 text-ink/50 italic text-sm sm:text-base">Maximum care, minimum cost</p>
+      </div>
+
+      <div class="mt-16 grid sm:grid-cols-3 gap-8">
+        <!-- Stat 1 -->
+        <div class="reveal reveal-delay-1 bg-white border border-gray-100 p-8 text-center rounded-sm">
+          <div class="text-4xl sm:text-5xl font-heading font-bold text-brand">
+            $<span class="countup" data-target="0.24" data-decimals="2">0</span>
+          </div>
+          <p class="mt-3 text-sm font-semibold text-ink">每用戶每月 AI 成本</p>
+          <p class="mt-1 text-xs text-ink/40">per user / month</p>
+        </div>
+
+        <!-- Stat 2 -->
+        <div class="reveal reveal-delay-2 bg-white border border-gray-100 p-8 text-center rounded-sm">
+          <div class="text-4xl sm:text-5xl font-heading font-bold text-brand">
+            <span class="countup" data-target="83" data-decimals="0">0</span>x
+          </div>
+          <p class="mt-3 text-sm font-semibold text-ink">比 ChatGPT Plus 便宜</p>
+          <p class="mt-1 text-xs text-ink/40">cost efficiency ratio</p>
+        </div>
+
+        <!-- Stat 3 -->
+        <div class="reveal reveal-delay-3 bg-white border border-gray-100 p-8 text-center rounded-sm">
+          <div class="text-4xl sm:text-5xl font-heading font-bold text-brand">
+            $<span class="countup" data-target="0" data-decimals="0">0</span>
+          </div>
+          <p class="mt-3 text-sm font-semibold text-ink">平靜指數雲端成本</p>
+          <p class="mt-1 text-xs text-ink/40">local computation</p>
+        </div>
+      </div>
+
+      <p class="mt-10 text-center text-sm text-ink/50 reveal reveal-delay-4 max-w-lg mx-auto">
+        多模型智慧路由策略 &mdash; 依任務複雜度自動選擇最適模型，在品質與成本間取得最佳平衡。
+      </p>
+    </div>
+  </section>
+
+  <!-- ========== OPEN SOURCE ========== -->
+  <section id="opensource" class="py-24 sm:py-32 bg-white">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="text-center max-w-2xl mx-auto reveal">
+        <h2 class="font-heading text-3xl sm:text-4xl font-bold text-ink">透明、可驗證、可被審視</h2>
+        <p class="mt-3 text-ink/50 italic text-sm sm:text-base">Transparent, verifiable, auditable</p>
+      </div>
+
+      <div class="mt-16 grid lg:grid-cols-2 gap-12 items-start">
+        <!-- Left: description -->
+        <div class="reveal reveal-delay-1">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 flex items-center justify-center bg-ink rounded-sm">
+              <i data-lucide="scale" class="w-5 h-5 text-white"></i>
+            </div>
+            <span class="font-heading font-semibold text-lg text-ink">MIT License</span>
+          </div>
+          <p class="text-ink/70 leading-relaxed mb-4">
+            心理健康 AI 必須透明。我們選擇 MIT 授權，讓每一行程式碼都能被審視、被驗證、被改進。
+          </p>
+          <p class="text-ink/70 leading-relaxed mb-8">
+            你的心理數據如何被處理，不應該是黑箱。開源是我們對用戶的承諾。
+          </p>
+          <a href="https://github.com/fishtvlvoe/moltos" target="_blank" rel="noopener"
+             class="inline-flex items-center gap-2 px-6 py-3 bg-ink text-white font-semibold text-sm rounded-sm hover:bg-ink/85 transition-colors cursor-pointer">
+            <i data-lucide="github" class="w-4 h-4"></i>View on GitHub
+          </a>
+        </div>
+
+        <!-- Right: code block -->
+        <div class="reveal reveal-delay-2">
+          <div class="code-block">
+            <span class="cm">// 計算平靜指數</span><br>
+            <span class="kw">import</span> { calculateCalmIndex } <span class="kw">from</span> <span class="st">'@moltos/core'</span>;<br>
+            <br>
+            <span class="kw">const</span> result = <span class="kw">await</span> <span class="fn">calculateCalmIndex</span>({<br>
+            &nbsp;&nbsp;userId: <span class="st">'user_abc'</span>,<br>
+            &nbsp;&nbsp;window: <span class="nb">14</span>,&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm">// 14 天滾動視窗</span><br>
+            &nbsp;&nbsp;dimensions: [<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="st">'messageVolume'</span>,<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="st">'replyLatency'</span>,<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="st">'nightActivity'</span>,<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="st">'unreadPileup'</span>,<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="st">'voiceEmotion'</span>,<br>
+            &nbsp;&nbsp;],<br>
+            });<br>
+            <br>
+            console.<span class="fn">log</span>(result.score);&nbsp;&nbsp;<span class="cm">// 82</span><br>
+            console.<span class="fn">log</span>(result.level);&nbsp;&nbsp;<span class="cm">// "Calm"</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="bg-ink text-white/70 py-16">
+    <div class="max-w-6xl mx-auto px-6">
+      <div class="grid sm:grid-cols-3 gap-10">
+        <!-- Brand -->
+        <div>
+          <span class="font-heading text-xl font-bold text-white">Moltos</span>
+          <p class="mt-3 text-sm leading-relaxed">主動式心理健康守護 AI<br>把生活的噪音，變成你內心的聲音。</p>
+        </div>
+        <!-- Links -->
+        <div>
+          <h4 class="text-white font-semibold text-sm mb-4">連結</h4>
+          <ul class="space-y-2 text-sm">
+            <li><a href="#solution" class="hover:text-white transition-colors cursor-pointer">功能介紹</a></li>
+            <li><a href="#tech" class="hover:text-white transition-colors cursor-pointer">技術亮點</a></li>
+            <li><a href="#opensource" class="hover:text-white transition-colors cursor-pointer">開源專案</a></li>
+            <li><a href="https://github.com/fishtvlvoe/moltos" target="_blank" rel="noopener" class="hover:text-white transition-colors cursor-pointer">GitHub</a></li>
+          </ul>
+        </div>
+        <!-- Legal -->
+        <div>
+          <h4 class="text-white font-semibold text-sm mb-4">法律</h4>
+          <ul class="space-y-2 text-sm">
+            <li>MIT License</li>
+            <li>隱私權政策（即將推出）</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs">
+        <span>&copy; 2026 核流有限公司 (NiCoreFlow Co., Ltd.) | MIT License</span>
+        <a href="https://github.com/fishtvlvoe/moltos" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 hover:text-white transition-colors cursor-pointer">
+          <i data-lucide="github" class="w-3.5 h-3.5"></i>fishtvlvoe/moltos
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========== SCRIPTS ========== -->
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    // ---- Navbar scroll effect ----
+    const navbar = document.getElementById('navbar');
+    const onScroll = () => {
+      if (window.scrollY > 40) {
+        navbar.classList.add('nav-blur');
+      } else {
+        navbar.classList.remove('nav-blur');
+      }
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    // ---- Mobile menu toggle ----
+    const menuBtn = document.getElementById('mobile-menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    menuBtn.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
+    // Close mobile menu on link click
+    mobileMenu.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => mobileMenu.classList.add('hidden'));
+    });
+
+    // ---- IntersectionObserver: reveal on scroll ----
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (!prefersReducedMotion) {
+      const revealObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            revealObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.15 });
+
+      document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+    } else {
+      document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
+    }
+
+    // ---- Calm Index gauge animation ----
+    const gaugeRing = document.querySelector('.gauge-ring');
+    const gaugeNumber = document.getElementById('gauge-number');
+    const targetScore = 82;
+    const circumference = 2 * Math.PI * 88; // ~553
+    const targetDash = (targetScore / 100) * circumference;
+    let gaugeAnimated = false;
+
+    function animateGauge() {
+      if (gaugeAnimated) return;
+      gaugeAnimated = true;
+
+      // Animate the SVG ring
+      gaugeRing.style.strokeDasharray = targetDash + ' ' + circumference;
+
+      // Animate the number
+      const duration = 1600;
+      const start = performance.now();
+
+      function updateNumber(now) {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        // Ease out cubic
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const current = Math.round(eased * targetScore);
+        gaugeNumber.textContent = current;
+        if (progress < 1) {
+          requestAnimationFrame(updateNumber);
+        }
+      }
+      requestAnimationFrame(updateNumber);
+    }
+
+    // Trigger gauge when hero is visible
+    if (!prefersReducedMotion) {
+      const gaugeObserver = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+          setTimeout(animateGauge, 400);
+          gaugeObserver.disconnect();
+        }
+      }, { threshold: 0.3 });
+      gaugeObserver.observe(document.querySelector('.gauge-ring').closest('section'));
+    } else {
+      gaugeRing.style.strokeDasharray = targetDash + ' ' + circumference;
+      gaugeNumber.textContent = targetScore;
+    }
+
+    // ---- Count-up animation ----
+    const countElements = document.querySelectorAll('.countup');
+
+    function animateCount(el) {
+      const target = parseFloat(el.dataset.target);
+      const decimals = parseInt(el.dataset.decimals) || 0;
+      const duration = 1400;
+      const start = performance.now();
+
+      function update(now) {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const current = eased * target;
+        el.textContent = current.toFixed(decimals);
+        if (progress < 1) {
+          requestAnimationFrame(update);
+        }
+      }
+      requestAnimationFrame(update);
+    }
+
+    if (!prefersReducedMotion) {
+      const countObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            animateCount(entry.target);
+            countObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.5 });
+
+      countElements.forEach(el => countObserver.observe(el));
+    } else {
+      countElements.forEach(el => {
+        el.textContent = parseFloat(el.dataset.target).toFixed(parseInt(el.dataset.decimals) || 0);
+      });
+    }
+  </script>
+</body>
+</html>
