@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>Moltos — Shark Tank Taiwan 簡報</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  @page { size: 1280px 720px; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Raleway', sans-serif; color: #1E293B; background: #fff; }
+  h1, h2, h3, h4 { font-family: 'Lora', serif; }
+
+  .slide {
+    width: 1280px; height: 720px;
+    padding: 60px 80px;
+    position: relative;
+    overflow: hidden;
+    page-break-after: always;
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .slide:last-child { page-break-after: avoid; }
+
+  /* 色彩系統 */
+  .bg-white { background: #fff; }
+  .bg-surface { background: #F8FAFC; }
+  .bg-brand { background: #3B82F6; }
+  .bg-dark { background: #0F172A; }
+  .text-brand { color: #3B82F6; }
+  .text-cta { color: #F97316; }
+  .text-white { color: #fff; }
+  .text-muted { color: #64748B; }
+
+  /* 頁碼 */
+  .slide-num {
+    position: absolute; bottom: 24px; right: 40px;
+    font-size: 12px; color: #94A3B8; font-weight: 500;
+  }
+
+  /* Logo 列 */
+  .logo-bar {
+    position: absolute; top: 28px; left: 80px;
+    font-family: 'Lora', serif; font-size: 16px; font-weight: 700; color: #3B82F6;
+  }
+
+  /* 文字樣式 */
+  .slide h1 { font-size: 48px; font-weight: 700; line-height: 1.2; }
+  .slide h2 { font-size: 36px; font-weight: 700; line-height: 1.3; margin-bottom: 8px; }
+  .slide h3 { font-size: 22px; font-weight: 600; line-height: 1.4; margin-bottom: 16px; }
+  .slide p { font-size: 18px; line-height: 1.7; }
+  .slide .subtitle { font-size: 22px; color: #64748B; font-weight: 300; margin-top: 12px; }
+  .slide .small { font-size: 14px; color: #94A3B8; }
+  .slide ul, .slide ol { font-size: 17px; line-height: 1.8; padding-left: 24px; }
+  .slide li { margin-bottom: 4px; }
+  .slide li strong { color: #1E293B; }
+
+  /* 表格 */
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid #E2E8F0; }
+  th { font-weight: 600; color: #475569; background: #F8FAFC; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { color: #334155; }
+
+  /* 數據卡片 */
+  .stats { display: flex; gap: 24px; margin-top: 24px; }
+  .stat-card {
+    flex: 1; background: #F8FAFC; border: 1px solid #E2E8F0;
+    padding: 24px; border-radius: 8px; text-align: center;
+  }
+  .stat-card .num { font-family: 'Lora', serif; font-size: 42px; font-weight: 700; color: #3B82F6; }
+  .stat-card .label { font-size: 14px; color: #64748B; margin-top: 4px; }
+
+  /* 雙欄 */
+  .two-col { display: flex; gap: 48px; align-items: flex-start; }
+  .two-col > div { flex: 1; }
+
+  /* 裝飾線 */
+  .accent-line { width: 48px; height: 4px; background: #3B82F6; border-radius: 2px; margin-bottom: 20px; }
+  .accent-line-orange { width: 48px; height: 4px; background: #F97316; border-radius: 2px; margin-bottom: 20px; }
+
+  /* 架構圖 */
+  .arch-box {
+    background: #F8FAFC; border: 2px solid #E2E8F0; border-radius: 12px;
+    padding: 20px 28px; margin-top: 16px;
+  }
+  .arch-layer { font-size: 12px; font-weight: 600; color: #94A3B8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+  .arch-items { display: flex; gap: 16px; margin-bottom: 16px; }
+  .arch-item {
+    flex: 1; background: #fff; border: 1px solid #CBD5E1; border-radius: 8px;
+    padding: 14px; text-align: center; font-size: 14px; font-weight: 600; color: #334155;
+  }
+  .arch-item span { display: block; font-size: 11px; font-weight: 400; color: #94A3B8; margin-top: 2px; }
+
+  /* 勾叉標記 */
+  .check { color: #22C55E; font-weight: 700; }
+  .cross { color: #DC2626; }
+
+  /* 路線圖 */
+  .roadmap { display: flex; gap: 16px; margin-top: 20px; }
+  .roadmap-item {
+    flex: 1; padding: 20px; border-radius: 8px;
+    border-left: 4px solid #3B82F6; background: #F8FAFC;
+  }
+  .roadmap-item .q { font-family: 'Lora', serif; font-size: 16px; font-weight: 700; color: #3B82F6; margin-bottom: 6px; }
+  .roadmap-item p { font-size: 14px; line-height: 1.5; color: #475569; }
+
+  /* 重點框 */
+  .highlight-box {
+    background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+    color: #fff; padding: 20px 28px; border-radius: 8px; margin-top: 16px;
+    font-size: 17px; line-height: 1.6;
+  }
+
+  /* 引言 */
+  .quote {
+    font-family: 'Lora', serif; font-size: 28px; font-style: italic;
+    color: #1E293B; line-height: 1.5; margin: 20px 0;
+    padding-left: 24px; border-left: 4px solid #F97316;
+  }
+
+  /* 循環圖 */
+  .cycle {
+    font-size: 16px; color: #64748B; text-align: center;
+    margin: 16px 0; padding: 16px; background: #FEF2F2; border-radius: 8px;
+  }
+  .cycle strong { color: #DC2626; }
+</style>
+</head>
+<body>
+
+<!-- ==================== 第 1 頁：封面 ==================== -->
+<div class="slide bg-white" style="justify-content: center; align-items: center; text-align: center;">
+  <div>
+    <div style="width: 80px; height: 80px; background: #3B82F6; border-radius: 50%; margin: 0 auto 32px; display: flex; align-items: center; justify-content: center;">
+      <svg width="36" height="26" viewBox="0 0 60 40" fill="none">
+        <polyline points="0,20 12,20 16,8 20,32 24,14 28,26 32,18 36,22 40,20 60,20" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h1 style="font-size: 56px;">Moltos</h1>
+    <p class="subtitle" style="font-size: 26px; margin-top: 16px;">主動式心理健康 AI</p>
+    <p style="font-size: 18px; color: #94A3B8; margin-top: 32px; font-style: italic;">將生活的噪音，轉化為你內在的聲音。</p>
+    <p style="font-size: 14px; color: #CBD5E1; margin-top: 48px;">核流有限公司 &nbsp;|&nbsp; moltos.net &nbsp;|&nbsp; Shark Tank Taiwan 2026</p>
+  </div>
+  <div class="slide-num">1 / 17</div>
+</div>
+
+<!-- ==================== 第 2 頁：問題 ==================== -->
+<div class="slide bg-white">
+  <div class="logo-bar">Moltos</div>
+  <div class="accent-line"></div>
+  <h2>資訊過載正在摧毀心理健康</h2>
+  <div class="two-col" style="margin-top: 28px;">
+    <div>
+      <h3 style="font-size: 18px; color: #3B82F6;">全球危機</h3>
+      <ul style="font-size: 16px;">
+        <li><strong>76%</strong> 的工作者每天因資訊過載感到壓力</li>
+        <li><strong>43%</strong> 因溝通過載而倦怠</li>
+        <li>每天 <strong>117</strong> 封 Email + 無盡的訊息轟炸</li>
+        <li>每年造成美國經濟 <strong>1 兆美元</strong> 損失</li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="font-size: 18px; color: #F97316;">台灣是重災區</h3>
+      <ul style="font-size: 16px;">
+        <li>職場倦怠率<strong>全球第一</strong> — 36%</li>
+        <li>每年消耗 <strong>11.7 億</strong>顆安眠藥 — 亞洲第一</li>
+        <li>3 年內用量成長 <strong>22%</strong></li>
+      </ul>
+    </div>
+  </div>
+  <div class="cycle">
+    訊息過載 &rarr; <strong>焦慮累積</strong> &rarr; 壓力內化 &rarr; <strong>失眠與倦怠</strong> &rarr; 生產力下降 &rarr; 更多訊息 &rarr; <strong>惡性循環</strong>
+  </div>
+  <div class="slide-num">2 / 17</div>
+</div>
+
+<!-- ==================== 第 3 頁：現有方案的不足 ==================== -->
+<div class="slide bg-surface">
+  <div class="logo-bar">Moltos</div>
+  <div class="accent-line"></div>
+  <h2>為什麼現有方案都失敗了</h2>
+  <p style="font-size: 16px; color: #64748B; margin-bottom: 20px;">所有人都在等你主動求助。</p>
+  <table>
+    <tr><th>方案</th><th>做法</th><th>缺口</th></tr>
+    <tr><td><strong>Woebot / Wysa</strong></td><td>等使用者透過聊天機器人自我回報</td><td>看不到真實的行為數據</td></tr>
+    <tr><td><strong>Headspace Ebb</strong></td><td>冥想 App 內的語音陪伴</td><td>不整合工作工具</td></tr>
+    <tr><td><strong>Replika / Pi</strong></td><td>情感陪伴聊天機器人</td><td>不知道你的真實壓力指數</td></tr>
+    <tr><td><strong>ChatGPT</strong></td><td>通用 AI 助手</td><td>不會主動監測你的狀態</td></tr>
+  </table>
+  <div class="highlight-box" style="margin-top: 20px;">
+    <strong>共同盲點：</strong>沒有任何一個能看到你真實的通訊行為模式。<br>
+    Woebot 已於 2025 年 6 月關閉消費者版 App — 證明被動式聊天機器人模式無法維繫 B2C。
+  </div>
+  <div class="slide-num">3 / 17</div>
+</div>
+
+<!-- ==================== 第 4 頁：解決方案 ==================== -->
+<div class="slide bg-white">
+  <div class="logo-bar">Moltos</div>
+  <div class="accent-line-orange"></div>
+  <h2>Moltos：第一個能「看見」你壓力的 AI</h2>
+  <div class="stats" style="margin-top: 32px;">
+    <div class="stat-card" style="border-top: 4px solid #3B82F6;">
+      <div style="font-size: 28px; margin-bottom: 8px;">&#128269;</div>
+      <div class="num" style="font-size: 24px;">偵測</div>
+      <div class="label" style="margin-top: 8px; font-size: 14px;">被動監測 LINE、Telegram、WhatsApp、Gmail、Slack 的行為模式</div>
+    </div>
+    <div class="stat-card" style="border-top: 4px solid #F97316;">
+      <div style="font-size: 28px; margin-bottom: 8px;">&#128202;</div>
+      <div class="num" style="font-size: 24px; color: #F97316;">分析</div>
+      <div class="label" style="margin-top: 8px; font-size: 14px;">根據你個人 14 天基線，即時計算 Calm Index（0-100）</div>
+    </div>
+    <div class="stat-card" style="border-top: 4px solid #22C55E;">
+      <div style="font-size: 28px; margin-bottom: 8px;">&#128222;</div>
+      <div class="num" style="font-size: 24px; color: #22C55E;">行動</div>
+      <div class="label" style="margin-top: 8px; font-size: 14px;">主動發起語音通話，搭配即時情緒分析</div>
+    </div>
+  </div>
+  <p style="text-align: center; margin-top: 28px; font-size: 17px; color: #475569;">
+    <strong>不是等你自我回報的聊天機器人。</strong><br>
+    是一個在你開口之前，就看見你掙扎的 AI 守護者。
+  </p>
+  <div class="slide-num">4 / 17</div>
+</div>
+
+<!-- ==================== 第 5 頁：運作方式 ==================== -->
+<div class="slide bg-surface">
+  <div class="logo-bar">Moltos</div>
+  <div class="accent-line"></div>
+  <h2>從數據到關懷，只要 3 步</h2>
+  <div style="display: flex; gap: 24px; margin-top: 28px;">
+    <div style="flex: 1; background: #fff; padding: 28px; border-radius: 8px; border: 1px solid #E2E8F0;">
+      <div style="font-family: 'Lora', serif; font-size: 36px; font-weight: 700; color: #3B82F6;">1</div>
+      <h3 style="margin-top: 8px;">連結</h3>
+      <p style="font-size: 15px; color: #64748B; line-height: 1.6;">串接你的通訊平台。只提取<strong>元數據</strong> — 訊息數量、時間戳記、回覆間隔。<br><br><em>絕不讀取訊息內容。</em></p>
+    </div>
+    <div style="flex: 1; background: #fff; padding: 28px; border-radius: 8px; border: 1px solid #E2E8F0;">
+      <div style="font-family: 'Lora', serif; font-size: 36px; font-weight: 700; color: #3B82F6;">2</div>
+      <h3 style="margin-top: 8px;">監測</h3>
+      <p style="font-size: 15px; color: #64748B; line-height: 1.6;">Calm Index 演算法透過 EWMA 建立你的<strong>個人基線</strong>（14 天），再用 Z-score 跨 5 個維度偵測異常。</p>
+    </div>
+    <div style="flex: 1; background: #fff; padding: 28px; border-radius: 8px; border: 1px solid #E2E8F0;">
+      <div style="font-family: 'Lora', serif; font-size: 36px; font-weight: 700; color: #3B82F6;">3</div>
+      <h3 style="margin-top: 8px;">介入</h3>
+      <p style="font-size: 15px; color: #64748B; line-height: 1.6;">當 Calm Index 下降 → Moltos 主動發起<strong>語音通話</strong>，搭配雙通道情緒分析：你說了什麼 + 你怎麼說的。</p>
+    </div>
+  </div>
+  <div class="slide-num">5 / 17</div>
+</div>
+
+<!-- ==================== 第 6 頁：產品展示 — 引導與儀表板 ==================== -->
+<div class="slide bg-white">
+  <div class="logo-bar">Moltos</div>
+  <div class="accent-line-orange"></div>
+  <h2>產品展示：快速上手</h2>
+  <p style="font-size: 16px; color: #64748B; margin-bottom: 20px;">簡單引導、強大儀表板 — 60 秒內完成設定</p>
+  <div style="display: flex; gap: 40px; align-items: flex-start;">
+    <div style="flex: 0 0 240px; text-align: center;">
+      <img src="screen-onboarding.png" style="width: 220px; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.12);">
+    </div>
+    <div style="flex: 1;">
+      <h3 style="color: #3B82F6; font-size: 18px; margin-bottom: 12px;">新手引導</h3>
+      <ul style="font-size: 15px; color: #475569; line-height: 1.8;">
+        <li><strong>主動關懷</strong> — AI 主動發起關心，你不需要開口</li>
+        <li><strong>訊息整合</strong> — 一鍵串接 LINE、Gmail、Slack</li>
+        <li><strong>隱私守護</strong> — 所有資料留在你的裝置上</li>
+      </ul>
+    </div>
+    <div style="flex: 0 0 240px; text-align: center;">
+      <img src="screen-dashboard.png" style="width: 220px; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.12);">
+    </div>
+    <div style="flex: 1;">
+      <h3 style="color: #F97316; font-size: 18px; margin-bottom: 12px;">儀表板</h3>
+      <ul style="font-size: 15px; color: #475569; line-height: 1.8;">
+        <li><strong>Calm Index 儀表</strong> — 即時分數（0–100）一目了然</li>
+        <li><strong>訊息統計</strong> — 47 LINE、23 Gmail、18 Slack 訊息已追蹤</li>
+        <li><strong>語音通話邀請</strong> — 一鍵啟動 AI 語音對話</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-num">6 / 17</div>
+</div>
+
+<!-- ==================== 第 7 頁：產品展示 — 對話與洞察 ==================== -->
+<div class="slide bg-surface">
+  <div class="logo-bar">Moltos</div>
+  <div class="accent-line"></div>
+  <h2>產品展示：AI 對話與每週洞察</h2>
+  <p style="font-size: 16px; color: #64748B; margin-bottom: 20px;">情境感知對話 + 可執行的趨勢分析</p>
+  <div style="display: flex; gap: 40px; align-items: flex-start;">
+    <div style="flex: 0 0 240px; text-align: center;">
+      <img src="screen-chat.png" style="width: 220px; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.12);">
+    </div>
+    <div style="flex: 1;">
+      <h3 style="color: #3B82F6; font-size: 18px; margin-bottom: 12px;">AI 對話</h3>
+      <ul style="font-size: 15px; color: #475569; line-height: 1.8;">
+        <li><strong>主動觸及</strong> — 當你的 Calm Index 下降時，Moltos 主動開啟對話</li>
+        <li><strong>訊息優先排序</strong> — 辨識哪些訊息需要先處理</li>
+        <li><strong>情緒感知</strong> — 根據你的狀態調整語氣和建議</li>
+        <li><strong>可執行建議</strong> — 不只傾聽，還幫你採取下一步行動</li>
+      </ul>
+    </div>
+    <div style="flex: 0 0 240px; text-align: center;">
+      <img src="screen-insights.png" style="width: 220px; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.12);">
+    </div>
+    <div style="flex: 1;">
+      <h3 style="color: #F97316; font-size: 18px; margin-bottom: 12px;">每週洞察</h3>
+      <ul style="font-size: 15px; color: #475569; line-height: 1.8;">
+        <li><strong>Calm Index 趨勢</strong> — 7 天圖表顯示你的壓力模式</li>
+        <li><strong>每週總結</strong> — 已處理 312 則訊息，高於基線 1.8%</li>
+        <li><strong>AI 觀察</strong> — 「最低點在週三；建議減少工作量」</li>
+        <li><strong>情緒日記</strong> — 追蹤情緒隨時間的變化</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-num">7 / 17</div>
+</div>
+
+<!-- ==================== 第 8 頁：產品展示 — 設定與隱私 ==================== -->
+<div class="slide bg-white">
+  <div class="logo-bar">Moltos</div>
+  <div class="accent-line"></div>
+  <h2>產品展示：完整控制與隱私保護</h2>
+  <p style="font-size: 16px; color: #64748B; margin-bottom: 20px;">由你決定 Moltos 能存取什麼、如何關懷你</p>
+  <div style="display: flex; gap: 48px; align-items: flex-start;">
+    <div style="flex: 0 0 260px; text-align: center;">
+      <img src="screen-settings.png" style="width: 240px; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.12);">
+    </div>
+    <div style="flex: 1;">
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div style="background: #F8FAFC; padding: 20px 24px; border-radius: 8px; border-left: 4px solid #3B82F6;">
+          <h3 style="color: #3B82F6; font-size: 17px; margin-bottom: 8px;">頻道整合</h3>
+          <p style="font-size: 15px; color: #475569; line-height: 1.6;">串接 LINE、Gmail、Slack、Telegram — 隨時可開關。只提取元數據（數量與時間戳記），絕不讀取訊息內容。</p>
+        </div>
+        <div style="background: #F8FAFC; padding: 20px 24px; border-radius: 8px; border-left: 4px solid #F97316;">
+          <h3 style="color: #F97316; font-size: 17px; margin-bottom: 8px;">關懷偏好</h3>
+          <p style="font-size: 15px; color: #475569; line-height: 1.6;">設定關心頻率（每天 3 次）、Calm Index 警示門檻（低於 40）、啟用/停用主動語音通話。</p>
+        </div>
+        <div style="background: #F8FAFC; padding: 20px 24px; border-radius: 8px; border-left: 4px solid #22C55E;">
+          <h3 style="color: #22C55E; font-size: 17px; margin-bottom: 8px;">隱私與安全</h3>
+          <p style="font-size: 15px; color: #475569; line-height: 1.6;">所有對話紀錄<strong>僅儲存在你的裝置上</strong>。端對端加密保護你的隱私。資料絕不出售。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num">8 / 17</div>
+</div>
+
+<!-- ==================== 第 9 頁：Calm Index 演算法 ==================== -->
+<div class="slide bg-white">
+  <div class="logo-bar">Moltos</div>
+  <div class="accent-line"></div>
+  <h2>Calm Index 演算法</h2>
+  <p style="font-size: 16px; color: #64748B; margin-bottom: 20px;">開源、透明、可驗證</p>
+  <table>
+    <tr><th>維度</th><th>訊號</th><th>異常門檻</th></tr>
+    <tr><td><strong>訊息量</strong></td><td>每日數量 vs. 基線</td><td>&gt;1.5&sigma; 偏差</td></tr>
+    <tr><td><strong>回覆延遲</strong></td><td>回應時間趨勢</td><td>持續變慢</td></tr>
+    <tr><td><strong>夜間活動</strong></td><td>23:00-05:00 使用量</td><td>異常增加</td></tr>
+    <tr><td><strong>未讀堆積</strong></td><td>未讀數量趨勢</td><td>持續上升未清除</td></tr>
+    <tr><td><strong>語音情緒</strong></td><td>語速、音調、停頓</td><td>偵測到焦慮特徵</td></tr>
+  </table>
+  <div style="display: flex; gap: 16px; margin-top: 20px; align-items: center;">
+    <div style="flex: 1; background: #F8FAFC; padding: 14px 20px; border-radius: 8px; font-size: 14px; color: #475569;">
+      <strong>處理流程：</strong>EWMA 基線 &rarr; Z-score 偵測 &rarr; Sigmoid 評分 &rarr; 跨維度懲罰
+    </div>
+    <div style="background: #3B82F6; color: #fff; padding: 14px 24px; border-radius: 8px; font-size: 14px; font-weight: 600;">
+      MIT 授權 &nbsp;|&nbsp; github.com/fishtvlvoe/moltos
+    </div>
+  </div>
+  <div class="slide-num">9 / 17</div>
+</div>
+
+<!-- ==================== 第 10 頁：架構 ==================== -->
+<div class="slide bg-surface">
+  <div class="logo-bar">Moltos</div>
+  <div class="accent-line"></div>
+  <h2>隱私優先，端側就緒</h2>
+  <div class="arch-box" style="margin-top: 20px;">
+    <div class="arch-layer">裝置層 — 端側 AI</div>
+    <div class="arch-items">
+      <div class="arch-item" style="border-color: #3B82F6;">Calm Index 引擎<span>本地運算</span></div>
+      <div class="arch-item" style="border-color: #3B82F6;">語音情緒分析器<span>聲學特徵</span></div>
+      <div class="arch-item" style="border-color: #3B82F6;">元數據提取器<span>僅數量與時間戳記</span></div>
+    </div>
+    <div style="text-align: center; color: #94A3B8; font-size: 13px; margin: 8px 0;">&#8595; 僅傳送加密元數據 &#8595;</div>
+    <div class="arch-layer">雲端層 — 最小化、加密</div>
+    <div class="arch-items">
+      <div class="arch-item">AI 對話引擎<span>多模型路由</span></div>
+      <div class="arch-item">智慧路由器<span>80% 輕量 / 20% 高階</span></div>
+      <div class="arch-item">主動排程器<span>動態介入</span></div>
+    </div>
+  </div>
+  <div style="display: flex; gap: 16px; margin-top: 16px;">
+    <div style="flex:1; font-size: 14px; color: #64748B; padding: 10px 16px; background: #fff; border-radius: 6px;">&#10003; Calm Index 端側運算 &rarr; 零雲端成本</div>
+    <div style="flex:1; font-size: 14px; color: #64748B; padding: 10px 16px; background: #fff; border-radius: 6px;">&#10003; 僅元數據離開裝置</div>
+    <div style="flex:1; font-size: 14px; color: #64748B; padding: 10px 16px; background: #fff; border-radius: 6px;">&#10003; 語音端對端加密</div>
+  </div>
+  <div class="slide-num">10 / 17</div>
+</div>
+
+<!-- ==================== 第 11 頁：技術架構優勢 ==================== -->
+<div class="slide bg-white">
+  <div class="logo-bar">Moltos</div>
+  <div class="accent-line-orange"></div>
+  <h2>技術架構優勢</h2>
+  <p style="font-size: 16px; color: #64748B; margin-bottom: 16px;">為什麼端側 AI 對心理健康至關重要</p>
+  <table>
+    <tr><th></th><th>雲端方案</th><th style="color: #3B82F6;">端側 AI（隱私優先架構）</th></tr>
+    <tr><td><strong>隱私</strong></td><td>資料離開裝置</td><td style="color: #22C55E; font-weight: 600;">資料留在裝置上</td></tr>
+    <tr><td><strong>延遲</strong></td><td>依賴網路</td><td style="color: #22C55E; font-weight: 600;">即時推論</td></tr>
+    <tr><td><strong>成本</strong></td><td>$0.24/用戶/月</td><td style="color: #22C55E; font-weight: 600;">趨近 $0/用戶/月</td></tr>
+    <tr><td><strong>可用性</strong></td><td>需要網路連線</td><td style="color: #22C55E; font-weight: 600;">永遠在線監測</td></tr>
+  </table>
+  <div style="display: flex; gap: 16px; margin-top: 20px;">
+    <div style="flex:1; border-left: 4px solid #3B82F6; padding: 14px 18px; background: #F8FAFC; border-radius: 0 8px 8px 0;">
+      <strong style="color: #3B82F6;">第一階段</strong><br><span style="font-size: 14px; color: #475569;">Calm Index &rarr; 端側 AI 推論引擎</span>
+    </div>
+    <div style="flex:1; border-left: 4px solid #F97316; padding: 14px 18px; background: #F8FAFC; border-radius: 0 8px 8px 0;">
+      <strong style="color: #F97316;">第二階段</strong><br><span style="font-size: 14px; color: #475569;">語音情緒 &rarr; 神經網路處理 SDK</span>
+    </div>
+    <div style="flex:1; border-left: 4px solid #22C55E; padding: 14px 18px; background: #F8FAFC; border-radius: 0 8px 8px 0;">
+      <strong style="color: #22C55E;">第三階段</strong><br><span style="font-size: 14px; color: #475569;">永遠在線 &rarr; 感測中樞（超低功耗）</span>
+    </div>
+  </div>
+  <div class="slide-num">11 / 17</div>
+</div>
+
+<!-- ==================== 第 12 頁：市場機會 ==================== -->
+<div class="slide bg-surface">
+  <div class="logo-bar">Moltos</div>
+  <div class="accent-line"></div>
+  <h2>910 億美元市場，年複合成長率 23%</h2>
+  <div class="two-col" style="margin-top: 24px;">
+    <div>
+      <div class="stats" style="flex-direction: column; gap: 16px; margin-top: 0;">
+        <div class="stat-card">
+          <div class="label">2025</div>
+          <div class="num">$17.1B</div>
+        </div>
+        <div class="stat-card" style="border: 2px solid #3B82F6;">
+          <div class="label">2033（預估）</div>
+          <div class="num">$91.2B</div>
+          <div class="label" style="color: #3B82F6; font-weight: 600;">CAGR 23.29%</div>
+        </div>
+      </div>
+      <p class="small" style="margin-top: 8px; text-align: center;">資料來源：Grand View Research</p>
+    </div>
+    <div>
+      <h3 style="font-size: 18px;">目標市場區隔</h3>
+      <table style="font-size: 14px;">
+        <tr><th>區隔</th><th>TAM</th><th>策略</th></tr>
+        <tr><td><strong>B2C</strong></td><td>亞太區 3,000 萬+ 知識工作者</td><td>透過 LINE/Telegram 免費增值</td></tr>
+        <tr><td><strong>B2B</strong></td><td>2,000+ 企業</td><td>按員工數授權</td></tr>
+        <tr><td><strong>B2B2C</strong></td><td>保險與醫療</td><td>合作夥伴整合</td></tr>
+      </table>
+      <p style="font-size: 15px; color: #475569; margin-top: 16px;">
+        <strong>市場進入策略：</strong><br>台灣（LINE）&rarr; 日本 / 東南亞 &rarr; 全球（WhatsApp / Slack）
+      </p>
+    </div>
+  </div>
+  <div class="slide-num">12 / 17</div>
+</div>
+
+<!-- ==================== 第 13 頁：競爭格局 ==================== -->
+<div class="slide bg-white">
+  <div class="logo-bar">Moltos</div>
+  <div class="accent-line"></div>
+  <h2>沒有人能同時做到這四件事</h2>
+  <table style="margin-top: 24px;">
+    <tr><th>能力</th><th style="color: #3B82F6;">Moltos</th><th>Woebot</th><th>Wysa</th><th>Headspace Ebb</th><th>Replika</th></tr>
+    <tr><td>真實通訊數據</td><td class="check">&#10004;</td><td class="cross">&#10008;</td><td class="cross">&#10008;</td><td class="cross">&#10008;</td><td class="cross">&#10008;</td></tr>
+    <tr><td>被動式壓力偵測</td><td class="check">&#10004;</td><td class="cross">&#10008;</td><td class="cross">&#10008;</td><td class="cross">&#10008;</td><td class="cross">&#10008;</td></tr>
+    <tr><td>主動語音通話</td><td class="check">&#10004;</td><td class="cross">&#10008;</td><td class="cross">&#10008;</td><td>部分</td><td>部分</td></tr>
+    <tr><td>端側運算 / 隱私優先</td><td class="check">&#10004;</td><td class="cross">&#10008;</td><td class="cross">&#10008;</td><td class="cross">&#10008;</td><td class="cross">&#10008;</td></tr>
+    <tr><td>開源演算法</td><td class="check">&#10004;</td><td class="cross">&#10008;</td><td class="cross">&#10008;</td><td class="cross">&#10008;</td><td class="cross">&#10008;</td></tr>
+  </table>
+  <div class="highlight-box" style="margin-top: 24px; text-align: center;">
+    Moltos 佔據了一個<strong>獨特的交叉點</strong>，沒有競爭對手能同時觸及。
+  </div>
+  <div class="slide-num">13 / 17</div>
+</div>
+
+<!-- ==================== 第 14 頁：商業模式 ==================== -->
+<div class="slide bg-surface">
+  <div class="logo-bar">Moltos</div>
+  <div class="accent-line-orange"></div>
+  <h2>規模化後毛利率達 96%</h2>
+  <div class="stats" style="margin-top: 28px;">
+    <div class="stat-card">
+      <div class="label">AI 成本 / 用戶 / 月</div>
+      <div class="num">$0.24</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">Pro 訂閱</div>
+      <div class="num" style="color: #F97316;">$7.99</div>
+      <div class="label">/ 月</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">毛利率</div>
+      <div class="num" style="color: #22C55E;">96%</div>
+    </div>
+    <div class="stat-card">
+      <div class="label">對比 ChatGPT Plus</div>
+      <div class="num">83x</div>
+      <div class="label">更便宜</div>
+    </div>
+  </div>
+  <div style="display: flex; gap: 20px; margin-top: 24px;">
+    <div style="flex: 1; padding: 16px 20px; background: #fff; border-radius: 8px; border: 1px solid #E2E8F0;">
+      <strong style="color: #3B82F6;">B2C</strong><br><span style="font-size: 14px; color: #64748B;">免費 + Pro 訂閱</span>
+    </div>
+    <div style="flex: 1; padding: 16px 20px; background: #fff; border-radius: 8px; border: 1px solid #E2E8F0;">
+      <strong style="color: #F97316;">B2B</strong><br><span style="font-size: 14px; color: #64748B;">按員工數企業授權</span>
+    </div>
+    <div style="flex: 1; padding: 16px 20px; background: #fff; border-radius: 8px; border: 1px solid #E2E8F0;">
+      <strong style="color: #22C55E;">B2B2C</strong><br><span style="font-size: 14px; color: #64748B;">保險與醫療合作夥伴</span>
+    </div>
+  </div>
+  <div class="slide-num">14 / 17</div>
+</div>
+
+<!-- ==================== 第 15 頁：進展與里程碑 ==================== -->
+<div class="slide bg-white">
+  <div class="logo-bar">Moltos</div>
+  <div class="accent-line"></div>
+  <h2>進展與里程碑</h2>
+  <table style="margin-top: 24px;">
+    <tr><th>里程碑</th><th style="width: 160px;">狀態</th></tr>
+    <tr><td>社群驗證（30 人問卷調查）</td><td class="check">&#10004; 完成</td></tr>
+    <tr><td>Calm Index 演算法 — 核心開發</td><td class="check">&#10004; 完成</td></tr>
+    <tr><td>開源釋出（MIT 授權）</td><td class="check">&#10004; 完成</td></tr>
+    <tr><td>產品網站（moltos.net）</td><td class="check">&#10004; 完成</td></tr>
+    <tr><td>2026 Best AI Awards 參賽</td><td class="check">&#10004; 完成</td></tr>
+    <tr><td>Telegram Bot MVP</td><td><span style="color: #F97316; font-weight: 600;">進行中</span></td></tr>
+    <tr><td>LINE 串接</td><td><span style="color: #94A3B8;">預計 2026 Q2</span></td></tr>
+    <tr><td>Beta 上線（100 位用戶）</td><td><span style="color: #94A3B8;">預計 2026 Q3</span></td></tr>
+  </table>
+  <div class="slide-num">15 / 17</div>
+</div>
+
+<!-- ==================== 第 16 頁：團隊 ==================== -->
+<div class="slide bg-surface">
+  <div class="logo-bar">Moltos</div>
+  <div class="accent-line"></div>
+  <h2>團隊</h2>
+  <div class="two-col" style="margin-top: 28px;">
+    <div>
+      <div style="width: 80px; height: 80px; background: #3B82F6; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-family: 'Lora', serif; font-size: 32px; font-weight: 700; margin-bottom: 20px;">Y</div>
+      <h3 style="font-size: 24px;">余啟彰</h3>
+      <p style="color: #3B82F6; font-weight: 600; font-size: 16px; margin-bottom: 16px;">創辦人暨執行長</p>
+      <ul style="font-size: 15px; color: #475569;">
+        <li>5 年以上全端獨立開發經驗</li>
+        <li>已交付 ERP 系統、金流串接、LINE Bot 平台</li>
+        <li>多個 WordPress 外掛服務實際商家</li>
+        <li>精實執行：一人 + AI 輔助開發</li>
+      </ul>
+    </div>
+    <div>
+      <h3 style="font-size: 18px; margin-bottom: 16px;">連結</h3>
+      <div style="background: #fff; padding: 16px 20px; border-radius: 8px; border: 1px solid #E2E8F0; margin-bottom: 12px;">
+        <span style="font-size: 14px; color: #94A3B8;">LinkedIn</span><br>
+        <span style="font-size: 15px;">linkedin.com/in/fishtvlove</span>
+      </div>
+      <div style="background: #fff; padding: 16px 20px; border-radius: 8px; border: 1px solid #E2E8F0; margin-bottom: 24px;">
+        <span style="font-size: 14px; color: #94A3B8;">GitHub</span><br>
+        <span style="font-size: 15px;">github.com/fishtvlvoe/moltos</span>
+      </div>
+      <h3 style="font-size: 18px; margin-bottom: 12px;">我們需要什麼</h3>
+      <ul style="font-size: 15px; color: #475569;">
+        <li>投資 150 萬新台幣，出讓 30% 股份</li>
+        <li>商業人脈與企業合作引薦</li>
+        <li>市場推廣資源與通路</li>
+      </ul>
+    </div>
+  </div>
+  <div class="slide-num">16 / 17</div>
+</div>
+
+<!-- ==================== 第 17 頁：投資提案 ==================== -->
+<div class="slide bg-dark text-white" style="color: #fff;">
+  <div style="position: absolute; top: 28px; left: 80px; font-family: 'Lora', serif; font-size: 16px; font-weight: 700; color: #60A5FA;">Moltos</div>
+  <div style="width: 48px; height: 4px; background: #F97316; border-radius: 2px; margin-bottom: 20px;"></div>
+  <h2 style="color: #fff;">投資提案</h2>
+  <div style="display: flex; gap: 24px; margin-top: 28px;">
+    <div style="flex: 1;">
+      <h3 style="color: #60A5FA; font-size: 18px; margin-bottom: 16px;">投資條件：150 萬新台幣換 30% 股份</h3>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="background: rgba(255,255,255,0.08); padding: 14px 18px; border-radius: 8px; font-size: 15px;">
+          <strong style="color: #60A5FA;">產品開發（60%）</strong><br><span style="color: #CBD5E1;">完成 MVP、LINE 串接、語音通話功能</span>
+        </div>
+        <div style="background: rgba(255,255,255,0.08); padding: 14px 18px; border-radius: 8px; font-size: 15px;">
+          <strong style="color: #60A5FA;">市場推廣（25%）</strong><br><span style="color: #CBD5E1;">Beta 用戶獲取、社群經營、KOL 合作</span>
+        </div>
+        <div style="background: rgba(255,255,255,0.08); padding: 14px 18px; border-radius: 8px; font-size: 15px;">
+          <strong style="color: #60A5FA;">營運費用（15%）</strong><br><span style="color: #CBD5E1;">雲端基礎設施、法律與合規</span>
+        </div>
+        <div style="background: rgba(255,255,255,0.08); padding: 14px 18px; border-radius: 8px; font-size: 15px;">
+          <strong style="color: #F97316;">我們期望的不只是錢</strong><br><span style="color: #CBD5E1;">商業人脈、企業客戶引薦、品牌曝光</span>
+        </div>
+      </div>
+    </div>
+    <div style="flex: 1;">
+      <h3 style="color: #60A5FA; font-size: 18px; margin-bottom: 16px;">12 個月路線圖</h3>
+      <div class="roadmap" style="flex-direction: column; gap: 10px;">
+        <div style="border-left: 4px solid #60A5FA; padding: 12px 16px; background: rgba(255,255,255,0.05); border-radius: 0 8px 8px 0;">
+          <strong style="color: #60A5FA;">Q2 2026</strong><br><span style="font-size: 14px; color: #CBD5E1;">MVP 完成 + LINE 串接</span>
+        </div>
+        <div style="border-left: 4px solid #60A5FA; padding: 12px 16px; background: rgba(255,255,255,0.05); border-radius: 0 8px 8px 0;">
+          <strong style="color: #60A5FA;">Q3 2026</strong><br><span style="font-size: 14px; color: #CBD5E1;">Beta 上線（100 用戶）+ 端側 Calm Index PoC</span>
+        </div>
+        <div style="border-left: 4px solid #F97316; padding: 12px 16px; background: rgba(255,255,255,0.05); border-radius: 0 8px 8px 0;">
+          <strong style="color: #F97316;">Q4 2026</strong><br><span style="font-size: 14px; color: #CBD5E1;">正式上線 + 第一個企業試點</span>
+        </div>
+        <div style="border-left: 4px solid #22C55E; padding: 12px 16px; background: rgba(255,255,255,0.05); border-radius: 0 8px 8px 0;">
+          <strong style="color: #22C55E;">Q1 2027</strong><br><span style="font-size: 14px; color: #CBD5E1;">日本/東南亞擴展 + 種子輪募資</span>
+        </div>
+      </div>
+      <div style="margin-top: 24px; padding: 16px; border-left: 4px solid #F97316;">
+        <p style="font-family: 'Lora', serif; font-size: 20px; font-style: italic; color: #F1F5F9; line-height: 1.5;">
+          「我們不取代心理師。<br>我們在人們需要心理師之前，先接住他們。」
+        </p>
+      </div>
+      <p style="font-size: 14px; color: #64748B; margin-top: 16px;">moltos.net &nbsp;|&nbsp; github.com/fishtvlvoe/moltos</p>
+    </div>
+  </div>
+  <div class="slide-num" style="color: #475569;">17 / 17</div>
+</div>
+
+</body>
+</html>
