@@ -1,10 +1,12 @@
-// T017: Dashboard 頁面骨架 — Server Component，依 session 顯示個人化問候
+// T017+T027: Dashboard 頁面 — Server Component 問候 + Client Component 平靜指數
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { CalmIndexCard } from '@/components/dashboard/calm-index-card';
+import { TodayProgress } from '@/components/dashboard/today-progress';
 
 // 依伺服器時間回傳對應問候語（台灣時區以 UTC+8 計算）
 function getGreeting(hour: number): string {
@@ -58,34 +60,13 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* 平靜指數卡片 */}
-      <Card className="rounded-2xl shadow-sm border-0 bg-white">
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center justify-between text-base text-gray-800">
-            <span>平靜指數</span>
-            {/* 即將推出 badge */}
-            <Badge
-              variant="secondary"
-              className="text-xs rounded-full"
-              style={{ backgroundColor: '#FDF0E8', color: '#C67A52' }}
-            >
-              即將推出
-            </Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {/* 佔位說明文字 */}
-          <p className="text-gray-400 text-sm">
-            透過 Gmail 分析你的數位壓力，量化每日情緒負擔。
-          </p>
-          {/* 佔位視覺區塊 */}
-          <div className="mt-3 h-20 rounded-xl bg-gray-50 flex items-center justify-center">
-            <span className="text-gray-300 text-xs">功能開發中</span>
-          </div>
-        </CardContent>
-      </Card>
+      {/* 平靜指數卡片 — 從 /api/calm-index 取得真實資料 */}
+      <CalmIndexCard />
 
-      {/* 今日摘要卡片 */}
+      {/* 今日進度卡片 — 靜態假資料 placeholder */}
+      <TodayProgress />
+
+      {/* 今日摘要卡片（Phase 6 實作，先保留 placeholder） */}
       <Card className="rounded-2xl shadow-sm border-0 bg-white">
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center justify-between text-base text-gray-800">
