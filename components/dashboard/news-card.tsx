@@ -7,6 +7,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { VideoSummary } from '@/lib/types';
+import { withDemoParam } from '@/lib/demo-mode';
 
 // 強調色（設計規格）
 const ACCENT_COLOR = '#C67A52';
@@ -123,7 +124,8 @@ export function NewsCard() {
       try {
         setLoading(true);
         setError(null);
-        const res = await fetch('/api/youtube/feed');
+        // Demo 模式時自動附加 ?demo=true，讓 API 回傳靜態假資料
+        const res = await fetch(withDemoParam('/api/youtube/feed'));
         if (!res.ok) {
           throw new Error(`API 回應錯誤：${res.status}`);
         }

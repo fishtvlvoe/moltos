@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { CalmIndexSnapshot } from '@/lib/types';
+import { withDemoParam } from '@/lib/demo-mode';
 
 // ─── 維度中文對照表 ──────────────────────────────────────────────────────────
 const DIMENSION_LABELS: Record<string, string> = {
@@ -165,7 +166,8 @@ export function CalmIndexCard() {
       try {
         setLoading(true);
         setError(null);
-        const res = await fetch('/api/calm-index');
+        // Demo 模式時自動附加 ?demo=true，讓 API 回傳靜態假資料
+        const res = await fetch(withDemoParam('/api/calm-index'));
         if (!res.ok) {
           throw new Error(`API 回應錯誤：${res.status}`);
         }

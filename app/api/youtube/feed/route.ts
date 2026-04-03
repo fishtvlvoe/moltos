@@ -14,8 +14,15 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { fetchLatestVideos } from '@/lib/youtube';
 import { NextResponse } from 'next/server';
+import { demoData } from '@/lib/demo-data';
 
-export async function GET() {
+export async function GET(req: Request) {
+  // ── Demo 模式：?demo=true 直接回傳靜態資料（不需要登入）────────────────
+  const { searchParams } = new URL(req.url);
+  if (searchParams.get('demo') === 'true') {
+    return NextResponse.json(demoData.videos);
+  }
+
   // 取得目前 session（含 accessToken）
   const session = await getServerSession(authOptions);
 
@@ -29,8 +36,10 @@ export async function GET() {
     const videos = await fetchLatestVideos((session as any).accessToken);
     return NextResponse.json(videos);
   } catch (error) {
-    // YouTube API 呼叫失敗（例如 token 過期、未授權 scope、網路錯誤）→ 500
-    console.error('[GET /api/youtube/feed] 取得 YouTube 資料失敗：', error);
-    return NextResponse.json({ error: '無法取得 YouTube 資料' }, { status: 500 });
+    // YouTube API 呼叫失敗（例如 token 過期、未授權 scope、網路錯誤）→ 降級回傳 demo data
+    console.error('[GET /api/youtube/feed] 取得 YouTube 資料失敗，降級為 demo data：', error);
+    return NextResponse.json(demoData.videos, {
+      headers: { 'X-Demo-Data': 'true' },
+    });
   }
 }
