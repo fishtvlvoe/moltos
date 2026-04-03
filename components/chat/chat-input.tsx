@@ -70,7 +70,7 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
 
       <div
         className={`
-          flex items-end gap-2 rounded-2xl border px-3 py-2
+          flex items-end gap-3 rounded-2xl border px-4 py-3
           transition-colors
           ${disabled
             ? 'bg-stone-100 border-stone-200 opacity-60'
@@ -95,8 +95,8 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
           {/* 麥克風 SVG icon */}
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            width="18"
-            height="18"
+            width="22"
+            height="22"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
@@ -123,7 +123,7 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
           placeholder="輸入訊息…"
           aria-label="聊天訊息輸入框"
           className={`
-            flex-1 resize-none bg-transparent text-sm leading-relaxed outline-none
+            flex-1 resize-none bg-transparent text-base leading-relaxed outline-none
             placeholder:text-stone-400
             ${disabled ? 'cursor-not-allowed text-stone-400' : 'text-stone-800'}
           `}
@@ -137,7 +137,7 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
           disabled={disabled || !value.trim()}
           aria-label="送出訊息"
           className={`
-            flex-shrink-0 mb-1 w-8 h-8 rounded-full flex items-center justify-center
+            flex-shrink-0 mb-0.5 w-10 h-10 rounded-full flex items-center justify-center
             transition-colors
             ${disabled || !value.trim()
               ? 'bg-stone-200 text-stone-400 cursor-not-allowed'

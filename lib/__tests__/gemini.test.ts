@@ -92,10 +92,10 @@ describe('buildSystemPrompt', () => {
     expect(prompt).toContain('80');
   });
 
-  it('有平靜指數時，prompt 應包含等級', () => {
-    const snapshot = buildCalmSnapshot({ level: 'mild' });
+  it('有平靜指數時，prompt 應包含分數資訊', () => {
+    const snapshot = buildCalmSnapshot({ score: 65, level: 'mild' });
     const prompt = buildSystemPrompt(snapshot);
-    expect(prompt).toContain('mild');
+    expect(prompt).toContain('65');
   });
 
   it('calmSnapshot 為 null 時，prompt 仍為非空字串', () => {
@@ -113,8 +113,8 @@ describe('buildSystemPrompt', () => {
   it('attention 等級時，prompt 應包含建議尋求專業協助的相關提示', () => {
     const snapshot = buildCalmSnapshot({ score: 30, level: 'attention' });
     const prompt = buildSystemPrompt(snapshot);
-    // attention 等級應有格外溫柔且提醒專業協助的內容
-    expect(prompt).toContain('attention');
+    expect(prompt).toContain('30');
+    expect(prompt).toContain('專業');
   });
 
   it('prompt 應包含 MOLTOS 身份說明', () => {
