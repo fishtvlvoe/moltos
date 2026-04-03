@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CalmIndexCard } from '@/components/dashboard/calm-index-card';
 import { TodayProgress } from '@/components/dashboard/today-progress';
+import { NewsCard } from '@/components/dashboard/news-card';
 
 // 依伺服器時間回傳對應問候語（台灣時區以 UTC+8 計算）
 function getGreeting(hour: number): string {
@@ -66,29 +67,8 @@ export default async function DashboardPage() {
       {/* 今日進度卡片 — 靜態假資料 placeholder */}
       <TodayProgress />
 
-      {/* 今日摘要卡片（Phase 6 實作，先保留 placeholder） */}
-      <Card className="rounded-2xl shadow-sm border-0 bg-white">
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center justify-between text-base text-gray-800">
-            <span>今日摘要</span>
-            <Badge
-              variant="secondary"
-              className="text-xs rounded-full"
-              style={{ backgroundColor: '#FDF0E8', color: '#C67A52' }}
-            >
-              即將推出
-            </Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-gray-400 text-sm">
-            YouTube 訂閱頻道精選內容，為你濾除資訊噪音。
-          </p>
-          <div className="mt-3 h-20 rounded-xl bg-gray-50 flex items-center justify-center">
-            <span className="text-gray-300 text-xs">功能開發中</span>
-          </div>
-        </CardContent>
-      </Card>
+      {/* 今日摘要卡片 — 從 /api/youtube/feed 取得真實資料 */}
+      <NewsCard />
 
       {/* 健康追蹤卡片 */}
       <Card className="rounded-2xl shadow-sm border-0 bg-white">
