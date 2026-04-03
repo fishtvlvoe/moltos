@@ -3,3 +3,10 @@ dist/
 *.js.map
 *.d.ts.map
 .DS_Store
+# Next.js 建置輸出
+.next/
+out/
+# 環境變數（含機密）
+.env
+.env.local
+.env.*.local
