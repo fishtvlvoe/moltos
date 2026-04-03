@@ -18,17 +18,23 @@ function getGreeting(hour: number): string {
   return '深夜好'; // 0-6
 }
 
-export default async function DashboardPage() {
-  // 伺服器端驗證 session
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ demo?: string }>;
+}) {
+  const params = await searchParams;
+  const isDemo = params.demo === 'true';
+
+  // 伺服器端驗證 session（demo 模式跳過）
   const session = await getServerSession(authOptions);
 
-  if (!session) {
-    // 未登入 → 導向 onboarding
+  if (!session && !isDemo) {
     redirect('/onboarding');
   }
 
-  // 取得使用者名稱（截取名字中第一個空格前的部分作為稱呼）
-  const fullName = session.user?.name ?? '朋友';
+  // demo 模式用假名稱，正常模式用 session
+  const fullName = isDemo ? '小明' : (session?.user?.name ?? '朋友');
   const firstName = fullName.split(' ')[0];
 
   // 依目前伺服器時間（UTC+8）計算問候語
@@ -45,7 +51,7 @@ export default async function DashboardPage() {
       <div className="flex items-center gap-4 pt-2">
         <Avatar className="w-12 h-12">
           <AvatarImage
-            src={session.user?.image ?? undefined}
+            src={session?.user?.image ?? undefined}
             alt={fullName}
           />
           <AvatarFallback

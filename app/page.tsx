@@ -3,15 +3,23 @@ import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
 
-export default async function Home() {
-  // 檢查伺服器端 session
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ demo?: string }>;
+}) {
+  const params = await searchParams;
+
+  // demo 模式直接進 dashboard
+  if (params.demo === 'true') {
+    redirect('/dashboard?demo=true');
+  }
+
   const session = await getServerSession(authOptions);
 
   if (session) {
-    // 已登入 → 前往 dashboard
     redirect('/dashboard');
   }
 
-  // 未登入 → 前往 onboarding
   redirect('/onboarding');
 }
