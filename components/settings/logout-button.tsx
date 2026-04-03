@@ -8,7 +8,7 @@ export function LogoutButton() {
   return (
     <Button
       variant="outline"
-      className="w-full rounded-2xl border-gray-200 text-gray-600 mt-2"
+      className="w-full rounded-2xl border-gray-300 bg-white text-red-500 font-medium mt-2 hover:bg-red-50 hover:text-red-600"
       onClick={() =>
         // 登出後導向 onboarding 頁面
         signOut({ callbackUrl: '/onboarding' })

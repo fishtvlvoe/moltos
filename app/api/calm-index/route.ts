@@ -2,6 +2,7 @@
  * T024: API Route — GET /api/calm-index
  *
  * 流程：session → fetchGmailMetrics → computeCalmIndex → CalmIndexSnapshot JSON
+ *       → upsertUser → saveCalmIndex（存進 Supabase，失敗不影響回傳）
  *
  * 權限：需登入（session 含 accessToken）
  * 失敗情境：
@@ -16,6 +17,7 @@ import { fetchGmailMetrics } from '@/lib/gmail';
 import { computeCalmIndex } from '@/lib/calm-index-bridge';
 import { NextResponse } from 'next/server';
 import { demoData } from '@/lib/demo-data';
+import { upsertUser, saveCalmIndex } from '@/lib/db';
 
 export async function GET(req: Request) {
   // ── Demo 模式：?demo=true 直接回傳靜態資料（不需要登入）────────────────
@@ -47,7 +49,20 @@ export async function GET(req: Request) {
       );
     }
 
-    // 4. 成功回傳快照
+    // 4. 嘗試將快照存進 Supabase（失敗只 warn，不影響回傳）
+    try {
+      const email = session.user?.email;
+      if (email) {
+        const userId = await upsertUser(email, session.user?.name ?? undefined);
+        await saveCalmIndex(userId, snapshot);
+      } else {
+        console.warn('[GET /api/calm-index] session.user.email 為空，跳過 DB 寫入');
+      }
+    } catch (dbError) {
+      console.warn('[GET /api/calm-index] DB 寫入失敗（不影響 API 回傳）：', dbError);
+    }
+
+    // 5. 成功回傳快照
     return NextResponse.json(snapshot);
   } catch (error) {
     // 未預期的錯誤（Gmail API 失敗、演算法例外）→ 降級回傳 demo data

@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { startListening, stopListening, isSpeechRecognitionSupported, setOnInterim } from '@/lib/speech';
 
 interface ChatInputProps {
   onSend: (message: string) => void;
@@ -10,16 +11,19 @@ interface ChatInputProps {
 /**
  * 聊天輸入框元件
  *
- * - 左側：麥克風 icon（純 UI，點擊顯示「即將推出」提示）
- * - 中間：多行文字輸入框（Enter 送出、Shift+Enter 換行）
- * - 右側：送出按鈕（箭頭 icon）
- * - disabled 時輸入框與按鈕均灰掉
- * - 固定在頁面底部（sticky bottom）
+ * 兩種模式：
+ * 1. 打字模式（預設）：左邊麥克風、中間輸入框、右邊送出
+ * 2. 語音模式（錄音中）：全寬音波動畫 + 停止按鈕
  */
 export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
   const [value, setValue] = useState('');
-  const [micAlert, setMicAlert] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [interimText, setInterimText] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  /** 瀏覽器是否支援語音辨識 */
+  const [supported, setSupported] = useState(false);
+  useEffect(() => { setSupported(isSpeechRecognitionSupported()); }, []);
 
   /** 送出訊息 */
   const handleSend = useCallback(() => {
@@ -27,13 +31,12 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
     if (!trimmed || disabled) return;
     onSend(trimmed);
     setValue('');
-    // 重設 textarea 高度
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
     }
   }, [value, disabled, onSend]);
 
-  /** 鍵盤事件：Enter 送出、Shift+Enter 換行 */
+  /** Enter 送出、Shift+Enter 換行 */
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -41,36 +44,98 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
     }
   };
 
-  /** 自動調整 textarea 高度（最多 6 行） */
+  /** textarea 自動高度 */
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setValue(e.target.value);
     const el = e.target;
     el.style.height = 'auto';
-    el.style.height = `${Math.min(el.scrollHeight, 144)}px`; // 144px ≈ 6 行
+    el.style.height = `${Math.min(el.scrollHeight, 144)}px`;
   };
 
-  /** 麥克風點擊：顯示即將推出提示 */
-  const handleMicClick = () => {
-    setMicAlert(true);
-    setTimeout(() => setMicAlert(false), 2000);
-  };
+  /** 開始語音辨識 */
+  async function handleMicStart() {
+    if (!supported) {
+      alert('語音輸入需要使用 Chrome 瀏覽器。\n\nBrave 用戶可在 brave://flags 搜尋「speech」並啟用。');
+      return;
+    }
+    setIsListening(true);
+    setInterimText('');
+    // 註冊即時辨識回調，讓 UI 即時顯示辨識文字
+    setOnInterim((text) => setInterimText(text));
+    try {
+      const text = await startListening();
+      if (text.trim()) {
+        setValue(prev => prev ? prev + ' ' + text : text);
+      }
+    } catch {
+      // 靜默處理
+    } finally {
+      setIsListening(false);
+      setInterimText('');
+      setOnInterim(null);
+    }
+  }
 
+  /** 停止語音辨識 */
+  function handleMicStop() {
+    stopListening();
+    setIsListening(false);
+  }
+
+  // ── 語音模式：全寬錄音介面 ──
+  if (isListening) {
+    return (
+      <div className="sticky bottom-0 bg-[#FAF8F4] border-t border-stone-200 px-4 py-3">
+        <div className="flex flex-col gap-2 rounded-2xl border border-red-300 bg-red-50 px-4 py-3">
+          {/* 上方：音波 + 停止按鈕 */}
+          <div className="flex items-center gap-3">
+            {/* 音波動畫 */}
+            <div className="flex-1 flex items-center justify-center gap-[3px] h-8">
+              {[...Array(20)].map((_, i) => (
+                <div
+                  key={i}
+                  className="w-[3px] rounded-full bg-red-400"
+                  style={{
+                    animation: `waveform 1s ease-in-out ${i * 0.05}s infinite`,
+                    height: '6px',
+                  }}
+                />
+              ))}
+            </div>
+            {/* 停止按鈕 */}
+            <button
+              type="button"
+              onClick={handleMicStop}
+              className="flex-shrink-0 w-10 h-10 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 active:scale-95 transition-all"
+              aria-label="停止錄音"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="6" y="6" width="12" height="12" rx="2" />
+              </svg>
+            </button>
+          </div>
+          {/* 下方：即時辨識文字 */}
+          <p className="text-sm text-[#5A5A5A] min-h-[1.25rem] truncate">
+            {interimText || '正在聆聽，請說話…'}
+          </p>
+        </div>
+        {/* 音波動畫 CSS */}
+        <style jsx>{`
+          @keyframes waveform {
+            0%, 100% { height: 6px; }
+            50% { height: 24px; }
+          }
+        `}</style>
+      </div>
+    );
+  }
+
+  // ── 打字模式：正常輸入介面 ──
   return (
     <div className="sticky bottom-0 bg-[#FAF8F4] border-t border-stone-200 px-4 py-3">
-      {/* 即將推出提示（替代 toast） */}
-      {micAlert && (
-        <div
-          className="mb-2 text-xs text-center text-stone-500 bg-stone-100 rounded-lg py-1 px-3 transition-opacity"
-          role="status"
-          aria-live="polite"
-        >
-          🎤 語音輸入即將推出
-        </div>
-      )}
-
       <div
         className={`
-          flex items-end gap-3 rounded-2xl border px-4 py-3
+          flex items-center gap-2 rounded-2xl border px-3 py-2
           transition-colors
           ${disabled
             ? 'bg-stone-100 border-stone-200 opacity-60'
@@ -78,32 +143,30 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
           }
         `}
       >
-        {/* 麥克風 icon（純 UI） */}
+        {/* 麥克風按鈕 — 與送出按鈕同尺寸 */}
         <button
           type="button"
-          onClick={handleMicClick}
+          onClick={handleMicStart}
           disabled={disabled}
-          aria-label="語音輸入（即將推出）"
+          aria-label="語音輸入"
           className={`
-            flex-shrink-0 mb-1 p-1 rounded-full transition-colors
+            flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center
+            transition-colors
             ${disabled
               ? 'text-stone-300 cursor-not-allowed'
-              : 'text-stone-400 hover:text-[#C67A52] hover:bg-stone-100'
+              : 'text-[#8A8A8A] hover:text-[#C67A52] hover:bg-stone-100 active:scale-95'
             }
           `}
         >
-          {/* 麥克風 SVG icon */}
           <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="22"
-            height="22"
+            width="20"
+            height="20"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            aria-hidden="true"
           >
             <rect x="9" y="2" width="6" height="11" rx="3" />
             <path d="M5 10a7 7 0 0 0 14 0" />
@@ -130,14 +193,14 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
           style={{ maxHeight: '144px', overflowY: 'auto' }}
         />
 
-        {/* 送出按鈕（箭頭 icon） */}
+        {/* 送出按鈕 — 與麥克風同尺寸 */}
         <button
           type="button"
           onClick={handleSend}
           disabled={disabled || !value.trim()}
           aria-label="送出訊息"
           className={`
-            flex-shrink-0 mb-0.5 w-10 h-10 rounded-full flex items-center justify-center
+            flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center
             transition-colors
             ${disabled || !value.trim()
               ? 'bg-stone-200 text-stone-400 cursor-not-allowed'
@@ -145,9 +208,7 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
             }
           `}
         >
-          {/* 向上箭頭 SVG icon */}
           <svg
-            xmlns="http://www.w3.org/2000/svg"
             width="16"
             height="16"
             viewBox="0 0 24 24"
@@ -156,7 +217,6 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
             strokeWidth="2.5"
             strokeLinecap="round"
             strokeLinejoin="round"
-            aria-hidden="true"
           >
             <line x1="12" y1="19" x2="12" y2="5" />
             <polyline points="5 12 12 5 19 12" />
