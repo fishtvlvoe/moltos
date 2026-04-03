@@ -29,8 +29,10 @@ const LEVEL_CONFIG: Record<
   attention:{ label: '需關注', color: '#F44336', bgColor: '#FFEBEE' },
 };
 
-// 強調色（設計規格）
-const ACCENT_COLOR = '#C67A52';
+// 圓環色（設計稿為紫色系）
+const RING_COLOR = '#7C5CBA';
+// 橫條圖強調色（維持赤陶色）
+const BAR_COLOR = '#C67A52';
 
 // ─── 分數圓環元件 ────────────────────────────────────────────────────────────
 function ScoreRing({ score }: { score: number }) {
@@ -60,7 +62,7 @@ function ScoreRing({ score }: { score: number }) {
           cy={cy}
           r={radius}
           fill="none"
-          stroke={ACCENT_COLOR}
+          stroke={RING_COLOR}
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={circumference}
@@ -120,7 +122,7 @@ function DimensionBar({
         {/* 進度條 */}
         <div
           className="h-2 rounded-full transition-all duration-500"
-          style={{ width: `${pct}%`, backgroundColor: ACCENT_COLOR }}
+          style={{ width: `${pct}%`, backgroundColor: BAR_COLOR }}
         />
       </div>
     </div>
