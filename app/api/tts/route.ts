@@ -40,8 +40,8 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         input: { text: cleanText },
         voice: {
-          languageCode: 'zh-TW',
-          name: 'zh-TW-Neural2-C',   // 台灣女聲，Neural2 等級
+          languageCode: 'cmn-TW',
+          name: 'cmn-TW-Wavenet-A',  // 台灣女聲，Wavenet 等級（最高可用）
         },
         audioConfig: {
           audioEncoding: 'MP3',

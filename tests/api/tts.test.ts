@@ -82,7 +82,7 @@ describe('POST /api/tts', () => {
     await POST(req);
 
     const calledBody = JSON.parse(mockFetch.mock.calls[0][1].body as string);
-    expect(calledBody.voice.name).toBe('zh-TW-Neural2-C');
+    expect(calledBody.voice.name).toBe('cmn-TW-Wavenet-A');
   });
 
   it('呼叫時帶正確的語言代碼 zh-TW', async () => {
@@ -92,6 +92,6 @@ describe('POST /api/tts', () => {
     await POST(req);
 
     const calledBody = JSON.parse(mockFetch.mock.calls[0][1].body as string);
-    expect(calledBody.voice.languageCode).toBe('zh-TW');
+    expect(calledBody.voice.languageCode).toBe('cmn-TW');
   });
 });
