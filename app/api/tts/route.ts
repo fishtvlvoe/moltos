@@ -1,17 +1,17 @@
 /**
  * API Route — POST /api/tts
  *
- * 使用 OpenAI TTS 將文字轉為自然語音。
- * 聲線：nova（溫暖、自然）
- * 回傳 audio/mp3 二進位資料。
+ * 使用 Google Cloud TTS 將文字轉為自然語音。
+ * 聲線：zh-TW-Neural2-C（台灣女聲，Neural2 等級）
+ * 回傳 audio/mpeg 二進位資料。
  */
 
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.GOOGLE_CLOUD_TTS_API_KEY;
   if (!apiKey) {
-    return NextResponse.json({ error: 'OpenAI API key 未設定' }, { status: 500 });
+    return NextResponse.json({ error: 'Google Cloud TTS API key 未設定' }, { status: 500 });
   }
 
   let text: string;
@@ -31,29 +31,33 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: '文字為空' }, { status: 400 });
   }
 
+  const endpoint = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`;
+
   try {
-    const res = await fetch('https://api.openai.com/v1/audio/speech', {
+    const res = await fetch(endpoint, {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'tts-1',
-        voice: 'nova',    // 溫暖自然的女聲
-        input: cleanText,
-        speed: 1.05,       // 略快，自然對話節奏
+        input: { text: cleanText },
+        voice: {
+          languageCode: 'zh-TW',
+          name: 'zh-TW-Neural2-C',   // 台灣女聲，Neural2 等級
+        },
+        audioConfig: {
+          audioEncoding: 'MP3',
+          speakingRate: 1.05,         // 略快，自然對話節奏
+        },
       }),
     });
 
     if (!res.ok) {
       const err = await res.text();
-      console.error('[POST /api/tts] OpenAI TTS 錯誤：', err);
+      console.error('[POST /api/tts] Google Cloud TTS 錯誤：', err);
       return NextResponse.json({ error: 'TTS 服務錯誤' }, { status: 502 });
     }
 
-    // OpenAI 直接回傳音訊串流
-    const audioBuffer = await res.arrayBuffer();
+    const data = await res.json() as { audioContent: string };
+    const audioBuffer = Buffer.from(data.audioContent, 'base64');
 
     return new Response(audioBuffer, {
       headers: {

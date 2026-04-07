@@ -243,11 +243,18 @@ export async function speak(text: string): Promise<void> {
       return await new Promise<void>((resolve) => {
         const audio = new Audio(url);
         currentAudio = audio;
+        let settled = false;
         const done = () => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(safetyTimer);
           currentAudio = null;
           URL.revokeObjectURL(url);
           resolve();
         };
+        // iOS 上 onended 有時不觸發，加 safety timeout（文字長度估算播放時間 + 5s）
+        const estimatedMs = Math.max(5000, cleanText.length * 200 + 3000);
+        const safetyTimer = setTimeout(done, estimatedMs);
         audio.onended = done;
         audio.onerror = done;
         audio.play().catch(done);
@@ -265,8 +272,17 @@ export async function speak(text: string): Promise<void> {
     const utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.lang = "zh-TW";
     utterance.rate = 0.9;
-    utterance.onend = () => resolve();
-    utterance.onerror = () => resolve();
+    let settled = false;
+    const done = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(safetyTimer);
+      resolve();
+    };
+    // iOS SpeechSynthesis onend 也不穩定，同樣加 safety timeout
+    const safetyTimer = setTimeout(done, Math.max(5000, cleanText.length * 200 + 3000));
+    utterance.onend = done;
+    utterance.onerror = done;
     window.speechSynthesis.speak(utterance);
   });
 }

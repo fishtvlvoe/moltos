@@ -1,6 +1,6 @@
 'use client';
 
-// 語音通話頁面 — 簡化版：speak → listen → API → speak → listen...
+// 語音通話頁面 — 逐句串流 TTS：Gemini 每回一個完整句子就立刻送 TTS 播放
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
@@ -10,6 +10,7 @@ import {
   speak,
   stopSpeaking,
 } from '@/lib/speech';
+import { extractCompleteSentences } from '@/lib/sentence-splitter';
 import type { ChatMessage } from '@/lib/types';
 
 type CallState = 'idle' | 'listening' | 'thinking' | 'speaking';
@@ -42,10 +43,10 @@ export default function CallPage() {
     setDuration(0);
     historyRef.current = [];
 
-    // 1. 小莫先說開場白
+    // 1. 小默先說開場白
     setState('speaking');
-    setAiText('嗨，我是小莫，有什麼想聊的嗎？');
-    await speak('嗨，我是小莫，有什麼想聊的嗎？');
+    setAiText('嗨，我是小默，有什麼想聊的嗎？');
+    await speak('嗨，我是小默，有什麼想聊的嗎？');
 
     // 2. 開始對話循環
     if (!abortRef.current) {
@@ -53,10 +54,10 @@ export default function CallPage() {
     }
   }
 
-  // ── 對話循環（最簡單的版本）──
+  // ── 對話循環（逐句串流 TTS 版）──
   async function conversationLoop() {
     while (!abortRef.current) {
-      // ── 聆聽使用者 ──
+      // ── 聆聽使用者（靜音 800ms 後自動送出）──
       setState('listening');
       setInterimText('');
       setAiText('');
@@ -64,14 +65,13 @@ export default function CallPage() {
 
       let userText = '';
       try {
-        userText = await listenUntilSilence(1500);
+        userText = await listenUntilSilence(800);
       } catch {
-        // 辨識失敗 → 重試
         continue;
       }
 
       if (abortRef.current) break;
-      if (!userText.trim()) continue; // 沒聽到話 → 重試
+      if (!userText.trim()) continue;
 
       // ── 送 API ──
       setState('thinking');
@@ -97,17 +97,51 @@ export default function CallPage() {
 
         if (!res.ok || !res.body) throw new Error('API error');
 
-        // 讀取完整回應
+        // ── 逐句串流 TTS ──
+        // 邏輯：Gemini 串流進來時，每湊到一個完整句子就立刻送 TTS
+        // 不等全部文字回來才開始講，大幅降低感知延遲
         const reader = res.body.getReader();
         const decoder = new TextDecoder();
         let aiResponse = '';
+        let ttsBuffer = '';           // 等待切句的暫存
+        let speakPromise = Promise.resolve();  // 序列化播放，避免音訊重疊
+
+        setState('speaking');
 
         while (true) {
           const { done, value } = await reader.read();
-          if (done) break;
-          aiResponse += decoder.decode(value, { stream: true });
+
+          if (done) {
+            // 串流結束：把剩餘未送出的文字一起播
+            if (ttsBuffer.trim() && !abortRef.current) {
+              const prev = speakPromise;
+              speakPromise = prev.then(() =>
+                abortRef.current ? Promise.resolve() : speak(ttsBuffer)
+              );
+            }
+            break;
+          }
+
+          const chunk = decoder.decode(value, { stream: true });
+          aiResponse += chunk;
+          ttsBuffer += chunk;
           setAiText(aiResponse);
+
+          // 偵測是否有完整句子可以送出
+          const { complete, remainder } = extractCompleteSentences(ttsBuffer);
+          if (complete && !abortRef.current) {
+            const sentenceToSpeak = complete;
+            const prev = speakPromise;
+            // 等前一句播完再播這句（不用等 Gemini 串流，只等音訊隊列）
+            speakPromise = prev.then(() =>
+              abortRef.current ? Promise.resolve() : speak(sentenceToSpeak)
+            );
+            ttsBuffer = remainder;
+          }
         }
+
+        // 等所有句子播完
+        await speakPromise;
 
         if (abortRef.current) break;
 
@@ -119,13 +153,7 @@ export default function CallPage() {
         };
         historyRef.current = [...historyRef.current, assistantMsg];
 
-        // ── 朗讀回應 ──
-        setState('speaking');
-        if (aiResponse) {
-          await speak(aiResponse);
-        }
-
-        // 朗讀完 → 回到迴圈頂部繼續聽
+        // 播完 → 回到迴圈頂部繼續聽
       } catch {
         setAiText('連線中斷，請稍後再試…');
         await new Promise(r => setTimeout(r, 2000));
@@ -143,7 +171,6 @@ export default function CallPage() {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
-    // 有對話 → 存到 sessionStorage 再跳回 chat
     if (historyRef.current.length > 0) {
       sessionStorage.setItem('callHistory', JSON.stringify(historyRef.current));
       router.push('/chat');
@@ -172,12 +199,12 @@ export default function CallPage() {
         <p className="text-xs text-white/50 tracking-widest uppercase">
           {state === 'idle' ? 'MOLTOS' : formatTime(duration)}
         </p>
-        <h1 className="text-2xl font-semibold">小莫</h1>
+        <h1 className="text-2xl font-semibold">小默</h1>
         <p className="text-sm text-white/60">
           {state === 'idle' && '按下通話開始聊天'}
           {state === 'listening' && '正在聆聽…'}
           {state === 'thinking' && '思考中…'}
-          {state === 'speaking' && '小莫正在說話… 點擊可打斷'}
+          {state === 'speaking' && '小默正在說話… 點擊可打斷'}
         </p>
       </div>
 
