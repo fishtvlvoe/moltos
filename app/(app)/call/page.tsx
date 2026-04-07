@@ -20,6 +20,7 @@ export default function CallPage() {
   const router = useRouter();
   const [state, setState] = useState<CallState>('idle');
   const [aiText, setAiText] = useState('');
+  const [userText, setUserText] = useState('');
   const [duration, setDuration] = useState(0);
   const [rmsLevel, setRmsLevel] = useState(0);
   const [statusMsg, setStatusMsg] = useState('');
@@ -77,6 +78,7 @@ export default function CallPage() {
       setState('listening');
       setRmsLevel(0);
       setAiText('');
+      setUserText('');
       setStatusMsg('');
       sendNowRef.current = false;
 
@@ -84,8 +86,8 @@ export default function CallPage() {
       try {
         audioBlob = await recordUntilSilence(
           getSharedAudioCtx(),
-          900,
-          (rms) => setRmsLevel(Math.min(rms * 15, 1)), // 放大顯示
+          600,  // 600ms 靜音即停止（比 900ms 更快回應）
+          (rms) => setRmsLevel(Math.min(rms * 15, 1)),
         );
         consecutiveErrors = 0;
       } catch {
@@ -129,6 +131,7 @@ export default function CallPage() {
       }
 
       setStatusMsg('');
+      setUserText(userText); // 顯示用戶說的話
 
       // ── 送 Gemini ──
       const userMsg: ChatMessage = {
@@ -307,7 +310,10 @@ export default function CallPage() {
           </div>
         )}
 
-        <div className="max-w-sm text-center min-h-[3rem]">
+        <div className="max-w-sm text-center min-h-[3rem] flex flex-col gap-2">
+          {state === 'thinking' && userText && (
+            <p className="text-white/50 text-sm">你：{userText}</p>
+          )}
           {(state === 'thinking' || state === 'speaking') && aiText && (
             <p className="text-white/90 text-base leading-relaxed">{aiText}</p>
           )}

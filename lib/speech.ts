@@ -307,7 +307,34 @@ export async function speak(text: string): Promise<void> {
     if (res.ok) {
       const arrayBuffer = await res.arrayBuffer();
 
-      // iOS 優先路徑：透過已解鎖的 AudioContext 播放（不受 autoplay 限制）
+      // ── 優先路徑：<audio> 元素 ──
+      // iOS + 麥克風同時開著時，AudioContext 走耳機路由（沒聲音）
+      // <audio> playsInline 用 media playback session → 揚聲器，無視靜音鍵
+      const blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
+      const url = URL.createObjectURL(blob);
+      const audioOk = await new Promise<boolean>((resolve) => {
+        const audio = new Audio(url);
+        (audio as HTMLAudioElement & { playsInline?: boolean }).playsInline = true;
+        currentAudio = audio;
+        let settled = false;
+        const estimatedMs = Math.max(8000, cleanText.length * 250 + 2000);
+        const done = (ok: boolean) => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(safetyTimer);
+          currentAudio = null;
+          URL.revokeObjectURL(url);
+          resolve(ok);
+        };
+        const safetyTimer = setTimeout(() => done(true), estimatedMs);
+        audio.onended = () => done(true);
+        audio.onerror = () => done(false);
+        audio.play().catch(() => done(false));
+      });
+
+      if (audioOk) return;
+
+      // ── 備用路徑：AudioContext（<audio> 被 iOS autoplay 擋住時使用）──
       if (sharedAudioCtx && sharedAudioCtx.state === 'running') {
         return await new Promise<void>((resolve) => {
           let settled = false;
@@ -324,9 +351,7 @@ export async function speak(text: string): Promise<void> {
           sharedAudioCtx!.decodeAudioData(
             arrayBuffer,
             (decoded) => {
-              // 用音訊實際長度設 timer（比字數估算精準），多給 1.5s 緩衝
               safetyTimer = setTimeout(done, decoded.duration * 1000 + 1500);
-
               const source = sharedAudioCtx!.createBufferSource();
               currentSource = source;
               source.buffer = decoded;
@@ -334,33 +359,10 @@ export async function speak(text: string): Promise<void> {
               source.onended = done;
               source.start();
             },
-            done, // decodeAudioData 失敗也 resolve，避免卡住
+            done,
           );
         });
       }
-
-      // 備用路徑：Audio element（桌面瀏覽器通常不受 autoplay 限制）
-      const blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
-      const url = URL.createObjectURL(blob);
-      return await new Promise<void>((resolve) => {
-        const audio = new Audio(url);
-        currentAudio = audio;
-        let settled = false;
-        // 備用路徑仍用字數估算（沒有 decoded.duration）
-        const estimatedMs = Math.max(5000, cleanText.length * 300 + 2000);
-        const done = () => {
-          if (settled) return;
-          settled = true;
-          clearTimeout(safetyTimer);
-          currentAudio = null;
-          URL.revokeObjectURL(url);
-          resolve();
-        };
-        const safetyTimer = setTimeout(done, estimatedMs);
-        audio.onended = done;
-        audio.onerror = done;
-        audio.play().catch(done);
-      });
     }
   } catch {
     // TTS 失敗，退回瀏覽器內建

@@ -1,17 +1,17 @@
 /**
  * API Route — POST /api/tts
  *
- * 使用 Google Cloud TTS 將文字轉為自然語音。
- * 聲線：zh-TW-Neural2-C（台灣女聲，Neural2 等級）
+ * 使用 ElevenLabs TTS 將文字轉為自然語音（eleven_multilingual_v2，支援中文）。
+ * 聲線：由 ELEVENLABS_VOICE_ID 環境變數控制（預設 Sarah）。
  * 回傳 audio/mpeg 二進位資料。
  */
 
 import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
-  const apiKey = process.env.GOOGLE_CLOUD_TTS_API_KEY;
+  const apiKey = process.env.ELEVENLABS_API_KEY;
   if (!apiKey) {
-    return NextResponse.json({ error: 'Google Cloud TTS API key 未設定' }, { status: 500 });
+    return NextResponse.json({ error: 'ElevenLabs API key 未設定' }, { status: 500 });
   }
 
   let text: string;
@@ -31,33 +31,36 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: '文字為空' }, { status: 400 });
   }
 
-  const endpoint = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${apiKey}`;
+  const voiceId = process.env.ELEVENLABS_VOICE_ID || 'EXAVITQu4vr4xnSDxMaL';
+  const endpoint = `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`;
 
   try {
     const res = await fetch(endpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'xi-api-key': apiKey,
+        'Content-Type': 'application/json',
+        'Accept': 'audio/mpeg',
+      },
       body: JSON.stringify({
-        input: { text: cleanText },
-        voice: {
-          languageCode: 'cmn-TW',
-          name: 'cmn-TW-Wavenet-A',  // 台灣女聲，Wavenet 等級（最高可用）
-        },
-        audioConfig: {
-          audioEncoding: 'MP3',
-          speakingRate: 1.05,         // 略快，自然對話節奏
+        text: cleanText,
+        model_id: 'eleven_turbo_v2_5',   // turbo：延遲 ~500ms vs multilingual ~3-5s
+        voice_settings: {
+          stability: 0.5,
+          similarity_boost: 0.75,
+          style: 0.0,
+          use_speaker_boost: true,
         },
       }),
     });
 
     if (!res.ok) {
       const err = await res.text();
-      console.error('[POST /api/tts] Google Cloud TTS 錯誤：', err);
+      console.error('[POST /api/tts] ElevenLabs 錯誤：', err);
       return NextResponse.json({ error: 'TTS 服務錯誤' }, { status: 502 });
     }
 
-    const data = await res.json() as { audioContent: string };
-    const audioBuffer = Buffer.from(data.audioContent, 'base64');
+    const audioBuffer = Buffer.from(await res.arrayBuffer());
 
     return new Response(audioBuffer, {
       headers: {

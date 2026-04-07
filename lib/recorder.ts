@@ -102,6 +102,10 @@ export async function recordUntilSilence(
         processor.connect(silentGain);
         silentGain.connect(ctxForVAD.destination);
 
+        // 持續音量計數：需要連續 4 幀（約 185ms）才算真正說話，過濾環境音短暫爆破
+        let voiceFrameCount = 0;
+        const VOICE_FRAMES_REQUIRED = 4;
+
         processor.onaudioprocess = (event) => {
           if (!active) return;
           const pcm = event.inputBuffer.getChannelData(0);
@@ -111,13 +115,19 @@ export async function recordUntilSilence(
 
           onRms?.(rms);
 
-          if (rms > 0.003) {
-            // 有聲音
-            hasSpoken = true;
+          if (rms > 0.006) {
+            // 有聲音（門檻 0.006，略高於環境噪音但低於正常說話）
+            voiceFrameCount++;
+            if (voiceFrameCount >= VOICE_FRAMES_REQUIRED) {
+              hasSpoken = true;
+            }
             if (silenceTimer) { clearTimeout(silenceTimer); silenceTimer = null; }
-          } else if (hasSpoken && !silenceTimer) {
-            // 說過話後偵測到靜音 → 開始倒數
-            silenceTimer = setTimeout(doStop, silenceMs);
+          } else {
+            voiceFrameCount = 0; // 重置連續計數
+            if (hasSpoken && !silenceTimer) {
+              // 說過話後偵測到靜音 → 開始倒數
+              silenceTimer = setTimeout(doStop, silenceMs);
+            }
           }
         };
       } catch {
