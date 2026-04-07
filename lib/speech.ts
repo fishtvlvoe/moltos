@@ -253,7 +253,7 @@ export async function speak(text: string): Promise<void> {
           resolve();
         };
         // iOS 上 onended 有時不觸發，加 safety timeout（文字長度估算播放時間 + 5s）
-        const estimatedMs = Math.max(5000, cleanText.length * 200 + 3000);
+        const estimatedMs = Math.max(3000, cleanText.length * 100 + 1000);
         const safetyTimer = setTimeout(done, estimatedMs);
         audio.onended = done;
         audio.onerror = done;

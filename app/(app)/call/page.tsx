@@ -43,6 +43,16 @@ export default function CallPage() {
     setDuration(0);
     historyRef.current = [];
 
+    // iOS 限制：SpeechRecognition.start() 必須在 user gesture call stack 內呼叫。
+    // 先用 getUserMedia 在按鈕點擊當下取得麥克風授權，
+    // iOS 授權過後後續的 recognition.start() 才不會被拒絕。
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach(t => t.stop()); // 立刻釋放，只是觸發授權
+    } catch {
+      // 用戶拒絕麥克風 → recognition 之後會再報錯，這裡先靜默
+    }
+
     // 1. 小默先說開場白
     setState('speaking');
     setAiText('嗨，我是小默，有什麼想聊的嗎？');
@@ -56,6 +66,8 @@ export default function CallPage() {
 
   // ── 對話循環（逐句串流 TTS 版）──
   async function conversationLoop() {
+    let consecutiveErrors = 0; // 防止 iOS recognition 失敗後無限空轉
+
     while (!abortRef.current) {
       // ── 聆聽使用者（靜音 800ms 後自動送出）──
       setState('listening');
@@ -66,7 +78,15 @@ export default function CallPage() {
       let userText = '';
       try {
         userText = await listenUntilSilence(800);
+        consecutiveErrors = 0; // 成功就重置
       } catch {
+        consecutiveErrors++;
+        if (consecutiveErrors >= 3) {
+          // 連續失敗 3 次 = 麥克風根本無法使用（可能是 iOS 拒絕）
+          setAiText('無法使用麥克風，請確認瀏覽器麥克風權限後重試。');
+          setState('idle');
+          break;
+        }
         continue;
       }
 
