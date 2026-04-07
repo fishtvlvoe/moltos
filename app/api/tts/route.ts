@@ -45,6 +45,7 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         text: cleanText,
         model_id: 'eleven_turbo_v2_5',   // turbo：延遲 ~500ms vs multilingual ~3-5s
+        language_code: 'zh',             // 強制中文聲調辨識，減少同音字誤讀
         voice_settings: {
           stability: 0.5,
           similarity_boost: 0.75,
