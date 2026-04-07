@@ -47,10 +47,11 @@ export async function POST(req: Request) {
         model_id: 'eleven_turbo_v2_5',   // turbo：延遲 ~500ms vs multilingual ~3-5s
         language_code: 'zh',             // 強制中文聲調辨識，減少同音字誤讀
         voice_settings: {
-          stability: 0.5,
+          stability: 0.4,          // 降低 → 更有情感起伏（0.5 偏機械）
           similarity_boost: 0.75,
-          style: 0.0,
+          style: 0.15,             // 加個性/溫度（0 = 完全中性）
           use_speaker_boost: true,
+          speed: 0.9,              // 稍慢 → 說話更像在聊天
         },
       }),
     });
