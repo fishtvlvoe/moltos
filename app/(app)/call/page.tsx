@@ -86,7 +86,7 @@ export default function CallPage() {
       try {
         audioBlob = await recordUntilSilence(
           getSharedAudioCtx(),
-          600,  // 600ms 靜音即停止（比 900ms 更快回應）
+          1200,  // 1200ms：給說話中間的自然停頓足夠緩衝
           (rms) => setRmsLevel(Math.min(rms * 15, 1)),
         );
         consecutiveErrors = 0;
@@ -140,7 +140,10 @@ export default function CallPage() {
         content: userText,
         timestamp: Date.now(),
       };
-      historyRef.current = [...historyRef.current, userMsg];
+      // 保存舊 history（不含當前訊息）傳給 API，避免重複
+      // chatStream 在 server 端會把 message + history 合併，history 不應包含 message
+      const historyForApi = historyRef.current;
+      historyRef.current = [...historyForApi, userMsg];
 
       try {
         const res = await fetch('/api/chat', {
@@ -148,7 +151,7 @@ export default function CallPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             message: userText,
-            history: historyRef.current,
+            history: historyForApi,  // 不含當前 userMsg
           }),
         });
 
