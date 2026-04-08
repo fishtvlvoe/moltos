@@ -75,8 +75,9 @@ export default function CallPage() {
       clearDialingInterval();
       stopVolumePolling();
       // 如果曾經連線才跳轉到聊天紀錄頁
+      // 等 2 秒讓 ElevenLabs post-call webhook 有時間寫入 DB 再跳轉
       if (hasConnectedRef.current) {
-        router.push('/chat');
+        setTimeout(() => router.push('/chat'), 2000);
       }
     },
     onError: (message: string, context?: unknown) => {

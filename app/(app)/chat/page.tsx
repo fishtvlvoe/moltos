@@ -26,20 +26,7 @@ export default function ChatPage() {
     initDone.current = true;
 
     async function init() {
-      // 優先檢查是否有通話紀錄（從 call page 跳過來的）
-      try {
-        const callData = sessionStorage.getItem('callHistory');
-        if (callData) {
-          sessionStorage.removeItem('callHistory');
-          const callMessages: ChatMessage[] = JSON.parse(callData);
-          if (callMessages.length > 0) {
-            setMessages(callMessages);
-            return;
-          }
-        }
-      } catch {}
-
-      // 嘗試從 DB 載入歷史對話
+      // 從 DB 載入歷史對話（含語音通話紀錄）
       try {
         const res = await fetch('/api/chat/history');
         if (res.ok) {
