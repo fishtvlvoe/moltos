@@ -19,17 +19,60 @@ export default function CallPage() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const rafRef = useRef<number | null>(null);
   const hasConnectedRef = useRef(false); // 記錄是否曾經連線（用於掛斷後決定是否跳轉）
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const dialingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  function playDialingBeep(audioContextRef: { current: AudioContext | null }) {
+    const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = audioContextRef.current ?? new AudioContextClass();
+    audioContextRef.current = ctx;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 440;
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.4);
+  }
+
+  function playConnectChime(ctx: AudioContext) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.4, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.6);
+  }
+
+  const clearDialingInterval = useCallback(() => {
+    if (dialingIntervalRef.current) {
+      clearInterval(dialingIntervalRef.current);
+      dialingIntervalRef.current = null;
+    }
+  }, []);
 
   // ─── ElevenLabs SDK ──────────────────────────────────────────────────────────
   const conversation = useConversation({
     onConnect: ({ conversationId }: { conversationId: string }) => {
       console.info('[ElevenLabs] 連線建立，conversation_id:', conversationId);
+      clearDialingInterval();
+      if (audioCtxRef.current) {
+        playConnectChime(audioCtxRef.current);
+      }
       hasConnectedRef.current = true;
       // 啟動音量輪詢動畫
       startVolumePolling();
     },
     onDisconnect: () => {
       console.info('[ElevenLabs] 連線已中斷');
+      clearDialingInterval();
       stopVolumePolling();
       // 如果曾經連線才跳轉到聊天紀錄頁
       if (hasConnectedRef.current) {
@@ -38,6 +81,7 @@ export default function CallPage() {
     },
     onError: (message: string, context?: unknown) => {
       console.error('[ElevenLabs] 錯誤:', message, context);
+      clearDialingInterval();
       stopVolumePolling();
     },
     onMessage: (props) => {
@@ -89,14 +133,18 @@ export default function CallPage() {
     return () => {
       stopVolumePolling();
       if (timerRef.current) clearInterval(timerRef.current);
+      clearDialingInterval();
     };
-  }, [stopVolumePolling]);
+  }, [clearDialingInterval, stopVolumePolling]);
 
   // ─── 開始通話 ───────────────────────────────────────────────────────────────
   const startCall = async () => {
     // iOS 音訊解鎖：建立 AudioContext + 播放靜音，確保音訊系統完全就緒
     try {
-      const ctx = new (window.AudioContext || (window as never)['webkitAudioContext'])();
+      const AudioContextClass = window.AudioContext || (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!AudioContextClass) throw new Error('AudioContext not supported');
+      const ctx = audioCtxRef.current ?? new AudioContextClass();
+      audioCtxRef.current = ctx;
       if (ctx.state === 'suspended') await ctx.resume();
       const buf = ctx.createBuffer(1, 1, 22050);
       const src = ctx.createBufferSource();
@@ -109,6 +157,11 @@ export default function CallPage() {
 
     hasConnectedRef.current = false;
     setCallState('connecting');
+    clearDialingInterval();
+    playDialingBeep(audioCtxRef);
+    dialingIntervalRef.current = setInterval(() => {
+      playDialingBeep(audioCtxRef);
+    }, 2000);
 
     try {
       // 先從後端取得 signed URL，避免 agentId 直連被 LiveKit 404 拒絕
@@ -124,12 +177,14 @@ export default function CallPage() {
       });
     } catch (error) {
       console.error('[ElevenLabs] 連線失敗:', error);
+      clearDialingInterval();
       setCallState('idle');
     }
   };
 
   // ─── 掛斷 ───────────────────────────────────────────────────────────────────
   const endCall = async () => {
+    clearDialingInterval();
     await conversation.endSession();
     // onDisconnect 回調會處理跳轉邏輯
   };
