@@ -1,296 +1,191 @@
 'use client';
 
-// 語音通話頁面 — Groq Whisper STT + 逐句串流 TTS + 音量視覺化
-import { useEffect, useRef, useState } from 'react';
+// 語音通話頁面 — ElevenLabs Conversational AI SDK
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import {
-  speak,
-  stopSpeaking,
-  initSharedAudioContext,
-  stopAudioContextKeepalive,
-  getSharedAudioCtx,
-} from '@/lib/speech';
-import { recordUntilSilence, stopRecording } from '@/lib/recorder';
-import { extractCompleteSentences } from '@/lib/sentence-splitter';
-import type { ChatMessage } from '@/lib/types';
-
-type CallState = 'idle' | 'listening' | 'thinking' | 'speaking';
+import { useConversation } from '@11labs/react';
+import { getAgentId, mapConversationStatus } from '@/lib/elevenlabs';
+// Role 型別由 SDK 內部 callback 推斷，不需額外 import
+import type { CallState } from '@/types/elevenlabs';
 
 export default function CallPage() {
   const router = useRouter();
-  const [state, setState] = useState<CallState>('idle');
-  const [aiText, setAiText] = useState('');
-  const [userText, setUserText] = useState('');
+  const [callState, setCallState] = useState<CallState>('idle');
   const [duration, setDuration] = useState(0);
-  const [rmsLevel, setRmsLevel] = useState(0);
-  const [statusMsg, setStatusMsg] = useState('');
-  const historyRef = useRef<ChatMessage[]>([]);
+  const [inputVolume, setInputVolume] = useState(0);
+  const [outputVolume, setOutputVolume] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const abortRef = useRef(false);
-  const sendNowRef = useRef(false);
+  const rafRef = useRef<number | null>(null);
+  const hasConnectedRef = useRef(false); // 記錄是否曾經連線（用於掛斷後決定是否跳轉）
 
-  // 計時器
-  useEffect(() => {
-    if (state !== 'idle' && !timerRef.current) {
-      timerRef.current = setInterval(() => setDuration(d => d + 1), 1000);
+  // ─── ElevenLabs SDK ──────────────────────────────────────────────────────────
+  const conversation = useConversation({
+    onConnect: ({ conversationId }: { conversationId: string }) => {
+      console.info('[ElevenLabs] 連線建立，conversation_id:', conversationId);
+      hasConnectedRef.current = true;
+      // 啟動音量輪詢動畫
+      startVolumePolling();
+    },
+    onDisconnect: () => {
+      console.info('[ElevenLabs] 連線已中斷');
+      stopVolumePolling();
+      // 如果曾經連線才跳轉到聊天紀錄頁
+      if (hasConnectedRef.current) {
+        router.push('/chat');
+      }
+    },
+    onError: (message: string, context?: unknown) => {
+      console.error('[ElevenLabs] 錯誤:', message, context);
+      stopVolumePolling();
+    },
+    onMessage: (props) => {
+      console.log('[ElevenLabs] 訊息:', props);
+    },
+  });
+
+  // ─── 音量輪詢（requestAnimationFrame 驅動，只在連線時執行）─────────────────
+  const startVolumePolling = useCallback(() => {
+    const poll = () => {
+      setInputVolume(Math.min(1, Math.max(0, conversation.getInputVolume())));
+      setOutputVolume(Math.min(1, Math.max(0, conversation.getOutputVolume())));
+      rafRef.current = requestAnimationFrame(poll);
+    };
+    rafRef.current = requestAnimationFrame(poll);
+  }, [conversation]);
+
+  const stopVolumePolling = useCallback(() => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
     }
-    return () => {};
-  }, [state]);
+    setInputVolume(0);
+    setOutputVolume(0);
+  }, []);
 
+  // ─── 監聽 SDK 狀態，同步 callState ──────────────────────────────────────────
+  useEffect(() => {
+    setCallState(mapConversationStatus(conversation.status, conversation.isSpeaking));
+  }, [conversation.status, conversation.isSpeaking]);
+
+  // ─── 計時器（非 idle 時啟動）────────────────────────────────────────────────
+  useEffect(() => {
+    if (callState !== 'idle') {
+      if (!timerRef.current) {
+        timerRef.current = setInterval(() => setDuration(d => d + 1), 1000);
+      }
+    } else {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      setDuration(0);
+    }
+  }, [callState]);
+
+  // ─── 清理（元件卸載時）──────────────────────────────────────────────────────
+  useEffect(() => {
+    return () => {
+      stopVolumePolling();
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [stopVolumePolling]);
+
+  // ─── 開始通話 ───────────────────────────────────────────────────────────────
+  const startCall = async () => {
+    // iOS 音訊解鎖：建立 AudioContext + 播放靜音，確保音訊系統完全就緒
+    try {
+      const ctx = new (window.AudioContext || (window as never)['webkitAudioContext'])();
+      if (ctx.state === 'suspended') await ctx.resume();
+      const buf = ctx.createBuffer(1, 1, 22050);
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.connect(ctx.destination);
+      src.start();
+    } catch {}
+    // 額外等待讓 iOS 音訊管線完全啟動
+    await new Promise((r) => setTimeout(r, 500));
+
+    hasConnectedRef.current = false;
+    setCallState('connecting');
+
+    try {
+      // 先從後端取得 signed URL，避免 agentId 直連被 LiveKit 404 拒絕
+      const res = await fetch('/api/elevenlabs-signed-url');
+      const { signedUrl } = await res.json();
+      if (!signedUrl) throw new Error('無法取得 signed URL');
+
+      await conversation.startSession({
+        signedUrl,
+      });
+    } catch (error) {
+      console.error('[ElevenLabs] 連線失敗:', error);
+      setCallState('idle');
+    }
+  };
+
+  // ─── 掛斷 ───────────────────────────────────────────────────────────────────
+  const endCall = async () => {
+    await conversation.endSession();
+    // onDisconnect 回調會處理跳轉邏輯
+  };
+
+  // ─── 輔助函式 ────────────────────────────────────────────────────────────────
   function formatTime(s: number) {
     return `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
   }
 
-  // ── 開始通話 ──
-  async function startCall() {
-    // iOS 音訊解鎖（必須在按鈕點擊的同步上下文中）
-    new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=')
-      .play().catch(() => {});
-    initSharedAudioContext(); // 也啟動 keepalive
-
-    abortRef.current = false;
-    setDuration(0);
-    setStatusMsg('');
-    historyRef.current = [];
-
-    // 預先取得麥克風授權
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      stream.getTracks().forEach(t => t.stop());
-    } catch {}
-
-    // 小默開場白
-    setState('speaking');
-    setAiText('嗨，我是小默，有什麼想聊的嗎？');
-    await speak('嗨，我是小默，有什麼想聊的嗎？');
-
-    if (!abortRef.current) {
-      conversationLoop();
-    }
-  }
-
-  // ── 對話循環 ──
-  async function conversationLoop() {
-    let consecutiveErrors = 0;
-
-    while (!abortRef.current) {
-      // ── 錄音（靜音 900ms 後自動停止，最多 8 秒等待說話，30 秒絕對上限）──
-      setState('listening');
-      setRmsLevel(0);
-      setAiText('');
-      setUserText('');
-      setStatusMsg('');
-      sendNowRef.current = false;
-
-      let audioBlob: Blob;
-      try {
-        audioBlob = await recordUntilSilence(
-          getSharedAudioCtx(),
-          1200,  // 1200ms：給說話中間的自然停頓足夠緩衝
-          (rms) => setRmsLevel(Math.min(rms * 15, 1)),
-        );
-        consecutiveErrors = 0;
-      } catch {
-        consecutiveErrors++;
-        if (consecutiveErrors >= 3) {
-          setStatusMsg('無法存取麥克風，請確認瀏覽器麥克風權限');
-          setState('idle');
-          break;
-        }
-        continue;
-      }
-
-      if (abortRef.current) break;
-      setRmsLevel(0);
-
-      // ── Groq Whisper STT ──
-      setState('thinking');
-      let userText = '';
-      try {
-        const form = new FormData();
-        // 用正確的副檔名（iOS 回傳 audio/mp4，桌面回傳 audio/webm）
-        const ext = audioBlob.type.includes('mp4') ? 'audio.mp4' : 'audio.webm';
-        form.append('audio', audioBlob, ext);
-        const sttRes = await fetch('/api/stt', { method: 'POST', body: form });
-        if (sttRes.ok) {
-          const data = await sttRes.json();
-          userText = data.text ?? '';
-        } else {
-          setStatusMsg(`STT 錯誤 ${sttRes.status}`);
-        }
-      } catch {
-        setStatusMsg('網路錯誤，重新嘗試…');
-        continue;
-      }
-
-      if (abortRef.current) break;
-
-      if (!userText.trim()) {
-        setStatusMsg('沒有偵測到聲音，再試一次');
-        continue;
-      }
-
-      setStatusMsg('');
-      setUserText(userText); // 顯示用戶說的話
-
-      // ── 送 Gemini ──
-      const userMsg: ChatMessage = {
-        id: crypto.randomUUID(),
-        role: 'user',
-        content: userText,
-        timestamp: Date.now(),
-      };
-      // 保存舊 history（不含當前訊息）傳給 API，避免重複
-      // chatStream 在 server 端會把 message + history 合併，history 不應包含 message
-      const historyForApi = historyRef.current;
-      historyRef.current = [...historyForApi, userMsg];
-
-      try {
-        const res = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message: userText,
-            history: historyForApi,  // 不含當前 userMsg
-          }),
-        });
-
-        if (!res.ok || !res.body) throw new Error('API error');
-
-        // 逐句串流 TTS
-        const reader = res.body.getReader();
-        const decoder = new TextDecoder();
-        let aiResponse = '';
-        let ttsBuffer = '';
-        let speakPromise = Promise.resolve();
-
-        setState('speaking');
-
-        while (true) {
-          const { done, value } = await reader.read();
-
-          if (done) {
-            if (ttsBuffer.trim() && !abortRef.current) {
-              const prev = speakPromise;
-              speakPromise = prev.then(() =>
-                abortRef.current ? Promise.resolve() : speak(ttsBuffer),
-              );
-            }
-            break;
-          }
-
-          const chunk = decoder.decode(value, { stream: true });
-          aiResponse += chunk;
-          ttsBuffer += chunk;
-          setAiText(aiResponse);
-
-          const { complete, remainder } = extractCompleteSentences(ttsBuffer);
-          if (complete && !abortRef.current) {
-            const sentenceToSpeak = complete;
-            const prev = speakPromise;
-            speakPromise = prev.then(() =>
-              abortRef.current ? Promise.resolve() : speak(sentenceToSpeak),
-            );
-            ttsBuffer = remainder;
-          }
-        }
-
-        await speakPromise;
-
-        // 喇叭殘音緩衝：避免麥克風立刻接到 AI 聲音
-        if (!abortRef.current) {
-          await new Promise(r => setTimeout(r, 600));
-        }
-
-        if (abortRef.current) break;
-
-        const assistantMsg: ChatMessage = {
-          id: crypto.randomUUID(),
-          role: 'assistant',
-          content: aiResponse,
-          timestamp: Date.now(),
-        };
-        historyRef.current = [...historyRef.current, assistantMsg];
-      } catch {
-        setStatusMsg('連線中斷，請稍後再試…');
-        await new Promise(r => setTimeout(r, 2000));
-      }
-    }
-  }
-
-  // ── 掛斷 ──
-  function endCall() {
-    abortRef.current = true;
-    stopRecording();
-    stopSpeaking();
-    stopAudioContextKeepalive();
-    if (timerRef.current) {
-      clearInterval(timerRef.current);
-      timerRef.current = null;
-    }
-    if (historyRef.current.length > 0) {
-      sessionStorage.setItem('callHistory', JSON.stringify(historyRef.current));
-      router.push('/chat');
-    } else {
-      setState('idle');
-    }
-  }
-
-  // 點擊畫面打斷朗讀
-  function interrupt() {
-    if (state === 'speaking') {
-      stopSpeaking();
-    }
-  }
-
-  const isActive = state !== 'idle';
+  // 音量條顯示：聆聽時用 inputVolume（麥克風），說話時用 outputVolume（AI 聲音）
+  const activeVolume = callState === 'speaking' ? outputVolume : inputVolume;
+  const isActive = callState !== 'idle';
 
   return (
     <div
       className="fixed inset-0 z-50 flex flex-col items-center justify-between bg-gradient-to-b from-[#2D2D2D] to-[#1A1A1A] text-white"
       style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
-      onClick={interrupt}
     >
       {/* 上方 */}
       <div className="flex flex-col items-center pt-16 gap-2">
         <p className="text-xs text-white/50 tracking-widest uppercase">
-          {state === 'idle' ? 'MOLTOS' : formatTime(duration)}
+          {callState === 'idle' ? 'MOLTOS' : formatTime(duration)}
         </p>
         <h1 className="text-2xl font-semibold">小默</h1>
         <p className="text-sm text-white/60">
-          {state === 'idle' && '按下通話開始聊天'}
-          {state === 'listening' && '正在聆聽… 說完後會自動偵測'}
-          {state === 'thinking' && '思考中…'}
-          {state === 'speaking' && '小默正在說話… 點擊可打斷'}
+          {callState === 'idle' && '按下通話開始聊天'}
+          {callState === 'connecting' && '連線中…'}
+          {callState === 'listening' && '正在聆聽…'}
+          {callState === 'speaking' && '小默正在說話…'}
         </p>
-        {statusMsg && (
-          <p className="text-xs text-yellow-400/80 mt-1">{statusMsg}</p>
-        )}
       </div>
 
       {/* 中間 */}
       <div className="flex flex-col items-center gap-6 flex-1 justify-center px-6">
+        {/* 頭像圓形 + 波浪動畫 */}
         <div className={`relative w-32 h-32 rounded-full flex items-center justify-center ${
           isActive ? 'bg-[#C67A52]/20' : 'bg-white/10'
         }`}>
-          {(state === 'listening' || state === 'speaking') && (
+          {(callState === 'listening' || callState === 'speaking') && (
             <>
-              <div className="absolute inset-0 rounded-full bg-[#C67A52]/10 animate-ping" style={{ animationDuration: '2s' }} />
+              <div
+                className="absolute inset-0 rounded-full bg-[#C67A52]/10 animate-ping"
+                style={{ animationDuration: '2s' }}
+              />
               <div className="absolute inset-[-8px] rounded-full border-2 border-[#C67A52]/30 animate-pulse" />
             </>
+          )}
+          {callState === 'connecting' && (
+            <div className="absolute inset-[-8px] rounded-full border-2 border-white/20 animate-pulse" />
           )}
           <span className="text-5xl font-bold text-[#C67A52]">M</span>
         </div>
 
-        {/* 音量視覺化 — 聆聽時顯示 RMS 音量條 */}
-        {state === 'listening' && (
+        {/* 音量條視覺化 — 連線中（聆聽 / 說話）顯示 */}
+        {(callState === 'listening' || callState === 'speaking') && (
           <div className="flex items-end gap-[3px] h-10">
             {[...Array(24)].map((_, i) => {
-              // 音量條高度：靜音時固定 4px，有聲音時按 RMS 放大
               const threshold = i / 24;
-              const active = rmsLevel > threshold;
+              const active = activeVolume > threshold;
               const barH = active
-                ? Math.max(8, Math.min(40, 8 + (rmsLevel - threshold) * 200))
+                ? Math.max(8, Math.min(40, 8 + (activeVolume - threshold) * 200))
                 : 4;
               return (
                 <div
@@ -305,26 +200,22 @@ export default function CallPage() {
           </div>
         )}
 
-        {state === 'thinking' && (
+        {/* 連線中載入動畫 */}
+        {callState === 'connecting' && (
           <div className="flex gap-2">
             {[0, 1, 2].map(i => (
-              <div key={i} className="w-3 h-3 rounded-full bg-[#C67A52] animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+              <div
+                key={i}
+                className="w-3 h-3 rounded-full bg-[#C67A52] animate-bounce"
+                style={{ animationDelay: `${i * 0.15}s` }}
+              />
             ))}
           </div>
         )}
-
-        <div className="max-w-sm text-center min-h-[3rem] flex flex-col gap-2">
-          {state === 'thinking' && userText && (
-            <p className="text-white/50 text-sm">你：{userText}</p>
-          )}
-          {(state === 'thinking' || state === 'speaking') && aiText && (
-            <p className="text-white/90 text-base leading-relaxed">{aiText}</p>
-          )}
-        </div>
       </div>
 
-      {/* 下方 */}
-      <div className="pb-28 flex flex-col items-center gap-3" onClick={e => e.stopPropagation()}>
+      {/* 下方按鈕 */}
+      <div className="pb-28 flex flex-col items-center gap-3">
         {!isActive ? (
           <button
             onClick={startCall}
@@ -338,7 +229,8 @@ export default function CallPage() {
         ) : (
           <button
             onClick={endCall}
-            className="w-20 h-20 rounded-full bg-[#F44336] flex items-center justify-center hover:bg-[#E53935] active:scale-95 transition-all shadow-lg shadow-red-500/30"
+            disabled={callState === 'connecting'}
+            className="w-20 h-20 rounded-full bg-[#F44336] flex items-center justify-center hover:bg-[#E53935] active:scale-95 transition-all shadow-lg shadow-red-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="掛斷"
           >
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -351,13 +243,6 @@ export default function CallPage() {
           {isActive ? '點擊掛斷' : '語音通話'}
         </p>
       </div>
-
-      <style jsx>{`
-        @keyframes callWave {
-          0%, 100% { height: 6px; }
-          50% { height: 28px; }
-        }
-      `}</style>
     </div>
   );
 }

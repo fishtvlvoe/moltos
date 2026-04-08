@@ -1,0 +1,19 @@
+{
+  "valid_request": {
+    "conversation_id": "conv_test_123",
+    "history": [
+      { "role": "user", "content": "嗨，你好" },
+      { "role": "assistant", "content": "嗨！我是小默，今天過得怎麼樣？" }
+    ],
+    "query": "我今天有點累"
+  },
+  "missing_query": {
+    "conversation_id": "conv_test_456",
+    "history": []
+  },
+  "missing_conversation_id": {
+    "history": [],
+    "query": "測試"
+  },
+  "empty_body": {}
+}
