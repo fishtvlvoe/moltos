@@ -26,6 +26,36 @@ export interface ElevenLabsWebhookResponse {
   reply: string;
 }
 
+/** ElevenLabs Post-call transcript 單筆訊息 */
+export interface ElevenLabsTranscriptEntry {
+  role: 'user' | 'agent';
+  message?: string;
+  content?: string;
+  timestamp?: number;
+}
+
+/** ElevenLabs 對話啟動時的客戶端資料 */
+export interface ElevenLabsConversationInitiationClientData {
+  dynamic_variables?: Record<string, string>;
+}
+
+/** ElevenLabs Post-call transcription data（新格式 data 內層） */
+export interface ElevenLabsPostCallTranscriptionData {
+  agent_id?: string;
+  conversation_id?: string;
+  transcript?: ElevenLabsTranscriptEntry[];
+  metadata?: Record<string, unknown>;
+  conversation_initiation_client_data?: ElevenLabsConversationInitiationClientData;
+}
+
+/** ElevenLabs Post-call webhook payload（相容新舊格式） */
+export type ElevenLabsPostCallWebhookPayload =
+  | ({
+      type: 'post_call_transcription';
+      data: ElevenLabsPostCallTranscriptionData;
+    } & Record<string, unknown>)
+  | ElevenLabsPostCallTranscriptionData;
+
 /** useConversation hook 狀態 */
 export type ConversationStatus = 'connected' | 'disconnected' | 'connecting';
 

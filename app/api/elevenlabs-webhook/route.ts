@@ -19,30 +19,16 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { saveMessage } from '@/lib/db';
-
-// ─── 型別定義 ─────────────────────────────────────────────────────────────────
-
-/** ElevenLabs transcript 單筆紀錄 */
-interface TranscriptEntry {
-  role: 'user' | 'agent';
-  message?: string;
-  content?: string;
-  timestamp?: number;
-}
-
-/** ElevenLabs post-conversation webhook payload */
-interface PostConversationPayload {
-  agent_id?: string;
-  conversation_id?: string;
-  transcript?: TranscriptEntry[];
-  metadata?: Record<string, unknown>;
-}
+import type {
+  ElevenLabsPostCallWebhookPayload,
+  ElevenLabsPostCallTranscriptionData,
+} from '@/types/elevenlabs';
 
 // ─── POST Handler ─────────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest): Promise<Response> {
   // ── 1. 解析 request body ──────────────────────────────────────────────────
-  let body: PostConversationPayload;
+  let body: ElevenLabsPostCallWebhookPayload;
 
   try {
     body = await req.json();
@@ -54,7 +40,15 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
   }
 
-  const { conversation_id, transcript } = body;
+  const data: ElevenLabsPostCallTranscriptionData =
+    body && typeof body === 'object' && 'data' in body && body.data
+      ? body.data
+      : body;
+
+  const conversation_id = data.conversation_id;
+  const transcript = data.transcript;
+  const dynamicVars = data.conversation_initiation_client_data?.dynamic_variables;
+  const userId = dynamicVars?.user_id ?? `voice:${conversation_id ?? 'unknown'}`;
 
   console.log(
     `[Webhook] 收到通話紀錄: conversation_id=${conversation_id}, messages=${transcript?.length ?? 0}`
@@ -67,9 +61,6 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
 
   // ── 3. 逐條存入 Supabase ──────────────────────────────────────────────────
-  // userId 採 'voice:' 前綴標記語音通話紀錄，後續可透過 metadata 映射真實 userId
-  const voiceUserId = `voice:${conversation_id ?? 'unknown'}`;
-
   let savedCount = 0;
   for (const entry of transcript) {
     // ElevenLabs agent 角色對應到 assistant
@@ -79,7 +70,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     if (!content) continue; // 跳過空訊息
 
     try {
-      await saveMessage(voiceUserId, role, content);
+      await saveMessage(userId, role, content);
       savedCount++;
     } catch (err) {
       // 單筆失敗不中斷，記錄後繼續

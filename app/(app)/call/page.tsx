@@ -3,6 +3,7 @@
 // 語音通話頁面 — ElevenLabs Conversational AI SDK
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { useConversation } from '@11labs/react';
 import { getAgentId, mapConversationStatus } from '@/lib/elevenlabs';
 // Role 型別由 SDK 內部 callback 推斷，不需額外 import
@@ -10,6 +11,7 @@ import type { CallState } from '@/types/elevenlabs';
 
 export default function CallPage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [callState, setCallState] = useState<CallState>('idle');
   const [duration, setDuration] = useState(0);
   const [inputVolume, setInputVolume] = useState(0);
@@ -116,6 +118,17 @@ export default function CallPage() {
 
       await conversation.startSession({
         signedUrl,
+        conversationConfigOverride: {
+          conversation: {
+            clientToServerCommunication: {
+              conversationInitiationClientData: {
+                dynamic_variables: {
+                  user_id: (session?.user as { id?: string } | undefined)?.id ?? '',
+                },
+              },
+            },
+          },
+        },
       });
     } catch (error) {
       console.error('[ElevenLabs] 連線失敗:', error);

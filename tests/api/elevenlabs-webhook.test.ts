@@ -82,11 +82,34 @@ describe('POST /api/elevenlabs-webhook', () => {
       expect(mockSaveMessage).toHaveBeenCalledTimes(4);
     });
 
-    it('userId 格式為 voice:{conversation_id}', async () => {
+    it('無 dynamic_variables 時 userId fallback 為 voice:{conversation_id}', async () => {
       await POST(makeRequest(makeValidPayload()));
-      // 每次呼叫的第一個參數都是 voiceUserId
+      // 沒有 dynamic_variables.user_id → fallback 到 voice: 前綴
       expect(mockSaveMessage).toHaveBeenCalledWith(
         'voice:conv_abc123',
+        expect.any(String),
+        expect.any(String)
+      );
+    });
+
+    it('新格式 payload 含 dynamic_variables.user_id → 用真實 userId 存入', async () => {
+      const newFormatPayload = {
+        type: 'post_call_transcription',
+        data: {
+          agent_id: 'agent_test_001',
+          conversation_id: 'conv_abc123',
+          transcript: [
+            { role: 'user', message: '你好' },
+            { role: 'agent', message: '你好！我是小默' },
+          ],
+          conversation_initiation_client_data: {
+            dynamic_variables: { user_id: 'real-user-id-123' },
+          },
+        },
+      };
+      await POST(makeRequest(newFormatPayload));
+      expect(mockSaveMessage).toHaveBeenCalledWith(
+        'real-user-id-123',
         expect.any(String),
         expect.any(String)
       );
