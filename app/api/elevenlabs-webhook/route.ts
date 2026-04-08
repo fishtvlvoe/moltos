@@ -40,6 +40,11 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
   }
 
+  // Debug：印完整 payload 結構幫助診斷格式問題
+  console.log('[Webhook] 完整 payload keys:', Object.keys(body as unknown as object));
+  console.log('[Webhook] payload type field:', (body as any).type);
+  console.log('[Webhook] payload.data keys:', Object.keys((body as any).data ?? {}));
+
   // 兼容新格式 { type, data: {...} } 和舊格式（直接平鋪）
   const raw = body as unknown as Record<string, unknown>;
   const data = (raw.data ?? raw) as ElevenLabsPostCallTranscriptionData;

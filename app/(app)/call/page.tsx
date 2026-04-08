@@ -186,6 +186,11 @@ export default function CallPage() {
   const endCall = async () => {
     clearDialingInterval();
     await conversation.endSession();
+    // 強制釋放麥克風，避免靜默超時後 agent 重新說話
+    try {
+      const streams = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streams.getTracks().forEach(track => track.stop());
+    } catch {}
     // onDisconnect 回調會處理跳轉邏輯
   };
 
