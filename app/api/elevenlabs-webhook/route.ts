@@ -18,11 +18,15 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { Converter } from 'opencc-js';
 import { saveMessage } from '@/lib/db';
 import type {
   ElevenLabsPostCallWebhookPayload,
   ElevenLabsPostCallTranscriptionData,
 } from '@/types/elevenlabs';
+
+// 簡體 → 繁體（台灣）轉換器，在 module 載入時初始化一次
+const s2tw = Converter({ from: 'cn', to: 'twp' });
 
 // ─── POST Handler ─────────────────────────────────────────────────────────────
 
@@ -71,7 +75,9 @@ export async function POST(req: NextRequest): Promise<Response> {
   for (const entry of transcript) {
     // ElevenLabs agent 角色對應到 assistant
     const role: 'user' | 'assistant' = entry.role === 'agent' ? 'assistant' : 'user';
-    const content = (entry.message ?? entry.content ?? '').trim();
+    const raw = (entry.message ?? entry.content ?? '').trim();
+    // STT 可能輸出簡體中文，統一轉為繁體台灣用字
+    const content = s2tw(raw);
 
     if (!content) continue; // 跳過空訊息
 
