@@ -18,6 +18,8 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore — opencc-js 無 @types，功能正常
 import { Converter } from 'opencc-js';
 import { saveMessage } from '@/lib/db';
 import type {

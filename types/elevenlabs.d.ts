@@ -61,3 +61,8 @@ export type ConversationStatus = 'connected' | 'disconnected' | 'connecting';
 
 /** 通話頁面狀態 */
 export type CallState = 'idle' | 'connecting' | 'listening' | 'speaking';
+
+// opencc-js 型別宣告（無官方 @types）
+declare module 'opencc-js' {
+  export function Converter(options: { from: string; to: string }): (text: string) => string;
+}
