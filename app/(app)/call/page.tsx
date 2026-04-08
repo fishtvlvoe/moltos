@@ -118,16 +118,8 @@ export default function CallPage() {
 
       await conversation.startSession({
         signedUrl,
-        conversationConfigOverride: {
-          conversation: {
-            clientToServerCommunication: {
-              conversationInitiationClientData: {
-                dynamic_variables: {
-                  user_id: (session?.user as { id?: string } | undefined)?.id ?? '',
-                },
-              },
-            },
-          },
+        dynamicVariables: {
+          user_id: (session?.user as { id?: string } | undefined)?.id ?? '',
         },
       });
     } catch (error) {

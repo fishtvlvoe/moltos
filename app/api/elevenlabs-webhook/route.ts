@@ -40,10 +40,9 @@ export async function POST(req: NextRequest): Promise<Response> {
     );
   }
 
-  const data: ElevenLabsPostCallTranscriptionData =
-    body && typeof body === 'object' && 'data' in body && body.data
-      ? body.data
-      : body;
+  // 兼容新格式 { type, data: {...} } 和舊格式（直接平鋪）
+  const raw = body as unknown as Record<string, unknown>;
+  const data = (raw.data ?? raw) as ElevenLabsPostCallTranscriptionData;
 
   const conversation_id = data.conversation_id;
   const transcript = data.transcript;
