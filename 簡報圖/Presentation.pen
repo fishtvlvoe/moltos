@@ -3,15 +3,786 @@
   "children": [
     {
       "type": "frame",
-      "id": "bi8Au",
-      "x": 0,
+      "id": "yjRDX",
+      "x": 1000,
       "y": 0,
-      "name": "Frame",
-      "clip": true,
-      "width": 800,
-      "height": 600,
-      "fill": "#FFFFFF",
-      "layout": "none"
+      "name": "P1 痛點",
+      "width": 1920,
+      "height": 1080,
+      "fill": "#1A1A1A",
+      "layout": "none",
+      "children": [
+        {
+          "type": "frame",
+          "id": "XdtUE",
+          "x": 120,
+          "y": 140,
+          "name": "p1left",
+          "width": 740,
+          "height": 800,
+          "layout": "vertical",
+          "gap": 52,
+          "children": [
+            {
+              "type": "frame",
+              "id": "XqOTl",
+              "name": "stat1",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "MX1iu",
+                  "name": "n1",
+                  "fill": "#C67A52",
+                  "content": "11.67 億",
+                  "fontFamily": "IBM Plex Sans",
+                  "fontSize": 96,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "wpyx1",
+                  "name": "l1",
+                  "fill": "#666666",
+                  "content": "台灣一年吃掉的安眠藥",
+                  "fontFamily": "IBM Plex Sans",
+                  "fontSize": 24,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "rectangle",
+              "id": "3llVY",
+              "name": "div1",
+              "fill": "#3A3A3A",
+              "width": 48,
+              "height": 1
+            },
+            {
+              "type": "frame",
+              "id": "mUs5x",
+              "name": "stat2",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "6bUpH",
+                  "name": "n2",
+                  "fill": "#C67A52",
+                  "content": "36%",
+                  "fontFamily": "IBM Plex Sans",
+                  "fontSize": 96,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "0gAh7",
+                  "name": "l2",
+                  "fill": "#666666",
+                  "content": "職業倦怠指數，全球第一",
+                  "fontFamily": "IBM Plex Sans",
+                  "fontSize": 24,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "rectangle",
+              "id": "feLLg",
+              "name": "div2",
+              "fill": "#3A3A3A",
+              "width": 48,
+              "height": 1
+            },
+            {
+              "type": "frame",
+              "id": "BvroD",
+              "name": "stat3",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Bj0rX",
+                  "name": "n3",
+                  "fill": "#C67A52",
+                  "content": "117 封",
+                  "fontFamily": "IBM Plex Sans",
+                  "fontSize": 96,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "RcSLc",
+                  "name": "l3",
+                  "fill": "#666666",
+                  "content": "上班族每天收到的 email",
+                  "fontFamily": "IBM Plex Sans",
+                  "fontSize": 24,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "rectangle",
+          "id": "HxU3b",
+          "x": 980,
+          "y": 100,
+          "name": "sep1",
+          "fill": "#2E2E2E",
+          "width": 1,
+          "height": 880
+        },
+        {
+          "type": "frame",
+          "id": "QVTzT",
+          "x": 1040,
+          "y": 280,
+          "name": "p1right",
+          "width": 760,
+          "height": 520,
+          "layout": "vertical",
+          "gap": 18,
+          "children": [
+            {
+              "type": "text",
+              "id": "Q6AU3",
+              "name": "rt1",
+              "fill": "#FFFFFF",
+              "textGrowth": "fixed-width",
+              "width": 760,
+              "content": "問題不是工作太多，",
+              "fontFamily": "IBM Plex Sans",
+              "fontSize": 38,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "UeO5B",
+              "name": "rt2",
+              "fill": "#C67A52",
+              "content": "而是",
+              "fontFamily": "IBM Plex Sans",
+              "fontSize": 38,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "3dxDU",
+              "name": "rt3",
+              "fill": "#FFFFFF",
+              "textGrowth": "fixed-width",
+              "width": 760,
+              "content": "沒人知道自己有多掙扎。",
+              "fontFamily": "IBM Plex Sans",
+              "fontSize": 38,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "CkMeP",
+              "name": "rt4",
+              "fill": "#FFFFFF",
+              "textGrowth": "fixed-width",
+              "width": 760,
+              "fontFamily": "IBM Plex Sans",
+              "fontSize": 38,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "rectangle",
+              "id": "LuDY8",
+              "name": "rt_gap",
+              "fill": "#00000000",
+              "width": 1,
+              "height": 24
+            },
+            {
+              "type": "text",
+              "id": "JXs9w",
+              "name": "rt5",
+              "fill": "#555555",
+              "textGrowth": "fixed-width",
+              "width": 760,
+              "fontFamily": "IBM Plex Sans",
+              "fontSize": 26,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "xq7e1",
+          "x": 120,
+          "y": 1020,
+          "name": "p1tag",
+          "fill": "#444444",
+          "content": "P1 · 痛點",
+          "fontFamily": "IBM Plex Sans",
+          "fontSize": 16,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "tRSlZ",
+      "x": 3020,
+      "y": 0,
+      "name": "P2 解法",
+      "width": 1920,
+      "height": 1080,
+      "fill": "#FAF8F4",
+      "layout": "none",
+      "children": [
+        {
+          "type": "frame",
+          "id": "xjOY4",
+          "x": 0,
+          "y": 72,
+          "name": "p2brand",
+          "width": 1920,
+          "height": 160,
+          "layout": "vertical",
+          "gap": 18,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "Rrz0k",
+              "name": "p2title",
+              "fill": "#1A1A1A",
+              "content": "MOLTOS",
+              "fontFamily": "IBM Plex Sans",
+              "fontSize": 72,
+              "fontWeight": "700",
+              "letterSpacing": 6
+            },
+            {
+              "type": "text",
+              "id": "yMAGe",
+              "name": "p2slogan",
+              "fill": "#888888",
+              "content": "把生活的噪音，變成你內心的聲音",
+              "fontFamily": "IBM Plex Sans",
+              "fontSize": 28,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "kV1on",
+          "x": 340,
+          "y": 304,
+          "name": "p2phones",
+          "width": 1240,
+          "height": 590,
+          "gap": 40,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "yX28m",
+              "name": "ph1",
+              "clip": true,
+              "width": 280,
+              "height": 590,
+              "fill": {
+                "type": "image",
+                "enabled": true,
+                "url": "./screen-home.png",
+                "mode": "fill"
+              },
+              "cornerRadius": 24,
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "#00000022",
+                "offset": {
+                  "x": 0,
+                  "y": 8
+                },
+                "blur": 28
+              }
+            },
+            {
+              "type": "frame",
+              "id": "MwWN0",
+              "name": "ph2",
+              "clip": true,
+              "width": 280,
+              "height": 590,
+              "fill": {
+                "type": "image",
+                "enabled": true,
+                "url": "./screen-chat.png",
+                "mode": "fill"
+              },
+              "cornerRadius": 24,
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "#00000022",
+                "offset": {
+                  "x": 0,
+                  "y": 8
+                },
+                "blur": 28
+              }
+            },
+            {
+              "type": "frame",
+              "id": "6sXGb",
+              "name": "ph3",
+              "clip": true,
+              "width": 280,
+              "height": 590,
+              "fill": {
+                "type": "image",
+                "enabled": true,
+                "url": "./screen-review.png",
+                "mode": "fill"
+              },
+              "cornerRadius": 24,
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "#00000022",
+                "offset": {
+                  "x": 0,
+                  "y": 8
+                },
+                "blur": 28
+              }
+            },
+            {
+              "type": "frame",
+              "id": "MmWTW",
+              "name": "ph4",
+              "clip": true,
+              "width": 280,
+              "height": 590,
+              "fill": {
+                "type": "image",
+                "enabled": true,
+                "url": "./screen-voice.png",
+                "mode": "fill"
+              },
+              "cornerRadius": 24,
+              "effect": {
+                "type": "shadow",
+                "shadowType": "outer",
+                "color": "#00000022",
+                "offset": {
+                  "x": 0,
+                  "y": 8
+                },
+                "blur": 28
+              }
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "H187N",
+          "x": 340,
+          "y": 922,
+          "name": "p2lblrow",
+          "width": 1240,
+          "height": 36,
+          "gap": 40,
+          "children": [
+            {
+              "type": "text",
+              "id": "8zpiY",
+              "name": "lb1",
+              "fill": "#999999",
+              "textGrowth": "fixed-width",
+              "width": 280,
+              "content": "首頁",
+              "textAlign": "center",
+              "fontFamily": "IBM Plex Sans",
+              "fontSize": 22,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "Fs7oc",
+              "name": "lb2",
+              "fill": "#999999",
+              "textGrowth": "fixed-width",
+              "width": 280,
+              "content": "AI 對話",
+              "textAlign": "center",
+              "fontFamily": "IBM Plex Sans",
+              "fontSize": 22,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "9TKVF",
+              "name": "lb3",
+              "fill": "#999999",
+              "textGrowth": "fixed-width",
+              "width": 280,
+              "content": "週報分析",
+              "textAlign": "center",
+              "fontFamily": "IBM Plex Sans",
+              "fontSize": 22,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "bg1y5",
+              "name": "lb4",
+              "fill": "#999999",
+              "textGrowth": "fixed-width",
+              "width": 280,
+              "content": "語音對話",
+              "textAlign": "center",
+              "fontFamily": "IBM Plex Sans",
+              "fontSize": 22,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "rrScE",
+          "x": 120,
+          "y": 1020,
+          "name": "p2tag",
+          "fill": "#AAAAAA",
+          "content": "P2 · 解法",
+          "fontFamily": "IBM Plex Sans",
+          "fontSize": 16,
+          "fontWeight": "normal"
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "zVnin",
+      "x": 7227,
+      "y": 0,
+      "name": "P3 技術",
+      "width": 1920,
+      "height": 1080,
+      "fill": "#FAF8F4",
+      "layout": "none",
+      "children": [
+        {
+          "type": "frame",
+          "id": "3QeCv",
+          "x": 140,
+          "y": 160,
+          "name": "p3left",
+          "width": 820,
+          "height": 760,
+          "layout": "vertical",
+          "gap": 72,
+          "children": [
+            {
+              "type": "frame",
+              "id": "VtJbg",
+              "name": "h1",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "Nhvl5",
+                  "name": "h1num",
+                  "fill": "#C67A52",
+                  "content": "01",
+                  "fontFamily": "IBM Plex Sans",
+                  "fontSize": 16,
+                  "fontWeight": "700",
+                  "letterSpacing": 4
+                },
+                {
+                  "type": "text",
+                  "id": "uLC9y",
+                  "name": "h1title",
+                  "fill": "#1A1A1A",
+                  "content": "自研演算法",
+                  "fontFamily": "IBM Plex Sans",
+                  "fontSize": 44,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "EKgpN",
+                  "name": "h1desc",
+                  "fill": "#777777",
+                  "textGrowth": "fixed-width",
+                  "width": 820,
+                  "content": "平靜指數不靠 AI 模型，純行為訊號計算，使用者看得懂自己的分數",
+                  "fontFamily": "IBM Plex Sans",
+                  "fontSize": 24,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "5oUig",
+              "name": "h2",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "TOMZ4",
+                  "name": "h2num",
+                  "fill": "#C67A52",
+                  "content": "02",
+                  "fontFamily": "IBM Plex Sans",
+                  "fontSize": 16,
+                  "fontWeight": "700",
+                  "letterSpacing": 4
+                },
+                {
+                  "type": "text",
+                  "id": "cavIH",
+                  "name": "h2title",
+                  "fill": "#1A1A1A",
+                  "content": "零內容存取",
+                  "fontFamily": "IBM Plex Sans",
+                  "fontSize": 44,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "5xVsp",
+                  "name": "h2desc",
+                  "fill": "#777777",
+                  "textGrowth": "fixed-width",
+                  "width": 820,
+                  "content": "Gmail metadata only — 信件內容完全不碰",
+                  "fontFamily": "IBM Plex Sans",
+                  "fontSize": 24,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "zQmPr",
+              "name": "h3",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "P7GpT",
+                  "name": "h3num",
+                  "fill": "#C67A52",
+                  "content": "03",
+                  "fontFamily": "IBM Plex Sans",
+                  "fontSize": 16,
+                  "fontWeight": "700",
+                  "letterSpacing": 4
+                },
+                {
+                  "type": "text",
+                  "id": "Y7xHX",
+                  "name": "h3title",
+                  "fill": "#1A1A1A",
+                  "content": "語氣自適應",
+                  "fontFamily": "IBM Plex Sans",
+                  "fontSize": 44,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "text",
+                  "id": "bIUKf",
+                  "name": "h3desc",
+                  "fill": "#777777",
+                  "textGrowth": "fixed-width",
+                  "width": 820,
+                  "content": "AI 根據平靜指數自動調整說話方式",
+                  "fontFamily": "IBM Plex Sans",
+                  "fontSize": 24,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "rectangle",
+          "id": "PXDfg",
+          "x": 1060,
+          "y": 120,
+          "name": "p3sep",
+          "enabled": false,
+          "fill": "#E0D8D0",
+          "width": 1,
+          "height": 840
+        },
+        {
+          "type": "frame",
+          "id": "9AVrx",
+          "x": 1120,
+          "y": 180,
+          "name": "p3right",
+          "enabled": false,
+          "width": 660,
+          "height": 720,
+          "layout": "vertical",
+          "gap": 28,
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "20HGl",
+              "name": "qrbox",
+              "width": 520,
+              "height": 520,
+              "fill": "#EDE8E1",
+              "cornerRadius": 16
+            },
+            {
+              "type": "text",
+              "id": "dIxyO",
+              "name": "qrcta",
+              "fill": "#1A1A1A",
+              "content": "歡迎掃碼體驗",
+              "fontFamily": "IBM Plex Sans",
+              "fontSize": 26,
+              "fontWeight": "600"
+            },
+            {
+              "type": "text",
+              "id": "AuACz",
+              "name": "qrurl",
+              "fill": "#999999",
+              "content": "moltos-care.vercel.app",
+              "fontFamily": "IBM Plex Sans",
+              "fontSize": 20,
+              "fontWeight": "normal"
+            }
+          ]
+        },
+        {
+          "type": "text",
+          "id": "D13gc",
+          "x": 140,
+          "y": 1020,
+          "name": "p3tag",
+          "fill": "#AAAAAA",
+          "content": "P4 · 技術亮點",
+          "fontFamily": "IBM Plex Sans",
+          "fontSize": 16,
+          "fontWeight": "normal"
+        },
+        {
+          "type": "frame",
+          "id": "QbL6o",
+          "x": 1080,
+          "y": 200,
+          "name": "p3demo",
+          "width": 700,
+          "height": 680,
+          "layout": "vertical",
+          "gap": 32,
+          "justifyContent": "center",
+          "children": [
+            {
+              "type": "text",
+              "id": "zklXw",
+              "name": "demo_label",
+              "fill": "#C67A52",
+              "content": "接下來",
+              "fontFamily": "IBM Plex Sans",
+              "fontSize": 18,
+              "fontWeight": "700",
+              "letterSpacing": 4
+            },
+            {
+              "type": "text",
+              "id": "Ws6JW",
+              "name": "demo_title",
+              "fill": "#1A1A1A",
+              "content": "現場操作",
+              "fontFamily": "IBM Plex Sans",
+              "fontSize": 72,
+              "fontWeight": "700"
+            },
+            {
+              "type": "rectangle",
+              "id": "IFS1J",
+              "name": "demo_sep",
+              "fill": "#C67A52",
+              "width": 60,
+              "height": 2
+            },
+            {
+              "type": "frame",
+              "id": "PDo1r",
+              "name": "demo_steps",
+              "width": "fill_container",
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "6RK3V",
+                  "name": "ds1",
+                  "fill": "#888888",
+                  "content": "首頁  →  平靜指數儀表板",
+                  "fontFamily": "IBM Plex Sans",
+                  "fontSize": 24,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "oLz4d",
+                  "name": "ds2",
+                  "fill": "#888888",
+                  "content": "對話  →  AI 主動關心",
+                  "fontFamily": "IBM Plex Sans",
+                  "fontSize": 24,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "vWUSR",
+                  "name": "ds3",
+                  "fill": "#888888",
+                  "content": "回顧  →  週報洞察分析",
+                  "fontFamily": "IBM Plex Sans",
+                  "fontSize": 24,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "text",
+                  "id": "VF2lv",
+                  "name": "ds4",
+                  "fill": "#888888",
+                  "content": "語音  →  通話對話夥伴",
+                  "fontFamily": "IBM Plex Sans",
+                  "fontSize": 24,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 }
