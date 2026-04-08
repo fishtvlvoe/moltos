@@ -53,8 +53,14 @@ export async function POST(req: Request) {
 
   try {
     if (session?.user) {
-      const { email, name, image } = session.user as { email: string; name?: string; image?: string };
-      userId = await upsertUser(email, name ?? undefined, image ?? undefined);
+      // 優先用 Google ID（與 webhook 存入的 user_id 一致），確保文字對話與語音對話共用同一 userId
+      const googleId = (session.user as { id?: string }).id;
+      if (googleId) {
+        userId = googleId;
+      } else {
+        const { email, name, image } = session.user as { email: string; name?: string; image?: string };
+        userId = await upsertUser(email, name ?? undefined, image ?? undefined);
+      }
     }
   } catch (err) {
     console.warn('[POST /api/chat] upsertUser 失敗，對話繼續（不存 DB）：', err);
