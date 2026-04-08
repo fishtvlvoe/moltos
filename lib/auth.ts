@@ -1,7 +1,7 @@
 import GoogleProvider from 'next-auth/providers/google';
 import type { AuthOptions } from 'next-auth';
 
-// T010: NextAuth 設定 — Google OAuth 含 Gmail / YouTube readonly 權限
+// T010: NextAuth 設定 — Google OAuth 基本登入權限
 export const authOptions: AuthOptions = {
   providers: [
     GoogleProvider({
@@ -9,11 +9,9 @@ export const authOptions: AuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       authorization: {
         params: {
-          // 要求離線存取以取得 refresh token
-          scope:
-            'openid email profile https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/youtube.readonly',
+          // 只要基本身份識別，不需要 Gmail / YouTube 權限
+          scope: 'openid email profile',
           access_type: 'offline',
-          prompt: 'consent',
         },
       },
     }),

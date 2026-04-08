@@ -10,13 +10,16 @@ describe('NextAuth 設定', () => {
     expect(googleProvider).toBeDefined();
   });
 
-  it('包含 gmail.readonly 和 youtube.readonly scopes', () => {
+  it('只包含基本 scope（openid email profile），不含 Gmail / YouTube', () => {
     const googleProvider = authOptions.providers.find(
       (p: any) => p.id === 'google'
     ) as any;
     const scopes = googleProvider?.options?.authorization?.params?.scope;
-    expect(scopes).toContain('gmail.readonly');
-    expect(scopes).toContain('youtube.readonly');
+    expect(scopes).toContain('openid');
+    expect(scopes).toContain('email');
+    expect(scopes).toContain('profile');
+    expect(scopes).not.toContain('gmail');
+    expect(scopes).not.toContain('youtube');
   });
 
   it('session callback 傳遞 accessToken', async () => {
