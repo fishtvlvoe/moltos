@@ -65,6 +65,8 @@ export const authOptions: AuthOptions = {
     async session({ session, token }) {
       (session as any).accessToken = token.accessToken;
       (session as any).refreshToken = token.refreshToken;
+      // 把 Google user ID 掛到 session.user.id，讓前端可以取到
+      if (session.user) (session.user as any).id = (token.sub ?? token.id) as string;
       return session;
     },
   },

@@ -52,7 +52,9 @@ export async function POST(req: NextRequest): Promise<Response> {
   const conversation_id = data.conversation_id;
   const transcript = data.transcript;
   const dynamicVars = data.conversation_initiation_client_data?.dynamic_variables;
-  const userId = dynamicVars?.user_id ?? `voice:${conversation_id ?? 'unknown'}`;
+  // user_id 空字串也視為無效，fallback 到 voice: 前綴（避免 Supabase UUID 錯誤）
+  const rawUserId = dynamicVars?.user_id;
+  const userId = (rawUserId && rawUserId.trim()) ? rawUserId : `voice:${conversation_id ?? 'unknown'}`;
 
   console.log(
     `[Webhook] 收到通話紀錄: conversation_id=${conversation_id}, messages=${transcript?.length ?? 0}`
