@@ -170,10 +170,26 @@ export default function CallPage() {
       const { signedUrl } = await res.json();
       if (!signedUrl) throw new Error('無法取得 signed URL');
 
+      const googleId = (session?.user as { id?: string } | undefined)?.id;
+
+      // 撈取文字對話歷史，格式化後傳入 Agent，提供記憶上下文（失敗不阻斷通話）
+      let historyText = '（尚無歷史對話）';
+      try {
+        const histRes = await fetch('/api/chat/history');
+        if (histRes.ok) {
+          const history: { role: string; content: string }[] = await histRes.json();
+          const recent = history.slice(-20);
+          if (recent.length > 0) {
+            historyText = recent.map(m => `${m.role === 'user' ? '用戶' : '小默'}：${m.content}`).join('\n');
+          }
+        }
+      } catch {}
+
       await conversation.startSession({
         signedUrl,
         dynamicVariables: {
-          user_id: (session?.user as { id?: string } | undefined)?.id ?? '',
+          user_id: googleId ?? '',
+          conversation_history: historyText,
         },
       });
     } catch (error) {

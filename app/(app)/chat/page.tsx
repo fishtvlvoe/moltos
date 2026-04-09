@@ -61,6 +61,13 @@ export default function ChatPage() {
         };
         setMessages((prev) => [...prev, assistantMsg]);
 
+        // 非同步存入 DB（非關鍵路徑，失敗不阻斷）
+        fetch('/api/chat/message', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role: 'assistant', content: props.message }),
+        }).catch(() => {});
+
         // TTS 開啟時，自動朗讀 AI 回應
         if (ttsEnabled && props.message) {
           speak(props.message).catch(() => {});
@@ -79,12 +86,20 @@ export default function ChatPage() {
       const { signedUrl } = await res.json();
       if (!signedUrl) throw new Error('無法取得 signed URL');
 
-      // 純文字模式：不請求麥克風，設定中文語言
-      // 傳入 userId 讓 webhook 存入正確的 userId，與 chat 歷史共用同一個 key
       const googleId = (session?.user as { id?: string })?.id;
+
+      // 取最近 20 筆歷史，格式化後傳入 dynamicVariables，讓 Agent 有記憶上下文
+      const recentMessages = messages.slice(-20);
+      const historyText = recentMessages.length > 0
+        ? recentMessages.map(m => `${m.role === 'user' ? '用戶' : '小默'}：${m.content}`).join('\n')
+        : '（尚無歷史對話）';
+
       await conversation.startSession({
         signedUrl,
-        userId: googleId,
+        dynamicVariables: {
+          user_id: googleId ?? '',
+          conversation_history: historyText,
+        },
         overrides: {
           agent: {
             language: 'zh',
@@ -96,7 +111,7 @@ export default function ChatPage() {
       setIsConnecting(false);
       setIsConnected(false);
     }
-  }, [conversation, isConnecting, isConnected]);
+  }, [conversation, isConnecting, isConnected, messages, session]);
 
   // 進入頁面時：載入 DB 歷史 → 觸發問候
   useEffect(() => {
@@ -151,6 +166,13 @@ export default function ChatPage() {
       timestamp: Date.now(),
     };
     setMessages((prev) => [...prev, userMsg]);
+
+    // 非同步存入 DB（非關鍵路徑，失敗不阻斷）
+    fetch('/api/chat/message', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: 'user', content: text }),
+    }).catch(() => {});
 
     if (conversation.status === 'connected') {
       // 已連線：直接送出
