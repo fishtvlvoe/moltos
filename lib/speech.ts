@@ -208,7 +208,7 @@ export function stopListening(): void {
 }
 
 // ─────────────────────────────────────────
-// TTS（文字轉語音）— SpeechSynthesis
+// TTS（文字轉語音）
 // ─────────────────────────────────────────
 
 /**
@@ -218,53 +218,157 @@ export function isSpeechSynthesisSupported(): boolean {
   return typeof window !== "undefined" && "speechSynthesis" in window;
 }
 
-/** 目前播放中的 Audio 元素，用於 stopSpeaking */
+/** 共用 AudioContext — iOS 需透過此播放，不能每次 new Audio() */
+let sharedAudioCtx: AudioContext | null = null;
+/** iOS keepalive：定期播靜音 buffer，防止 AudioContext 自動掛起 */
+let keepAliveInterval: ReturnType<typeof setInterval> | null = null;
+/** 目前播放中的 AudioBufferSourceNode（AudioContext 路徑） */
+let currentSource: AudioBufferSourceNode | null = null;
+/** 目前播放中的 Audio 元素（fallback 路徑） */
 let currentAudio: HTMLAudioElement | null = null;
 
 /**
+ * 回傳目前共用的 AudioContext（供 recorder.ts 使用）。
+ */
+export function getSharedAudioCtx(): AudioContext | null {
+  return sharedAudioCtx;
+}
+
+/**
+ * 在 user gesture 的同步上下文呼叫，建立並解鎖共用 AudioContext。
+ * iOS 必須在按鈕點擊的 call stack 內執行才能持久解鎖音訊播放。
+ * 不需要 await — 只需「建立 + 呼叫 resume()」動作本身即可解鎖。
+ */
+export function initSharedAudioContext(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const AC = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AC) return;
+    if (!sharedAudioCtx) {
+      sharedAudioCtx = new AC();
+    }
+    if (sharedAudioCtx.state === 'suspended') {
+      sharedAudioCtx.resume().catch(() => {});
+    }
+    // 啟動 keepalive：每 2 秒播一個靜音 buffer，防止 iOS 掛起 AudioContext
+    if (!keepAliveInterval) {
+      keepAliveInterval = setInterval(() => {
+        if (!sharedAudioCtx) return;
+        if (sharedAudioCtx.state === 'suspended') {
+          sharedAudioCtx.resume().catch(() => {});
+        }
+        if (sharedAudioCtx.state === 'running') {
+          try {
+            const buf = sharedAudioCtx.createBuffer(1, 1, sharedAudioCtx.sampleRate);
+            const src = sharedAudioCtx.createBufferSource();
+            src.buffer = buf;
+            src.connect(sharedAudioCtx.destination);
+            src.start();
+          } catch {}
+        }
+      }, 2000);
+    }
+  } catch {
+    // 環境不支援，靜默處理
+  }
+}
+
+/** 停止 AudioContext keepalive（掛斷通話時呼叫） */
+export function stopAudioContextKeepalive(): void {
+  if (keepAliveInterval) {
+    clearInterval(keepAliveInterval);
+    keepAliveInterval = null;
+  }
+}
+
+/**
  * 將文字用語音朗讀出來。
- * 優先使用 Google Cloud TTS（自然語音），失敗退回瀏覽器內建。
+ * 優先路徑：ElevenLabs TTS → AudioContext 播放（iOS 友好）
+ * 備用路徑：ElevenLabs TTS → Audio element（桌面）
+ * 最終退路：瀏覽器內建 SpeechSynthesis
  */
 export async function speak(text: string): Promise<void> {
   const cleanText = text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '').trim();
   if (!cleanText) return;
 
-  // 先嘗試 Google Cloud TTS
+  // ElevenLabs TTS（12 秒 timeout，手機網路 + cold start 可能需要 5-8 秒）
   try {
+    const controller = new AbortController();
+    const ttsTimeout = setTimeout(() => controller.abort(), 12000);
     const res = await fetch('/api/tts', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text: cleanText }),
+      signal: controller.signal,
     });
+    clearTimeout(ttsTimeout);
 
     if (res.ok) {
-      const blob = await res.blob();
+      const arrayBuffer = await res.arrayBuffer();
+
+      // ── 優先路徑：<audio> 元素 ──
+      // iOS + 麥克風同時開著時，AudioContext 走耳機路由（沒聲音）
+      // <audio> playsInline 用 media playback session → 揚聲器，無視靜音鍵
+      const blob = new Blob([arrayBuffer], { type: 'audio/mpeg' });
       const url = URL.createObjectURL(blob);
-      return await new Promise<void>((resolve) => {
+      const audioOk = await new Promise<boolean>((resolve) => {
         const audio = new Audio(url);
+        (audio as HTMLAudioElement & { playsInline?: boolean }).playsInline = true;
         currentAudio = audio;
         let settled = false;
-        const done = () => {
+        const estimatedMs = Math.max(8000, cleanText.length * 250 + 2000);
+        const done = (ok: boolean) => {
           if (settled) return;
           settled = true;
           clearTimeout(safetyTimer);
           currentAudio = null;
           URL.revokeObjectURL(url);
-          resolve();
+          resolve(ok);
         };
-        // iOS 上 onended 有時不觸發，加 safety timeout（文字長度估算播放時間 + 5s）
-        const estimatedMs = Math.max(3000, cleanText.length * 100 + 1000);
-        const safetyTimer = setTimeout(done, estimatedMs);
-        audio.onended = done;
-        audio.onerror = done;
-        audio.play().catch(done);
+        const safetyTimer = setTimeout(() => done(true), estimatedMs);
+        audio.onended = () => done(true);
+        audio.onerror = () => done(false);
+        audio.play().catch(() => done(false));
       });
+
+      if (audioOk) return;
+
+      // ── 備用路徑：AudioContext（<audio> 被 iOS autoplay 擋住時使用）──
+      if (sharedAudioCtx && sharedAudioCtx.state === 'running') {
+        return await new Promise<void>((resolve) => {
+          let settled = false;
+          let safetyTimer: ReturnType<typeof setTimeout>;
+
+          const done = () => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(safetyTimer);
+            currentSource = null;
+            resolve();
+          };
+
+          sharedAudioCtx!.decodeAudioData(
+            arrayBuffer,
+            (decoded) => {
+              safetyTimer = setTimeout(done, decoded.duration * 1000 + 1500);
+              const source = sharedAudioCtx!.createBufferSource();
+              currentSource = source;
+              source.buffer = decoded;
+              source.connect(sharedAudioCtx!.destination);
+              source.onended = done;
+              source.start();
+            },
+            done,
+          );
+        });
+      }
     }
   } catch {
-    // Google TTS 失敗，退回瀏覽器內建
+    // TTS 失敗，退回瀏覽器內建
   }
 
-  // 退回瀏覽器內建 TTS
+  // 最終退路：瀏覽器內建 SpeechSynthesis
   if (!isSpeechSynthesisSupported()) return;
 
   return new Promise<void>((resolve) => {
@@ -279,7 +383,6 @@ export async function speak(text: string): Promise<void> {
       clearTimeout(safetyTimer);
       resolve();
     };
-    // iOS SpeechSynthesis onend 也不穩定，同樣加 safety timeout
     const safetyTimer = setTimeout(done, Math.max(5000, cleanText.length * 200 + 3000));
     utterance.onend = done;
     utterance.onerror = done;
@@ -291,7 +394,13 @@ export async function speak(text: string): Promise<void> {
  * 停止朗讀。
  */
 export function stopSpeaking(): void {
-  // 停止 OpenAI TTS 播放 — 觸發 ended 事件讓 speak() 的 Promise resolve
+  // 停止 AudioContext 播放
+  if (currentSource) {
+    const source = currentSource;
+    currentSource = null;
+    try { source.stop(); source.disconnect(); } catch { /* 已停止 */ }
+  }
+  // 停止 Audio element 播放
   if (currentAudio) {
     const audio = currentAudio;
     currentAudio = null;

@@ -1,149 +1,198 @@
 'use client';
 
-// T035: Chat 頁面 — 整合 ChatList + ChatInput，進入時觸發 AI 問候
-import { useEffect, useRef, useState } from 'react';
+// T035: Chat 頁面 — 整合 ElevenLabs WebSocket（純文字模式，不開麥克風）
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { useConversation } from '@11labs/react';
 import { ChatList } from '@/components/chat/chat-list';
 import { ChatInput } from '@/components/chat/chat-input';
-import { speak, isSpeechSynthesisSupported } from '@/lib/speech';
+import { speak } from '@/lib/speech';
 import type { ChatMessage } from '@/lib/types';
+import type { MessagePayload } from '@elevenlabs/types';
 
 export default function ChatPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [isStreaming, setIsStreaming] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
   const [ttsEnabled, setTtsEnabled] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [insight, setInsight] = useState<any>(null);
   const [analyzingInsight, setAnalyzingInsight] = useState(false);
   const initDone = useRef(false);
+  // 待連線後送出的訊息佇列
+  const pendingMessageRef = useRef<string | null>(null);
 
-  // 進入頁面時：檢查通話紀錄 → 載入 DB 歷史 → 或觸發問候
-  useEffect(() => {
-    if (initDone.current) return;
-    initDone.current = true;
+  // ─── ElevenLabs SDK（純文字模式，不開麥克風）────────────────────────────────
+  const conversation = useConversation({
+    onConnect: ({ conversationId }: { conversationId: string }) => {
+      console.info('[ElevenLabs Chat] 連線建立，conversation_id:', conversationId);
+      setIsConnected(true);
+      setIsConnecting(false);
 
-    async function init() {
-      // 優先檢查是否有通話紀錄（從 call page 跳過來的）
-      try {
-        const callData = sessionStorage.getItem('callHistory');
-        if (callData) {
-          sessionStorage.removeItem('callHistory');
-          const callMessages: ChatMessage[] = JSON.parse(callData);
-          if (callMessages.length > 0) {
-            setMessages(callMessages);
-            return;
-          }
+      // 若有待送訊息，連線後立即送出
+      if (pendingMessageRef.current) {
+        const text = pendingMessageRef.current;
+        pendingMessageRef.current = null;
+        conversation.sendUserMessage(text);
+      }
+    },
+    onDisconnect: () => {
+      console.info('[ElevenLabs Chat] 連線已中斷');
+      setIsConnected(false);
+      setIsConnecting(false);
+    },
+    onError: (message: string, context?: unknown) => {
+      console.error('[ElevenLabs Chat] 錯誤:', message, context);
+      setIsConnected(false);
+      setIsConnecting(false);
+    },
+    onMessage: (props: MessagePayload) => {
+      console.log('[ElevenLabs Chat] 收到訊息:', props);
+      // 只處理 AI 回應（role 為 'assistant' 或 source 為 'ai'）
+      if (props.role === 'agent' || props.source === 'ai') {
+        // 過濾情緒標籤（如 [幸福]、[緊張]），避免 TTS 念出來
+        const cleanContent = (props.message ?? '').replace(/\[[^\]]*\]/g, '').trim();
+        if (!cleanContent) return;
+
+        const assistantMsg: ChatMessage = {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: cleanContent,
+          timestamp: Date.now(),
+        };
+        setMessages((prev) => [...prev, assistantMsg]);
+
+        // 非同步存入 DB（非關鍵路徑，失敗不阻斷，但需 log）
+        fetch('/api/chat/message', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role: 'assistant', content: cleanContent }),
+        }).catch((err) => console.warn('[Chat] 存 AI 訊息失敗：', err));
+
+        // TTS 開啟時，自動朗讀 AI 回應（用已過濾標籤的內容）
+        if (ttsEnabled && cleanContent) {
+          speak(cleanContent).catch(() => {});
         }
-      } catch {}
+      }
+    },
+  });
 
-      // 嘗試從 DB 載入歷史對話
+  // ─── 連線到 ElevenLabs Agent ─────────────────────────────────────────────────
+  const connectToAgent = useCallback(async () => {
+    if (isConnecting || isConnected) return;
+    setIsConnecting(true);
+
+    try {
+      const res = await fetch('/api/elevenlabs-signed-url');
+      // 問題 3：先檢查 res.ok，API 掛掉時拋出明確錯誤
+      if (!res.ok) throw new Error(`signed-url API 錯誤：${res.status}`);
+      const { signedUrl } = await res.json();
+      if (!signedUrl) throw new Error('無法取得 signed URL');
+
+      // 問題 1：googleId 不存在就不連線，避免 user_id 傳空字串
+      const googleId = (session?.user as { id?: string })?.id;
+      if (!googleId) {
+        console.warn('[ElevenLabs] 無法取得 Google ID，取消連線');
+        setIsConnecting(false);
+        return;
+      }
+
+      // 取最近 20 筆歷史，格式化後傳入 dynamicVariables，讓 Agent 有記憶上下文
+      const recentMessages = messages.slice(-20);
+      const historyText = recentMessages.length > 0
+        ? recentMessages.map(m => `${m.role === 'user' ? '用戶' : '小默'}：${m.content}`).join('\n')
+        : '（尚無歷史對話）';
+
+      await conversation.startSession({
+        signedUrl,
+        dynamicVariables: {
+          user_id: googleId,  // 已確認非空，不用 ?? ''
+          conversation_history: historyText,
+        },
+        overrides: {
+          agent: {
+            language: 'zh',
+          },
+        },
+      });
+    } catch (error) {
+      console.error('[ElevenLabs Chat] 連線失敗:', error);
+      setIsConnecting(false);
+      setIsConnected(false);
+    }
+  }, [conversation, isConnecting, isConnected, messages, session]);
+
+  // 輪詢 DB，直到筆數增加或超時（最多 10 秒，每 1.5 秒一次）
+  async function pollForNewMessages(previousCount: number) {
+    const maxAttempts = 7; // 7 * 1.5s = 約 10 秒
+    let attempts = 0;
+
+    const poll = async () => {
+      if (attempts >= maxAttempts) return;
+      attempts++;
+
       try {
         const res = await fetch('/api/chat/history');
         if (res.ok) {
           const history: ChatMessage[] = await res.json();
-          if (history.length > 0) {
+          if (history.length > previousCount) {
+            // 有新資料，更新畫面並停止輪詢
             setMessages(history);
             return;
           }
         }
       } catch {}
 
-      // 無任何紀錄且有用戶名 → 觸發 AI 主動問候
+      // 還沒有新資料，1.5 秒後再試
+      setTimeout(poll, 1500);
+    };
+
+    // 第一次等 1.5 秒再開始，讓 webhook 有時間寫入
+    setTimeout(poll, 1500);
+  }
+
+  // 進入頁面時：載入 DB 歷史 → 觸發問候
+  useEffect(() => {
+    if (initDone.current) return;
+    initDone.current = true;
+
+    async function init() {
+      const fromCall = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('from') === 'call';
+
+      // 從 DB 載入歷史對話（含語音通話紀錄）
+      try {
+        const res = await fetch('/api/chat/history');
+        if (res.ok) {
+          const history: ChatMessage[] = await res.json();
+          if (history.length > 0) {
+            setMessages(history);
+            // 如果是從 Call 跳轉來的，繼續輪詢等待新的通話紀錄
+            if (fromCall) {
+              pollForNewMessages(history.length);
+            }
+            return;
+          }
+        }
+      } catch {}
+
+      // 無歷史且從 Call 跳轉來 → 輪詢等待 webhook 寫入
+      if (fromCall) {
+        pollForNewMessages(0);
+        return;
+      }
+
+      // 無任何紀錄且有用戶名 → 先連線，Agent 會自動問候
       if (!session?.user?.name) return;
-
-      // 無歷史紀錄 → 觸發 AI 主動問候
-      const greetingMsg: ChatMessage = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: '',
-        timestamp: Date.now(),
-        isStreaming: true,
-      };
-      setMessages([greetingMsg]);
-      setIsStreaming(true);
-
-      fetchStream(
-        `請用溫暖的語氣跟「${session!.user!.name}」打招呼，簡短一句話就好，並根據現在的時間問候。`,
-        [],
-        greetingMsg.id,
-      );
     }
 
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user?.name]);
 
-  // 串流讀取 API 回應
-  async function fetchStream(
-    message: string,
-    history: ChatMessage[],
-    assistantMsgId: string,
-  ) {
-    try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, history }),
-      });
-
-      if (!res.ok || !res.body) {
-        throw new Error(`API 回應錯誤：${res.status}`);
-      }
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let accumulated = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        accumulated += decoder.decode(value, { stream: true });
-        // 更新 assistant 訊息內容
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.id === assistantMsgId
-              ? { ...m, content: accumulated }
-              : m,
-          ),
-        );
-      }
-
-      // 串流結束，移除 streaming 標記
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === assistantMsgId
-            ? { ...m, isStreaming: false }
-            : m,
-        ),
-      );
-
-      // TTS 開啟時，自動朗讀 AI 回應
-      if (ttsEnabled && accumulated) {
-        speak(accumulated).catch(() => {});
-      }
-    } catch (error) {
-      // 錯誤處理：顯示錯誤訊息
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === assistantMsgId
-            ? {
-                ...m,
-                content: '抱歉，目前無法回應，請稍後再試。',
-                isStreaming: false,
-              }
-            : m,
-        ),
-      );
-    } finally {
-      setIsStreaming(false);
-    }
-  }
-
-  // 分析對話洞察
+  // ─── 分析對話洞察 ─────────────────────────────────────────────────────────────
   async function analyzeInsight() {
     if (messages.length < 2 || analyzingInsight) return;
     setAnalyzingInsight(true);
@@ -160,32 +209,36 @@ export default function ChatPage() {
     setAnalyzingInsight(false);
   }
 
-  // 使用者送出訊息
+  // ─── 使用者送出訊息 ───────────────────────────────────────────────────────────
   function handleSend(text: string) {
-    // 加入使用者訊息
+    // 加入使用者訊息到畫面
     const userMsg: ChatMessage = {
       id: crypto.randomUUID(),
       role: 'user',
       content: text,
       timestamp: Date.now(),
     };
+    setMessages((prev) => [...prev, userMsg]);
 
-    // 建立 assistant 空訊息（等待串流填入）
-    const assistantMsg: ChatMessage = {
-      id: crypto.randomUUID(),
-      role: 'assistant',
-      content: '',
-      timestamp: Date.now(),
-      isStreaming: true,
-    };
+    // 非同步存入 DB（非關鍵路徑，失敗不阻斷，但需 log）
+    // 問題 2：catch 空函式改為記錄 warning，方便 debug
+    fetch('/api/chat/message', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role: 'user', content: text }),
+    }).catch((err) => console.warn('[Chat] 存用戶訊息失敗：', err));
 
-    const updatedMessages = [...messages, userMsg, assistantMsg];
-    setMessages(updatedMessages);
-    setIsStreaming(true);
-
-    // 發送到 API（history 不含當前的空 assistant 訊息）
-    fetchStream(text, [...messages, userMsg], assistantMsg.id);
+    if (conversation.status === 'connected') {
+      // 已連線：直接送出
+      conversation.sendUserMessage(text);
+    } else {
+      // 未連線：暫存訊息，連線後自動送出
+      pendingMessageRef.current = text;
+      connectToAgent();
+    }
   }
+
+  const isStreaming = isConnecting;
 
   return (
     <div className="flex flex-col h-[calc(100vh-5rem)] -mx-4 -mt-4">
@@ -286,7 +339,7 @@ export default function ChatPage() {
         </div>
       )}
 
-      {/* 分析按鈕（有對話紀錄且未在串流時顯示） */}
+      {/* 分析按鈕（有對話紀錄且未在連線中顯示） */}
       {messages.length >= 4 && !isStreaming && !insight && (
         <div className="flex justify-center py-1">
           <button

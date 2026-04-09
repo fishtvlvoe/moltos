@@ -18,7 +18,12 @@ export async function GET() {
   }
 
   try {
-    const userId = await upsertUser(session.user.email, session.user.name ?? undefined);
+    // 優先用 Google ID（session.user.id）撈訊息，與 webhook 存入的 user_id 一致
+    // 若無 Google ID 則 fallback 到 users 表的 UUID
+    const googleId = (session.user as { id?: string }).id;
+    const userId = googleId
+      ? googleId
+      : await upsertUser(session.user.email, session.user.name ?? undefined);
     const messages = await getMessages(userId, 50);
     return NextResponse.json(messages);
   } catch (error) {

@@ -15,8 +15,17 @@ const ibmPlexSans = IBM_Plex_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Moltos Care",
-  description: "Moltos Care Web App — 職場心理健康平靜指數儀表板",
+  title: "MOLTOS Care",
+  description: "職場心理健康 AI 陪伴",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "MOLTOS",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
 };
 
 export default function RootLayout({
@@ -27,6 +36,10 @@ export default function RootLayout({
   return (
     // T012: 根 layout — mobile-first 居中容器，背景 cream (#FAF8F4)
     <html lang="zh-Hant" className={cn("h-full", "antialiased", ibmPlexSans.variable, "font-sans", geist.variable)}>
+      <head>
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <meta name="theme-color" content="#C67A52" />
+      </head>
       <body className="min-h-full flex flex-col" style={{ backgroundColor: '#FAF8F4' }}>
         {/* Providers 包含 SessionProvider，保持 body 為 server component */}
         <Providers>
