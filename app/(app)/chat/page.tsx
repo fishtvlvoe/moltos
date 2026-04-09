@@ -53,25 +53,28 @@ export default function ChatPage() {
       console.log('[ElevenLabs Chat] 收到訊息:', props);
       // 只處理 AI 回應（role 為 'assistant' 或 source 為 'ai'）
       if (props.role === 'agent' || props.source === 'ai') {
+        // 過濾情緒標籤（如 [幸福]、[緊張]），避免 TTS 念出來
+        const cleanContent = (props.message ?? '').replace(/\[[^\]]*\]/g, '').trim();
+        if (!cleanContent) return;
+
         const assistantMsg: ChatMessage = {
           id: crypto.randomUUID(),
           role: 'assistant',
-          content: props.message,
+          content: cleanContent,
           timestamp: Date.now(),
         };
         setMessages((prev) => [...prev, assistantMsg]);
 
         // 非同步存入 DB（非關鍵路徑，失敗不阻斷，但需 log）
-        // 問題 2：catch 空函式改為記錄 warning，方便 debug
         fetch('/api/chat/message', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ role: 'assistant', content: props.message }),
+          body: JSON.stringify({ role: 'assistant', content: cleanContent }),
         }).catch((err) => console.warn('[Chat] 存 AI 訊息失敗：', err));
 
-        // TTS 開啟時，自動朗讀 AI 回應
-        if (ttsEnabled && props.message) {
-          speak(props.message).catch(() => {});
+        // TTS 開啟時，自動朗讀 AI 回應（用已過濾標籤的內容）
+        if (ttsEnabled && cleanContent) {
+          speak(cleanContent).catch(() => {});
         }
       }
     },
