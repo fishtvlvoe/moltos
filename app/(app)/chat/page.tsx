@@ -1,26 +1,104 @@
 'use client';
 
-// T035: Chat 頁面 — 整合 ChatList + ChatInput，進入時觸發 AI 問候
-import { useEffect, useRef, useState } from 'react';
+// T035: Chat 頁面 — 整合 ElevenLabs WebSocket（純文字模式，不開麥克風）
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { useConversation } from '@11labs/react';
 import { ChatList } from '@/components/chat/chat-list';
 import { ChatInput } from '@/components/chat/chat-input';
-import { speak, isSpeechSynthesisSupported } from '@/lib/speech';
+import { speak } from '@/lib/speech';
 import type { ChatMessage } from '@/lib/types';
+import type { MessagePayload } from '@elevenlabs/types';
 
 export default function ChatPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [isStreaming, setIsStreaming] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
   const [ttsEnabled, setTtsEnabled] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [insight, setInsight] = useState<any>(null);
   const [analyzingInsight, setAnalyzingInsight] = useState(false);
   const initDone = useRef(false);
+  // 待連線後送出的訊息佇列
+  const pendingMessageRef = useRef<string | null>(null);
 
-  // 進入頁面時：檢查通話紀錄 → 載入 DB 歷史 → 或觸發問候
+  // ─── ElevenLabs SDK（純文字模式，不開麥克風）────────────────────────────────
+  const conversation = useConversation({
+    onConnect: ({ conversationId }: { conversationId: string }) => {
+      console.info('[ElevenLabs Chat] 連線建立，conversation_id:', conversationId);
+      setIsConnected(true);
+      setIsConnecting(false);
+
+      // 若有待送訊息，連線後立即送出
+      if (pendingMessageRef.current) {
+        const text = pendingMessageRef.current;
+        pendingMessageRef.current = null;
+        conversation.sendUserMessage(text);
+      }
+    },
+    onDisconnect: () => {
+      console.info('[ElevenLabs Chat] 連線已中斷');
+      setIsConnected(false);
+      setIsConnecting(false);
+    },
+    onError: (message: string, context?: unknown) => {
+      console.error('[ElevenLabs Chat] 錯誤:', message, context);
+      setIsConnected(false);
+      setIsConnecting(false);
+    },
+    onMessage: (props: MessagePayload) => {
+      console.log('[ElevenLabs Chat] 收到訊息:', props);
+      // 只處理 AI 回應（role 為 'assistant' 或 source 為 'ai'）
+      if (props.role === 'agent' || props.source === 'ai') {
+        const assistantMsg: ChatMessage = {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: props.message,
+          timestamp: Date.now(),
+        };
+        setMessages((prev) => [...prev, assistantMsg]);
+
+        // TTS 開啟時，自動朗讀 AI 回應
+        if (ttsEnabled && props.message) {
+          speak(props.message).catch(() => {});
+        }
+      }
+    },
+  });
+
+  // ─── 連線到 ElevenLabs Agent ─────────────────────────────────────────────────
+  const connectToAgent = useCallback(async () => {
+    if (isConnecting || isConnected) return;
+    setIsConnecting(true);
+
+    try {
+      const res = await fetch('/api/elevenlabs-signed-url');
+      const { signedUrl } = await res.json();
+      if (!signedUrl) throw new Error('無法取得 signed URL');
+
+      // 純文字模式：不請求麥克風，設定中文語言
+      // 傳入 userId 讓 webhook 存入正確的 userId，與 chat 歷史共用同一個 key
+      const googleId = (session?.user as { id?: string })?.id;
+      await conversation.startSession({
+        signedUrl,
+        userId: googleId,
+        overrides: {
+          agent: {
+            language: 'zh',
+          },
+        },
+      });
+    } catch (error) {
+      console.error('[ElevenLabs Chat] 連線失敗:', error);
+      setIsConnecting(false);
+      setIsConnected(false);
+    }
+  }, [conversation, isConnecting, isConnected]);
+
+  // 進入頁面時：載入 DB 歷史 → 觸發問候
   useEffect(() => {
     if (initDone.current) return;
     initDone.current = true;
@@ -38,99 +116,15 @@ export default function ChatPage() {
         }
       } catch {}
 
-      // 無任何紀錄且有用戶名 → 觸發 AI 主動問候
+      // 無任何紀錄且有用戶名 → 先連線，Agent 會自動問候
       if (!session?.user?.name) return;
-
-      // 無歷史紀錄 → 觸發 AI 主動問候
-      const greetingMsg: ChatMessage = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: '',
-        timestamp: Date.now(),
-        isStreaming: true,
-      };
-      setMessages([greetingMsg]);
-      setIsStreaming(true);
-
-      fetchStream(
-        `請用溫暖的語氣跟「${session!.user!.name}」打招呼，簡短一句話就好，並根據現在的時間問候。`,
-        [],
-        greetingMsg.id,
-      );
     }
 
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user?.name]);
 
-  // 串流讀取 API 回應
-  async function fetchStream(
-    message: string,
-    history: ChatMessage[],
-    assistantMsgId: string,
-  ) {
-    try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, history }),
-      });
-
-      if (!res.ok || !res.body) {
-        throw new Error(`API 回應錯誤：${res.status}`);
-      }
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let accumulated = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        accumulated += decoder.decode(value, { stream: true });
-        // 更新 assistant 訊息內容
-        setMessages((prev) =>
-          prev.map((m) =>
-            m.id === assistantMsgId
-              ? { ...m, content: accumulated }
-              : m,
-          ),
-        );
-      }
-
-      // 串流結束，移除 streaming 標記
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === assistantMsgId
-            ? { ...m, isStreaming: false }
-            : m,
-        ),
-      );
-
-      // TTS 開啟時，自動朗讀 AI 回應
-      if (ttsEnabled && accumulated) {
-        speak(accumulated).catch(() => {});
-      }
-    } catch (error) {
-      // 錯誤處理：顯示錯誤訊息
-      setMessages((prev) =>
-        prev.map((m) =>
-          m.id === assistantMsgId
-            ? {
-                ...m,
-                content: '抱歉，目前無法回應，請稍後再試。',
-                isStreaming: false,
-              }
-            : m,
-        ),
-      );
-    } finally {
-      setIsStreaming(false);
-    }
-  }
-
-  // 分析對話洞察
+  // ─── 分析對話洞察 ─────────────────────────────────────────────────────────────
   async function analyzeInsight() {
     if (messages.length < 2 || analyzingInsight) return;
     setAnalyzingInsight(true);
@@ -147,32 +141,28 @@ export default function ChatPage() {
     setAnalyzingInsight(false);
   }
 
-  // 使用者送出訊息
+  // ─── 使用者送出訊息 ───────────────────────────────────────────────────────────
   function handleSend(text: string) {
-    // 加入使用者訊息
+    // 加入使用者訊息到畫面
     const userMsg: ChatMessage = {
       id: crypto.randomUUID(),
       role: 'user',
       content: text,
       timestamp: Date.now(),
     };
+    setMessages((prev) => [...prev, userMsg]);
 
-    // 建立 assistant 空訊息（等待串流填入）
-    const assistantMsg: ChatMessage = {
-      id: crypto.randomUUID(),
-      role: 'assistant',
-      content: '',
-      timestamp: Date.now(),
-      isStreaming: true,
-    };
-
-    const updatedMessages = [...messages, userMsg, assistantMsg];
-    setMessages(updatedMessages);
-    setIsStreaming(true);
-
-    // 發送到 API（history 不含當前的空 assistant 訊息）
-    fetchStream(text, [...messages, userMsg], assistantMsg.id);
+    if (conversation.status === 'connected') {
+      // 已連線：直接送出
+      conversation.sendUserMessage(text);
+    } else {
+      // 未連線：暫存訊息，連線後自動送出
+      pendingMessageRef.current = text;
+      connectToAgent();
+    }
   }
+
+  const isStreaming = isConnecting;
 
   return (
     <div className="flex flex-col h-[calc(100vh-5rem)] -mx-4 -mt-4">
@@ -273,7 +263,7 @@ export default function ChatPage() {
         </div>
       )}
 
-      {/* 分析按鈕（有對話紀錄且未在串流時顯示） */}
+      {/* 分析按鈕（有對話紀錄且未在連線中顯示） */}
       {messages.length >= 4 && !isStreaming && !insight && (
         <div className="flex justify-center py-1">
           <button
