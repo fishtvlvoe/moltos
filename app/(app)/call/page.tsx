@@ -167,10 +167,19 @@ export default function CallPage() {
     try {
       // 先從後端取得 signed URL，避免 agentId 直連被 LiveKit 404 拒絕
       const res = await fetch('/api/elevenlabs-signed-url');
+      // 問題 3：先檢查 res.ok，API 掛掉時拋出明確錯誤
+      if (!res.ok) throw new Error(`signed-url API 錯誤：${res.status}`);
       const { signedUrl } = await res.json();
       if (!signedUrl) throw new Error('無法取得 signed URL');
 
+      // 問題 1：googleId 不存在就不連線，避免 user_id 傳空字串
       const googleId = (session?.user as { id?: string } | undefined)?.id;
+      if (!googleId) {
+        console.warn('[ElevenLabs] 無法取得 Google ID，取消連線');
+        clearDialingInterval();
+        setCallState('idle');
+        return;
+      }
 
       // 撈取文字對話歷史，格式化後傳入 Agent，提供記憶上下文（失敗不阻斷通話）
       let historyText = '（尚無歷史對話）';
@@ -188,7 +197,7 @@ export default function CallPage() {
       await conversation.startSession({
         signedUrl,
         dynamicVariables: {
-          user_id: googleId ?? '',
+          user_id: googleId,  // 已確認非空，不用 ?? ''
           conversation_history: historyText,
         },
       });

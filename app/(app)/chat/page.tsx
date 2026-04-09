@@ -61,12 +61,13 @@ export default function ChatPage() {
         };
         setMessages((prev) => [...prev, assistantMsg]);
 
-        // 非同步存入 DB（非關鍵路徑，失敗不阻斷）
+        // 非同步存入 DB（非關鍵路徑，失敗不阻斷，但需 log）
+        // 問題 2：catch 空函式改為記錄 warning，方便 debug
         fetch('/api/chat/message', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ role: 'assistant', content: props.message }),
-        }).catch(() => {});
+        }).catch((err) => console.warn('[Chat] 存 AI 訊息失敗：', err));
 
         // TTS 開啟時，自動朗讀 AI 回應
         if (ttsEnabled && props.message) {
@@ -83,10 +84,18 @@ export default function ChatPage() {
 
     try {
       const res = await fetch('/api/elevenlabs-signed-url');
+      // 問題 3：先檢查 res.ok，API 掛掉時拋出明確錯誤
+      if (!res.ok) throw new Error(`signed-url API 錯誤：${res.status}`);
       const { signedUrl } = await res.json();
       if (!signedUrl) throw new Error('無法取得 signed URL');
 
+      // 問題 1：googleId 不存在就不連線，避免 user_id 傳空字串
       const googleId = (session?.user as { id?: string })?.id;
+      if (!googleId) {
+        console.warn('[ElevenLabs] 無法取得 Google ID，取消連線');
+        setIsConnecting(false);
+        return;
+      }
 
       // 取最近 20 筆歷史，格式化後傳入 dynamicVariables，讓 Agent 有記憶上下文
       const recentMessages = messages.slice(-20);
@@ -97,7 +106,7 @@ export default function ChatPage() {
       await conversation.startSession({
         signedUrl,
         dynamicVariables: {
-          user_id: googleId ?? '',
+          user_id: googleId,  // 已確認非空，不用 ?? ''
           conversation_history: historyText,
         },
         overrides: {
@@ -167,12 +176,13 @@ export default function ChatPage() {
     };
     setMessages((prev) => [...prev, userMsg]);
 
-    // 非同步存入 DB（非關鍵路徑，失敗不阻斷）
+    // 非同步存入 DB（非關鍵路徑，失敗不阻斷，但需 log）
+    // 問題 2：catch 空函式改為記錄 warning，方便 debug
     fetch('/api/chat/message', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ role: 'user', content: text }),
-    }).catch(() => {});
+    }).catch((err) => console.warn('[Chat] 存用戶訊息失敗：', err));
 
     if (conversation.status === 'connected') {
       // 已連線：直接送出
