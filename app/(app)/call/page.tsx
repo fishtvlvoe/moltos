@@ -75,9 +75,9 @@ export default function CallPage() {
       clearDialingInterval();
       stopVolumePolling();
       // 如果曾經連線才跳轉到聊天紀錄頁
-      // 等 2 秒讓 ElevenLabs post-call webhook 有時間寫入 DB 再跳轉
+      // 帶 ?from=call 參數，讓 Chat 頁面偵測到並輪詢 DB 等待 webhook 寫入
       if (hasConnectedRef.current) {
-        setTimeout(() => router.push('/chat'), 2000);
+        setTimeout(() => router.push('/chat?from=call'), 1000);
       }
     },
     onError: (message: string, context?: unknown) => {

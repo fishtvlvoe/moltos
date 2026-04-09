@@ -122,12 +122,43 @@ export default function ChatPage() {
     }
   }, [conversation, isConnecting, isConnected, messages, session]);
 
+  // 輪詢 DB，直到筆數增加或超時（最多 10 秒，每 1.5 秒一次）
+  async function pollForNewMessages(previousCount: number) {
+    const maxAttempts = 7; // 7 * 1.5s = 約 10 秒
+    let attempts = 0;
+
+    const poll = async () => {
+      if (attempts >= maxAttempts) return;
+      attempts++;
+
+      try {
+        const res = await fetch('/api/chat/history');
+        if (res.ok) {
+          const history: ChatMessage[] = await res.json();
+          if (history.length > previousCount) {
+            // 有新資料，更新畫面並停止輪詢
+            setMessages(history);
+            return;
+          }
+        }
+      } catch {}
+
+      // 還沒有新資料，1.5 秒後再試
+      setTimeout(poll, 1500);
+    };
+
+    // 第一次等 1.5 秒再開始，讓 webhook 有時間寫入
+    setTimeout(poll, 1500);
+  }
+
   // 進入頁面時：載入 DB 歷史 → 觸發問候
   useEffect(() => {
     if (initDone.current) return;
     initDone.current = true;
 
     async function init() {
+      const fromCall = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('from') === 'call';
+
       // 從 DB 載入歷史對話（含語音通話紀錄）
       try {
         const res = await fetch('/api/chat/history');
@@ -135,10 +166,20 @@ export default function ChatPage() {
           const history: ChatMessage[] = await res.json();
           if (history.length > 0) {
             setMessages(history);
+            // 如果是從 Call 跳轉來的，繼續輪詢等待新的通話紀錄
+            if (fromCall) {
+              pollForNewMessages(history.length);
+            }
             return;
           }
         }
       } catch {}
+
+      // 無歷史且從 Call 跳轉來 → 輪詢等待 webhook 寫入
+      if (fromCall) {
+        pollForNewMessages(0);
+        return;
+      }
 
       // 無任何紀錄且有用戶名 → 先連線，Agent 會自動問候
       if (!session?.user?.name) return;
