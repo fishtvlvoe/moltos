@@ -6,6 +6,7 @@
     "moltos-calm-index"
   ],
   "scripts": {
+    "prebuild": "npm run build --workspace=moltos-calm-index",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
