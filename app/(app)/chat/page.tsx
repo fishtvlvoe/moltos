@@ -8,6 +8,7 @@ import { useConversation } from '@11labs/react';
 import { ChatList } from '@/components/chat/chat-list';
 import { ChatInput } from '@/components/chat/chat-input';
 import { speak } from '@/lib/speech';
+import { stripEmotionTags } from '@/lib/elevenlabs';
 import type { ChatMessage } from '@/lib/types';
 import type { MessagePayload } from '@elevenlabs/types';
 
@@ -54,7 +55,7 @@ export default function ChatPage() {
       // 只處理 AI 回應（role 為 'assistant' 或 source 為 'ai'）
       if (props.role === 'agent' || props.source === 'ai') {
         // 過濾情緒標籤（如 [幸福]、[緊張]），避免 TTS 念出來
-        const cleanContent = (props.message ?? '').replace(/\[[^\]]*\]/g, '').trim();
+        const cleanContent = stripEmotionTags(props.message ?? '');
         if (!cleanContent) return;
 
         const assistantMsg: ChatMessage = {

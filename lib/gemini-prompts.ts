@@ -65,6 +65,29 @@ export function greetingPrompt(userName: string, calmContext?: string): string {
   return `請以溫暖、友善的口吻，用繁體中文向 ${userName} 打招呼，問候他今天的狀態，並邀請他分享心情。問候語不超過 2-3 句話，語氣自然不刻意。${calmPart}`;
 }
 
+// ─── 時段標籤 ────────────────────────────────────────────────────────��────────
+
+export type TimePeriod = 'morning' | 'afternoon' | 'evening' | 'late-night';
+
+/**
+ * 根據當前時間回傳對應的時段標籤
+ *
+ * 早上 5–11：morning
+ * 下午 12–17：afternoon
+ * 晚上 18–22：evening
+ * 深夜 23–4：late-night
+ *
+ * @param hour - 0–23 的小時數（可測試用，預設 new Date().getHours()）
+ * @returns 時段標籤
+ */
+export function getTimePeriod(hour?: number): TimePeriod {
+  const h = hour ?? new Date().getHours();
+  if (h >= 5 && h <= 11) return 'morning';
+  if (h >= 12 && h <= 17) return 'afternoon';
+  if (h >= 18 && h <= 22) return 'evening';
+  return 'late-night';
+}
+
 /**
  * 平靜指數洞察建議 prompt
  *

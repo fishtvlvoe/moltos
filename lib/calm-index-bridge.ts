@@ -53,5 +53,7 @@ export function computeCalmIndex(metrics: GmailMetrics): CalmIndexSnapshot {
     coverageDays: metrics.coverageDays,
     isStale: false,
     createdAt: Date.now(),
+    // 資料覆蓋天數不足 14 天時標記，呼叫端可用於 UI 提示
+    dataInsufficient: metrics.coverageDays < 14 ? true : undefined,
   };
 }

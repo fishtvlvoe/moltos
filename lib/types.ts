@@ -16,6 +16,8 @@ export interface CalmIndexSnapshot {
   coverageDays: number;
   isStale: boolean;
   createdAt: number;
+  /** 資料不足 14 天時為 true */
+  dataInsufficient?: boolean;
 }
 
 // 聊天訊息（支援串流狀態）
