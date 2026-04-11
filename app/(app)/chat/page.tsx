@@ -128,11 +128,12 @@ export default function ChatPage() {
 
   // 輪詢 DB，直到筆數增加或超時（最多 10 秒，每 1.5 秒一次）
   async function pollForNewMessages(previousCount: number) {
-    const maxAttempts = 7; // 7 * 1.5s = 約 10 秒
+    // 漸進退避：1.5s × 2 → 2s × 2 → 3s × 2 → 4s × 2 → 5s × 2，共 10 次，上限 ~31 秒
+    const intervals = [1500, 1500, 2000, 2000, 3000, 3000, 4000, 4000, 5000, 5000];
     let attempts = 0;
 
     const poll = async () => {
-      if (attempts >= maxAttempts) return;
+      if (attempts >= intervals.length) return;
       attempts++;
 
       try {
@@ -147,8 +148,9 @@ export default function ChatPage() {
         }
       } catch {}
 
-      // 還沒有新資料，1.5 秒後再試
-      setTimeout(poll, 1500);
+      // 還沒有新資料，依漸進退避間隔再試
+      const delay = intervals[attempts - 1] ?? 5000;
+      setTimeout(poll, delay);
     };
 
     // 第一次等 1.5 秒再開始，讓 webhook 有時間寫入

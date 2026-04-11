@@ -21,7 +21,7 @@ import { NextRequest, NextResponse } from 'next/server';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore — opencc-js 無 @types，功能正常
 import { Converter } from 'opencc-js';
-import { saveMessage } from '@/lib/db';
+import { saveMessage, getCallSession, deleteCallSession } from '@/lib/db';
 import type {
   ElevenLabsPostCallWebhookPayload,
   ElevenLabsPostCallTranscriptionData,
@@ -58,12 +58,29 @@ export async function POST(req: NextRequest): Promise<Response> {
   const conversation_id = data.conversation_id;
   const transcript = data.transcript;
   const dynamicVars = data.conversation_initiation_client_data?.dynamic_variables;
-  // user_id 空字串也視為無效，fallback 到 voice: 前綴（避免 Supabase UUID 錯誤）
-  const rawUserId = dynamicVars?.user_id;
-  const userId = (rawUserId && rawUserId.trim()) ? rawUserId : `voice:${conversation_id ?? 'unknown'}`;
+
+  // 優先從 call_sessions 表查詢 user_id（前端通話建立時寫入）
+  // fallback 1: dynamic_variables.user_id（ElevenLabs 回傳，不保證存在）
+  // fallback 2: voice:${conversation_id}（最後手段）
+  let userId: string;
+  try {
+    const sessionUserId = conversation_id ? await getCallSession(conversation_id) : null;
+    if (sessionUserId) {
+      userId = sessionUserId;
+      // 查到後非同步刪除，失敗不阻斷主流程（deleteCallSession 內部已處理 warning）
+      deleteCallSession(conversation_id ?? '').catch(() => {});
+    } else {
+      const rawUserId = dynamicVars?.user_id;
+      userId = (rawUserId && rawUserId.trim()) ? rawUserId : `voice:${conversation_id ?? 'unknown'}`;
+    }
+  } catch {
+    // getCallSession 失敗，fallback 到舊邏輯
+    const rawUserId = dynamicVars?.user_id;
+    userId = (rawUserId && rawUserId.trim()) ? rawUserId : `voice:${conversation_id ?? 'unknown'}`;
+  }
 
   console.log(
-    `[Webhook] 收到通話紀錄: conversation_id=${conversation_id}, messages=${transcript?.length ?? 0}`
+    `[Webhook] 收到通話紀錄: conversation_id=${conversation_id}, user_id=${userId}, messages=${transcript?.length ?? 0}`
   );
 
   // ── 2. 驗證 transcript ────────────────────────────────────────────────────

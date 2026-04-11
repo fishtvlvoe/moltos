@@ -201,6 +201,23 @@ export default function CallPage() {
           conversation_history: historyText,
         },
       });
+
+      // 取得 conversationId 並存入 call_sessions，供 webhook 查詢正確的 user_id
+      try {
+        const conversationId = conversation.getId();
+        if (conversationId) {
+          await fetch('/api/call-sessions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ conversationId }),
+          });
+        } else {
+          console.warn('[ElevenLabs] 無法取得 conversationId，webhook 將使用 fallback user_id');
+        }
+      } catch (err) {
+        // 寫入失敗不阻斷通話，只記 warning
+        console.warn('[ElevenLabs] 寫入 call_sessions 失敗：', err);
+      }
     } catch (error) {
       console.error('[ElevenLabs] 連線失敗:', error);
       clearDialingInterval();
