@@ -2,14 +2,11 @@
  * T036: YouTube API 封裝邏輯測試
  *
  * 測試 fetchLatestVideos 將 YouTube API 回應轉換為 VideoSummary[]。
- * 注意：youtube.ts 尚不存在，此測試會先跑 FAIL（TDD 紅燈）。
  *
  * 涵蓋情境：
- * 1. 正常流程：subscriptions → channels → videos → VideoSummary[]
+ * 1. 正常流程：subscriptions → channels → videos → VideoSummary[]（不含 summary）
  * 2. limit 參數控制回傳數量
  * 3. 空訂閱 → 回傳空陣列
- * 4. AI 摘要整合：確認有呼叫 summaryPrompt 並將結果放入 summary 欄位
- * 5. Gemini 呼叫失敗時降級 → summary 留 undefined
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -53,19 +50,6 @@ vi.mock('googleapis', () => {
     _mockChannelsList: mockChannelsList,
     _mockPlaylistItemsList: mockPlaylistItemsList,
     _mockVideosList: mockVideosList,
-  };
-});
-
-// ── Mock @google/generative-ai ──
-// 攔截 Gemini API 呼叫，回傳固定摘要文字
-const mockGenerateContent = vi.fn();
-vi.mock('@google/generative-ai', () => {
-  return {
-    GoogleGenerativeAI: vi.fn().mockImplementation(() => ({
-      getGenerativeModel: vi.fn().mockReturnValue({
-        generateContent: mockGenerateContent,
-      }),
-    })),
   };
 });
 
@@ -187,26 +171,22 @@ describe('fetchLatestVideos', () => {
 
   beforeEach(async () => {
     vi.resetModules();
-    // 重置所有 mock 呼叫紀錄
+    // 重置所有 mock 呼叫紀錄（包含預設值）
     vi.clearAllMocks();
+    vi.resetAllMocks();
 
     // 動態 import 確保每次取得最新的模組狀態
     const module = await import('@/lib/youtube');
     fetchLatestVideos = module.fetchLatestVideos;
   });
 
-  it('應正確將訂閱頻道的最新影片轉換為 VideoSummary[]', async () => {
+  it('應正確將訂閱頻道的最新影片轉換為 VideoSummary[]（不含 summary）', async () => {
     const {
       mockSubscriptionsList,
       mockChannelsList,
       mockPlaylistItemsList,
       mockVideosList,
     } = await getYouTubeMocks();
-
-    // 設定 Gemini mock 回傳固定摘要
-    mockGenerateContent.mockResolvedValue({
-      response: { text: () => '這是測試用的 AI 摘要。' },
-    });
 
     // 模擬一個訂閱頻道
     mockSubscriptionsList.mockResolvedValue(
@@ -251,47 +231,9 @@ describe('fetchLatestVideos', () => {
     // thumbnailUrl 應為 medium 尺寸
     expect(video.thumbnailUrl).toContain('mqdefault.jpg');
     expect(video.thumbnailUrl).toContain('video-123');
-  });
 
-  it('應將 AI 摘要放入 summary 欄位', async () => {
-    const {
-      mockSubscriptionsList,
-      mockChannelsList,
-      mockPlaylistItemsList,
-      mockVideosList,
-    } = await getYouTubeMocks();
-
-    // Gemini 回傳固定摘要
-    mockGenerateContent.mockResolvedValue({
-      response: { text: () => '這是 AI 生成的中文摘要，聚焦在健康資訊。' },
-    });
-
-    mockSubscriptionsList.mockResolvedValue(
-      makeMockSubscriptionsResponse(['channel-xyz']),
-    );
-    mockChannelsList.mockResolvedValue(
-      makeMockChannelsResponse('channel-xyz', 'UUxyz'),
-    );
-    mockPlaylistItemsList.mockResolvedValue(
-      makeMockPlaylistItemsResponse('video-456', '2024-02-01T08:00:00Z'),
-    );
-    mockVideosList.mockResolvedValue(
-      makeMockVideosResponse(
-        'video-456',
-        '冥想練習教學',
-        '健康頻道',
-        '每日 10 分鐘的冥想練習，幫助舒緩壓力',
-        '2024-02-01T08:00:00Z',
-      ),
-    );
-
-    const result = await fetchLatestVideos('fake-access-token');
-
-    // summary 欄位應包含 Gemini 的回傳內容
-    expect(result[0].summary).toBe('這是 AI 生成的中文摘要，聚焦在健康資訊。');
-
-    // 確認有呼叫 generateContent（即有使用 summaryPrompt）
-    expect(mockGenerateContent).toHaveBeenCalled();
+    // summary 欄位不應存在
+    expect(video.summary).toBeUndefined();
   });
 
   it('limit 參數應控制回傳影片數量上限', async () => {
@@ -301,11 +243,6 @@ describe('fetchLatestVideos', () => {
       mockPlaylistItemsList,
       mockVideosList,
     } = await getYouTubeMocks();
-
-    // Gemini mock
-    mockGenerateContent.mockResolvedValue({
-      response: { text: () => '摘要文字' },
-    });
 
     // 模擬 3 個訂閱頻道，每個都有一部影片
     const channelIds = ['ch1', 'ch2', 'ch3'];
@@ -369,44 +306,6 @@ describe('fetchLatestVideos', () => {
     expect(result).toEqual([]);
   });
 
-  it('Gemini 呼叫失敗時，summary 應留 undefined（降級策略）', async () => {
-    const {
-      mockSubscriptionsList,
-      mockChannelsList,
-      mockPlaylistItemsList,
-      mockVideosList,
-    } = await getYouTubeMocks();
-
-    // Gemini 拋出錯誤
-    mockGenerateContent.mockRejectedValue(new Error('Gemini API 錯誤'));
-
-    mockSubscriptionsList.mockResolvedValue(
-      makeMockSubscriptionsResponse(['channel-fail']),
-    );
-    mockChannelsList.mockResolvedValue(
-      makeMockChannelsResponse('channel-fail', 'UUfail'),
-    );
-    mockPlaylistItemsList.mockResolvedValue(
-      makeMockPlaylistItemsResponse('video-fail', '2024-03-01T00:00:00Z'),
-    );
-    mockVideosList.mockResolvedValue(
-      makeMockVideosResponse(
-        'video-fail',
-        '失敗測試影片',
-        '測試頻道',
-        '描述',
-        '2024-03-01T00:00:00Z',
-      ),
-    );
-
-    const result = await fetchLatestVideos('fake-access-token');
-
-    // 即使 Gemini 失敗，仍應回傳影片資訊（不崩潰）
-    expect(result.length).toBeGreaterThan(0);
-
-    // summary 應為 undefined（降級策略）
-    expect(result[0].summary).toBeUndefined();
-  });
 
   it('影片 url 格式應為 https://www.youtube.com/watch?v={videoId}', async () => {
     const {
@@ -415,10 +314,6 @@ describe('fetchLatestVideos', () => {
       mockPlaylistItemsList,
       mockVideosList,
     } = await getYouTubeMocks();
-
-    mockGenerateContent.mockResolvedValue({
-      response: { text: () => '摘要' },
-    });
 
     const testVideoId = 'dQw4w9WgXcQ';
 

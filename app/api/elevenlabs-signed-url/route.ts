@@ -1,8 +1,17 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 
 // GET /api/elevenlabs-signed-url
 // 用後端 API Key 向 ElevenLabs 取得 signed URL，避免 agentId 直連被 LiveKit 404 拒絕
-export async function GET() {
+// 需驗證 session，無 session 回 401
+export async function GET(request?: NextRequest) {
+  // 驗證 session
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const apiKey = process.env.ELEVENLABS_API_KEY;
   const agentId = process.env.NEXT_PUBLIC_ELEVENLABS_AGENT_ID;
 
@@ -11,6 +20,7 @@ export async function GET() {
   }
 
   try {
+    // Fetch signed URL from ElevenLabs
     const response = await fetch(
       `https://api.elevenlabs.io/v1/convai/conversation/get_signed_url?agent_id=${agentId}`,
       {

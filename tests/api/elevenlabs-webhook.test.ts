@@ -15,11 +15,15 @@ import { NextRequest } from 'next/server';
 
 // ─── Mock 外部依賴 ────────────────────────────────────────────────────────────
 
-// Mock saveMessage：預設成功
+// Mock db 函數
 const mockSaveMessage = vi.fn().mockResolvedValue(undefined);
+const mockGetCallSession = vi.fn().mockResolvedValue(null); // 預設找不到
+const mockDeleteCallSession = vi.fn().mockResolvedValue(undefined);
 
 vi.mock('@/lib/db', () => ({
   saveMessage: (...args: unknown[]) => mockSaveMessage(...args),
+  getCallSession: (...args: unknown[]) => mockGetCallSession(...args),
+  deleteCallSession: (...args: unknown[]) => mockDeleteCallSession(...args),
 }));
 
 // Mock supabaseAdmin（被 lib/db 間接使用）

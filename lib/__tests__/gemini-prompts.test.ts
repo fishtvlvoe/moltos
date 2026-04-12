@@ -16,6 +16,7 @@ import {
   summaryPrompt,
   greetingPrompt,
   insightPrompt,
+  getTimePeriod,
 } from '@/lib/gemini-prompts';
 
 // ─── chatPrompt 測試 ────────────────────────────────────────────────────────
@@ -120,5 +121,70 @@ describe('insightPrompt', () => {
     const result = insightPrompt(50, 'moderate');
     expect(typeof result).toBe('string');
     expect(result.length).toBeGreaterThan(0);
+  });
+});
+
+// ─── Spec: AI responses are context-aware of user's life signals ─────────────
+
+describe("Spec: AI responses are context-aware of user's life signals", () => {
+  it('有 snapshot 時，chatPrompt 包含 score 和 level', () => {
+    const calmContext = '平靜指數：65，等級：mild，異常維度：nightActivity';
+    const result = chatPrompt('我想聊聊', calmContext);
+
+    expect(result).toContain('65');
+    expect(result).toContain('mild');
+  });
+
+  it('無 snapshot 時，chatPrompt 不含 null 或 undefined', () => {
+    const result = chatPrompt('你好');
+    expect(result).not.toContain('null');
+    expect(result).not.toContain('undefined');
+  });
+
+  it('無 snapshot 時，greetingPrompt 不含 null 或 undefined', () => {
+    const result = greetingPrompt('小明');
+    expect(result).not.toContain('null');
+    expect(result).not.toContain('undefined');
+  });
+
+  it('無 snapshot 時，insightPrompt 不含 null 或 undefined', () => {
+    const result = insightPrompt(50, 'moderate');
+    expect(result).not.toContain('null');
+    expect(result).not.toContain('undefined');
+  });
+});
+
+// ─── Spec: Time-of-day signal injected into prompt ───────────────────────────
+
+describe('getTimePeriod — Time-of-day signal', () => {
+  it('早上 5–11 點 → morning', () => {
+    expect(getTimePeriod(5)).toBe('morning');
+    expect(getTimePeriod(11)).toBe('morning');
+    expect(getTimePeriod(8)).toBe('morning');
+  });
+
+  it('下午 12–17 點 → afternoon', () => {
+    expect(getTimePeriod(12)).toBe('afternoon');
+    expect(getTimePeriod(17)).toBe('afternoon');
+    expect(getTimePeriod(14)).toBe('afternoon');
+  });
+
+  it('晚上 18–22 點 → evening', () => {
+    expect(getTimePeriod(18)).toBe('evening');
+    expect(getTimePeriod(22)).toBe('evening');
+    expect(getTimePeriod(20)).toBe('evening');
+  });
+
+  it('深夜 23–4 點 → late-night', () => {
+    expect(getTimePeriod(23)).toBe('late-night');
+    expect(getTimePeriod(0)).toBe('late-night');
+    expect(getTimePeriod(4)).toBe('late-night');
+  });
+
+  it('回傳四種 TimePeriod 之一', () => {
+    const validPeriods = ['morning', 'afternoon', 'evening', 'late-night'];
+    for (let h = 0; h < 24; h++) {
+      expect(validPeriods).toContain(getTimePeriod(h));
+    }
   });
 });

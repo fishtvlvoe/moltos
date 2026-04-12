@@ -1,0 +1,9 @@
+# code-review-graph ignore — 摩托斯MOLTOS
+**/node_modules/**
+**/.next/**
+**/dist/**
+**/build/**
+**/coverage/**
+**/*.min.js
+**/*.min.css
+**/*.map

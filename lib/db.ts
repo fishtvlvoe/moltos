@@ -133,3 +133,57 @@ export async function getCalmIndexHistory(
     createdAt: row.created_at as string,
   }));
 }
+
+// ─── Call Sessions ────────────────────────────────────────────────────────────
+
+/**
+ * 儲存語音通話 session 對應（conversation_id → user_id）。
+ * 用於 ElevenLabs webhook 收到後查詢正確的 user_id。
+ * TTL 1 天，避免殘留舊資料。
+ */
+export async function saveCallSession(
+  conversationId: string,
+  userId: string,
+): Promise<void> {
+  const expiresAt = new Date(Date.now() + 86400000).toISOString(); // 1 天後
+  const { error } = await supabaseAdmin
+    .from('call_sessions')
+    .upsert({ conversation_id: conversationId, user_id: userId, expires_at: expiresAt });
+
+  if (error) throw new Error(`saveCallSession 失敗：${error.message}`);
+}
+
+/**
+ * 查詢語音通話 session 對應的 user_id。
+ * 回傳包含 user_id 的物件；找不到回傳 null（讓 webhook 使用 fallback 邏輯）。
+ *
+ * Fix 2: 改為回傳物件型別 { user_id: string } | null，符合測試期望
+ */
+export async function getCallSession(
+  conversationId: string,
+): Promise<{ user_id: string } | null> {
+  const { data, error } = await supabaseAdmin
+    .from('call_sessions')
+    .select('user_id')
+    .eq('conversation_id', conversationId)
+    .maybeSingle();
+
+  if (error) throw new Error(`getCallSession 失敗：${error.message}`);
+  
+  // 回傳完整物件 { user_id: string } | null
+  return data ? { user_id: data.user_id as string } : null;
+}
+
+/**
+ * 刪除已使用的語音通話 session 對應記錄。
+ * Webhook 查詢 user_id 後呼叫，避免殘留過期資料。
+ * 失敗不拋錯（只記錄 warning），不影響主流程。
+ */
+export async function deleteCallSession(conversationId: string): Promise<void> {
+  const { error } = await supabaseAdmin
+    .from('call_sessions')
+    .delete()
+    .eq('conversation_id', conversationId);
+
+  if (error) console.warn(`deleteCallSession 失敗（非阻斷）：${error.message}`);
+}

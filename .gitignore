@@ -14,3 +14,5 @@ out/
 
 # TypeScript build cache
 tsconfig.tsbuildinfo
+.spectra/
+openspec/.vector-search.db*

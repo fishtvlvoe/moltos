@@ -553,3 +553,49 @@ export function speakWithInterrupt(text: string): Promise<{ interrupted: boolean
     }
   });
 }
+
+// ─── toTraditionalChinese ────────────────────────────────────────────────────
+
+/**
+ * 常見簡體字→繁體字對照表（高頻 STT 誤輸出）
+ *
+ * 只轉換 STT 最常見的簡繁差異字，非全量字典。
+ * 非中文字元（英文、數字、符號）不受影響。
+ */
+const SIMPLIFIED_TO_TRADITIONAL: Record<string, string> = {
+  // 常用高頻字
+  开: '開', 关: '關', 来: '來', 没: '沒', 还: '還',
+  这: '這', 那: '那', 们: '們', 时: '時', 问: '問',
+  话: '話', 说: '說', 让: '讓', 给: '給', 对: '對',
+  为: '為', 会: '會', 个: '個', 样: '樣', 么: '麼',
+  问题: '問題', 时间: '時間', 东西: '東西', 关系: '關係',
+  开心: '開心', 开始: '開始', 来自: '來自', 没有: '沒有',
+  还是: '還是', 这个: '這個', 那个: '那個', 我们: '我們',
+  他们: '他們', 她们: '她們', 你们: '你們', 让我: '讓我',
+  说话: '說話', 会话: '會話', 对话: '對話', 为什么: '為什麼',
+};
+
+/**
+ * 將 STT 輸出的簡體中文轉換為繁體中文。
+ *
+ * 使用靜態字典做字元映射，不依賴外部套件。
+ * 英文、數字、標點等非中文內容不受影響。
+ *
+ * @param text STT 輸出的原始文字
+ * @returns 轉換後的繁體中文文字
+ */
+export function toTraditionalChinese(text: string): string {
+  if (!text) return text;
+
+  // 先做長詞替換（避免短字元替換破壞長詞）
+  let result = text;
+  const entries = Object.entries(SIMPLIFIED_TO_TRADITIONAL);
+
+  // 先替換長詞（長度降序）
+  const sortedEntries = entries.sort((a, b) => b[0].length - a[0].length);
+  for (const [simplified, traditional] of sortedEntries) {
+    result = result.split(simplified).join(traditional);
+  }
+
+  return result;
+}

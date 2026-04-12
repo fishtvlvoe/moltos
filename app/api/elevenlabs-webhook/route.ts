@@ -7,10 +7,11 @@
  * 流程：
  * 1. 解析 request body（agent_id、conversation_id、transcript、metadata）
  * 2. 驗證 transcript 是否有內容
- * 3. 逐條將 transcript 存入 Supabase conversations 表
- * 4. 回傳存入筆數
+ * 3. 從 call_sessions 查詢 user_id（優先）；找不到則 fallback
+ * 4. 逐條將 transcript 存入 Supabase conversations 表
+ * 5. 回傳存入筆數
  *
- * userId 規則：'voice:' + conversation_id（跟舊 Custom LLM 路線一致）
+ * Fix 3: 改從 call_sessions 查詢 user_id，確保正確的用戶對應
  *
  * 注意：本 route 不做 auth 驗證，ElevenLabs webhook 安全由 agent 設定的 secret 負責。
  *
@@ -21,7 +22,8 @@ import { NextRequest, NextResponse } from 'next/server';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore — opencc-js 無 @types，功能正常
 import { Converter } from 'opencc-js';
-import { saveMessage } from '@/lib/db';
+import { saveMessage, getCallSession, deleteCallSession } from '@/lib/db';
+import { supabaseAdmin } from '@/lib/supabase';
 import type {
   ElevenLabsPostCallWebhookPayload,
   ElevenLabsPostCallTranscriptionData,
@@ -58,12 +60,34 @@ export async function POST(req: NextRequest): Promise<Response> {
   const conversation_id = data.conversation_id;
   const transcript = data.transcript;
   const dynamicVars = data.conversation_initiation_client_data?.dynamic_variables;
-  // user_id 空字串也視為無效，fallback 到 voice: 前綴（避免 Supabase UUID 錯誤）
-  const rawUserId = dynamicVars?.user_id;
-  const userId = (rawUserId && rawUserId.trim()) ? rawUserId : `voice:${conversation_id ?? 'unknown'}`;
+
+  // Fix 3: 優先從 call_sessions 表查詢 user_id（前端通話建立時寫入）
+  // fallback 1: dynamic_variables.user_id（ElevenLabs 回傳，不保證存在）
+  // fallback 2: voice:${conversation_id}（最後手段）
+  let userId: string;
+  try {
+    const sessionResult = conversation_id ? await getCallSession(conversation_id) : null;
+    if (sessionResult && sessionResult.user_id) {
+      userId = sessionResult.user_id;
+      // 查到後非同步刪除，失敗不阻斷主流程
+      try {
+        await deleteCallSession(conversation_id ?? '');
+      } catch (delErr) {
+        console.warn('[Webhook] deleteCallSession 失敗（非阻斷）:', delErr);
+      }
+    } else {
+      const rawUserId = dynamicVars?.user_id;
+      userId = (rawUserId && rawUserId.trim()) ? rawUserId : `voice:${conversation_id ?? 'unknown'}`;
+    }
+  } catch (err) {
+    // getCallSession 失敗，fallback 到舊邏輯
+    console.warn('[Webhook] getCallSession 失敗，使用 fallback:', err);
+    const rawUserId = dynamicVars?.user_id;
+    userId = (rawUserId && rawUserId.trim()) ? rawUserId : `voice:${conversation_id ?? 'unknown'}`;
+  }
 
   console.log(
-    `[Webhook] 收到通話紀錄: conversation_id=${conversation_id}, messages=${transcript?.length ?? 0}`
+    `[Webhook] 收到通話紀錄: conversation_id=${conversation_id}, user_id=${userId}, messages=${transcript?.length ?? 0}`
   );
 
   // ── 2. 驗證 transcript ────────────────────────────────────────────────────
@@ -93,5 +117,28 @@ export async function POST(req: NextRequest): Promise<Response> {
   }
 
   console.log(`[Webhook] 已存 ${savedCount} 條對話紀錄`);
+
+  // 修復 3: 異步清理過期 call_sessions（不阻斷主流程）
+  // 延遲 100ms 後執行，避免影響 webhook 回應速度
+  setTimeout(() => {
+    (async () => {
+      try {
+        const now = new Date().toISOString();
+        const { error: delErr } = await supabaseAdmin
+          .from('call_sessions')
+          .delete()
+          .lt('expires_at', now);
+
+        if (delErr) {
+          console.warn('[Webhook] 清理過期 call_sessions 失敗（非阻斷）:', delErr);
+        } else {
+          console.log('[Webhook] 已非同步清理過期 call_sessions');
+        }
+      } catch (err) {
+        console.warn('[Webhook] 清理過期 call_sessions 異常（非阻斷）:', err);
+      }
+    })();
+  }, 100);
+
   return NextResponse.json({ status: 'ok', saved: savedCount });
 }

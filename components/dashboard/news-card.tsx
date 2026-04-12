@@ -40,72 +40,39 @@ function SkeletonList() {
 
 // ─── 單部影片列表項元件 ──────────────────────────────────────────────────────
 function VideoItem({ video }: { video: VideoSummary }) {
-  // 控制 AI 摘要展開/收合狀態（預設收合）
-  const [expanded, setExpanded] = useState(false);
-
-  // 切換摘要展開狀態
-  const toggleSummary = (e: React.MouseEvent) => {
-    e.preventDefault(); // 避免觸發外層的 <a> 跳轉
-    setExpanded((prev) => !prev);
-  };
-
   return (
-    <div className="flex flex-col gap-2">
-      {/* 影片主要資訊列（縮圖 + 文字） */}
-      <div className="flex gap-3 items-start">
-        {/* 縮圖 — 點擊在新分頁開啟 YouTube */}
+    <div className="flex gap-3 items-start">
+      {/* 縮圖 — 點擊在新分頁開啟 YouTube */}
+      <a
+        href={video.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex-shrink-0"
+        aria-label={`開啟影片：${video.title}`}
+      >
+        <img
+          src={video.thumbnailUrl}
+          alt={video.title}
+          className="h-16 w-24 rounded-lg object-cover hover:opacity-90 transition-opacity"
+        />
+      </a>
+
+      {/* 標題 + 頻道名 */}
+      <div className="flex flex-col gap-1 flex-1 min-w-0">
+        {/* 標題 — 點擊在新分頁開啟 YouTube，超出截斷 */}
         <a
           href={video.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex-shrink-0"
-          aria-label={`開啟影片：${video.title}`}
+          className="text-sm font-medium text-[#2D2D2D] truncate hover:underline"
+          title={video.title}
         >
-          <img
-            src={video.thumbnailUrl}
-            alt={video.title}
-            className="h-16 w-24 rounded-lg object-cover hover:opacity-90 transition-opacity"
-          />
+          {video.title}
         </a>
 
-        {/* 標題 + 頻道名 + 摘要按鈕 */}
-        <div className="flex flex-col gap-1 flex-1 min-w-0">
-          {/* 標題 — 點擊在新分頁開啟 YouTube，超出截斷 */}
-          <a
-            href={video.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm font-medium text-[#2D2D2D] truncate hover:underline"
-            title={video.title}
-          >
-            {video.title}
-          </a>
-
-          {/* 頻道名（小字灰色） */}
-          <span className="text-xs text-[#8A8A8A]">{video.channelName}</span>
-
-          {/* 摘要展開/收合按鈕 */}
-          <button
-            onClick={toggleSummary}
-            className="mt-1 self-start text-xs font-medium transition-colors"
-            style={{ color: ACCENT_COLOR }}
-            aria-expanded={expanded}
-            aria-label={expanded ? '收合 AI 摘要' : '展開 AI 摘要'}
-          >
-            {expanded ? '收合摘要 ▲' : '摘要 ▼'}
-          </button>
-        </div>
+        {/* 頻道名（小字灰色） */}
+        <span className="text-xs text-[#8A8A8A]">{video.channelName}</span>
       </div>
-
-      {/* AI 摘要展開區塊 */}
-      {expanded && (
-        <div className="rounded-lg bg-[#F0EBE3] px-3 py-2">
-          <p className="text-xs leading-relaxed text-[#5A5A5A]">
-            {/* summary 未定義時顯示生成中提示 */}
-            {video.summary ?? '摘要生成中...'}
-          </p>
-        </div>
-      )}
     </div>
   );
 }

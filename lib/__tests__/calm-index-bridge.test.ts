@@ -152,3 +152,55 @@ describe('computeCalmIndex — 空資料邊界情況', () => {
     expect(snapshot.result).toBeNull();
   });
 });
+
+// ── Spec: Four Gmail dimensions extracted — Insufficient data ─────────────────
+
+describe('Spec: Four Gmail dimensions extracted for calm index calculation', () => {
+  it('14 天以下 coverageDays → dataInsufficient: true', async () => {
+    const { computeCalmIndex } = await import('@/lib/calm-index-bridge');
+
+    const insufficientMetrics: GmailMetrics = {
+      dailyCounts: buildTestMetrics().dailyCounts.slice(0, 10), // 只有 10 天
+      replyLatencies: buildTestMetrics().replyLatencies.slice(0, 10),
+      nightActivity: buildTestMetrics().nightActivity.slice(0, 10),
+      unreadCounts: buildTestMetrics().unreadCounts.slice(0, 10),
+      coverageDays: 10,
+      lastUpdated: Date.now(),
+    };
+
+    const snapshot = computeCalmIndex(insufficientMetrics);
+    expect(snapshot.dataInsufficient).toBe(true);
+  });
+
+  it('14 天以上 coverageDays → dataInsufficient: false 或 undefined', async () => {
+    const { computeCalmIndex } = await import('@/lib/calm-index-bridge');
+
+    const sufficientMetrics = buildTestMetrics({ coverageDays: 14 });
+    const snapshot = computeCalmIndex(sufficientMetrics);
+
+    // 足夠的資料不應標記 dataInsufficient
+    expect(snapshot.dataInsufficient).toBeFalsy();
+  });
+
+  it('四個 Gmail 維度全部對應到 CalmIndexInput', async () => {
+    const { convertToCalmInput } = await import('@/lib/calm-index-bridge');
+    const metrics = buildTestMetrics();
+    const input = convertToCalmInput(metrics);
+
+    // 確認四個維度都有對應
+    expect(input.messageVolume?.dailyCounts).toBeDefined();
+    expect(input.replyLatency?.latencies).toBeDefined();
+    expect(input.nightActivity?.nightMinutes).toBeDefined();
+    expect(input.unreadPileup?.unreadCounts).toBeDefined();
+  });
+
+  it('email body 欄位未出現在 GmailMetrics 型別（只有 metadata 欄位）', async () => {
+    // GmailMetrics 只包含 metadata，無 body 或 payload 欄位
+    const metrics = buildTestMetrics();
+    const keys = Object.keys(metrics);
+
+    expect(keys).not.toContain('body');
+    expect(keys).not.toContain('payload');
+    expect(keys).not.toContain('emailContent');
+  });
+});

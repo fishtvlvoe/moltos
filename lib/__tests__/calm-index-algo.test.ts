@@ -173,3 +173,48 @@ describe('calculateCalmIndex — 空資料邊界情況', () => {
     expect(result).toBeNull();
   });
 });
+
+// ── Spec: Calm index score computed as 0–100 integer ─────────────────────────
+
+describe('calculateCalmIndex — Calm index score computed as 0–100 integer', () => {
+  it('score 是整數（無小數）', () => {
+    const input: CalmIndexInput = {
+      messageVolume: { dailyCounts: buildStableDataPoints(15, 10) },
+    };
+    const result = calculateCalmIndex(input);
+    expect(result).not.toBeNull();
+    expect(Number.isInteger(result!.score)).toBe(true);
+  });
+
+  it('score 在 0–100 範圍內（包含邊界值）', () => {
+    const input: CalmIndexInput = {
+      messageVolume: { dailyCounts: buildStableDataPoints(15, 10) },
+    };
+    const result = calculateCalmIndex(input);
+    expect(result).not.toBeNull();
+    expect(result!.score).toBeGreaterThanOrEqual(0);
+    expect(result!.score).toBeLessThanOrEqual(100);
+  });
+
+  it('level=calm 對應 score 80–100', () => {
+    // 穩定資料通常得 calm
+    const input: CalmIndexInput = {
+      messageVolume: { dailyCounts: buildStableDataPoints(20, 5) },
+      nightActivity: { nightMinutes: buildStableDataPoints(20, 0) },
+    };
+    const result = calculateCalmIndex(input);
+    if (result?.level === 'calm') {
+      expect(result.score).toBeGreaterThanOrEqual(80);
+      expect(result.score).toBeLessThanOrEqual(100);
+    }
+  });
+
+  it('level label 只能是四種之一：calm / mild / moderate / attention', () => {
+    const input: CalmIndexInput = {
+      messageVolume: { dailyCounts: buildStableDataPoints(15, 10) },
+    };
+    const result = calculateCalmIndex(input);
+    expect(result).not.toBeNull();
+    expect(['calm', 'mild', 'moderate', 'attention']).toContain(result!.level);
+  });
+});

@@ -8,6 +8,7 @@ import { useConversation } from '@11labs/react';
 import { ChatList } from '@/components/chat/chat-list';
 import { ChatInput } from '@/components/chat/chat-input';
 import { speak } from '@/lib/speech';
+import { stripEmotionTags } from '@/lib/elevenlabs';
 import type { ChatMessage } from '@/lib/types';
 import type { MessagePayload } from '@elevenlabs/types';
 
@@ -18,9 +19,6 @@ export default function ChatPage() {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [ttsEnabled, setTtsEnabled] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [insight, setInsight] = useState<any>(null);
-  const [analyzingInsight, setAnalyzingInsight] = useState(false);
   const initDone = useRef(false);
   // 待連線後送出的訊息佇列
   const pendingMessageRef = useRef<string | null>(null);
@@ -54,7 +52,7 @@ export default function ChatPage() {
       // 只處理 AI 回應（role 為 'assistant' 或 source 為 'ai'）
       if (props.role === 'agent' || props.source === 'ai') {
         // 過濾情緒標籤（如 [幸福]、[緊張]），避免 TTS 念出來
-        const cleanContent = (props.message ?? '').replace(/\[[^\]]*\]/g, '').trim();
+        const cleanContent = stripEmotionTags(props.message ?? '');
         if (!cleanContent) return;
 
         const assistantMsg: ChatMessage = {
@@ -125,13 +123,27 @@ export default function ChatPage() {
     }
   }, [conversation, isConnecting, isConnected, messages, session]);
 
-  // 輪詢 DB，直到筆數增加或超時（最多 10 秒，每 1.5 秒一次）
+  // 輪詢 DB，直到筆數增加或超時（20 次，總計 ~60 秒）
   async function pollForNewMessages(previousCount: number) {
-    const maxAttempts = 7; // 7 * 1.5s = 約 10 秒
+    // Fix 4: 漸進退避擴展至 20 次，確保等待 webhook 延遲
+    // 模式：1.5s × 2 → 2s × 2 → 3s × 2 → 4s × 2 → 5s × 2 → 5s × 10
+    // 共 20 次，上限 ~60-70 秒
+    const intervals = [
+      1500, 1500,  // 1-2
+      2000, 2000,  // 3-4
+      3000, 3000,  // 5-6
+      4000, 4000,  // 7-8
+      5000, 5000,  // 9-10
+      5000, 5000,  // 11-12
+      5000, 5000,  // 13-14
+      5000, 5000,  // 15-16
+      5000, 5000,  // 17-18
+      5000, 5000,  // 19-20
+    ];
     let attempts = 0;
 
     const poll = async () => {
-      if (attempts >= maxAttempts) return;
+      if (attempts >= intervals.length) return;
       attempts++;
 
       try {
@@ -146,8 +158,9 @@ export default function ChatPage() {
         }
       } catch {}
 
-      // 還沒有新資料，1.5 秒後再試
-      setTimeout(poll, 1500);
+      // 還沒有新資料，依漸進退避間隔再試
+      const delay = intervals[attempts - 1] ?? 5000;
+      setTimeout(poll, delay);
     };
 
     // 第一次等 1.5 秒再開始，讓 webhook 有時間寫入
@@ -191,23 +204,6 @@ export default function ChatPage() {
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user?.name]);
-
-  // ─── 分析對話洞察 ─────────────────────────────────────────────────────────────
-  async function analyzeInsight() {
-    if (messages.length < 2 || analyzingInsight) return;
-    setAnalyzingInsight(true);
-    try {
-      const res = await fetch('/api/chat/insight', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages }),
-      });
-      if (res.ok) {
-        setInsight(await res.json());
-      }
-    } catch {}
-    setAnalyzingInsight(false);
-  }
 
   // ─── 使用者送出訊息 ───────────────────────────────────────────────────────────
   function handleSend(text: string) {
@@ -281,76 +277,6 @@ export default function ChatPage() {
 
       {/* 訊息列表 — 佔滿剩餘空間 */}
       <ChatList messages={messages} />
-
-      {/* 對話洞察卡片（正向框架） */}
-      {insight && (
-        <div className="mx-4 mb-2 p-4 rounded-2xl bg-[#F0EBFA] border border-[#DDD5F0]">
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-semibold text-[#5B4A8A]">對話洞察</p>
-            <button onClick={() => setInsight(null)} className="text-xs text-[#8A8A8A]">收起</button>
-          </div>
-          <p className="text-sm text-[#2D2D2D] mb-3">{insight.summary}</p>
-
-          {/* 平靜分數 + 狀態 */}
-          <div className="flex items-center gap-3 mb-3">
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center">
-                <span className="text-lg font-bold text-[#7C5CBA]">{insight.calmScore}</span>
-              </div>
-              <div>
-                <p className="text-xs text-[#8A8A8A]">平靜指數</p>
-                <p className="text-xs text-[#5B4A8A] font-medium">{insight.calmState}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* 情緒基調 */}
-          {insight.emotionalTone && (
-            <span className="inline-block text-xs px-2 py-0.5 rounded-full bg-white text-[#5B4A8A] mb-3">
-              {insight.emotionalTone}
-            </span>
-          )}
-
-          {/* 內在需求 */}
-          {insight.innerNeeds?.length > 0 && (
-            <div className="mb-3">
-              <p className="text-xs text-[#8A8A8A] mb-1">內在需求</p>
-              {insight.innerNeeds.map((s: string, i: number) => (
-                <p key={i} className="text-sm text-[#2D2D2D]">• {s}</p>
-              ))}
-            </div>
-          )}
-
-          {/* 回歸平靜的路徑 */}
-          {insight.growthPaths?.length > 0 && (
-            <div>
-              <p className="text-xs text-[#8A8A8A] mb-1">回歸平靜的路徑</p>
-              {insight.growthPaths.map((s: string, i: number) => (
-                <p key={i} className="text-sm text-[#2D2D2D]">• {s}</p>
-              ))}
-            </div>
-          )}
-
-          {insight.needsProfessional && (
-            <p className="mt-3 text-xs text-red-500 font-medium">
-              建議尋求專業心理諮商協助
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* 分析按鈕（有對話紀錄且未在連線中顯示） */}
-      {messages.length >= 4 && !isStreaming && !insight && (
-        <div className="flex justify-center py-1">
-          <button
-            onClick={analyzeInsight}
-            disabled={analyzingInsight}
-            className="text-xs px-4 py-1.5 rounded-full bg-[#F0EBFA] text-[#5B4A8A] hover:bg-[#E4DCF4] transition-colors disabled:opacity-50"
-          >
-            {analyzingInsight ? '分析中…' : '分析對話洞察'}
-          </button>
-        </div>
-      )}
 
       {/* 底部輸入框 */}
       <ChatInput onSend={handleSend} disabled={isStreaming} />

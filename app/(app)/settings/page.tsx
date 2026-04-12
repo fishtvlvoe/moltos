@@ -5,6 +5,7 @@ import { redirect } from 'next/navigation';
 import { ProfileCard } from '@/components/settings/profile-card';
 import { MenuCard } from '@/components/settings/menu-card';
 import { LogoutButton } from '@/components/settings/logout-button';
+import { ClearUserDataSection } from '@/components/settings/clear-user-data-section';
 
 export default async function SettingsPage({
   searchParams,
@@ -39,6 +40,8 @@ export default async function SettingsPage({
 
       {/* 登出按鈕（需要 Client Component 呼叫 signOut） */}
       <LogoutButton />
+
+      <ClearUserDataSection isDemo={isDemo} />
     </div>
   );
 }

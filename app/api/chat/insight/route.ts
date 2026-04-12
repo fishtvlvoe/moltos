@@ -10,14 +10,12 @@
  * - 提供「回歸平靜的路徑」而非「壓力管理建議」
  */
 
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import Groq from 'groq-sdk';
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
 import type { ChatMessage } from '@/lib/types';
-
-const GEMINI_MODEL = 'gemini-2.5-flash';
 
 const ANALYSIS_PROMPT = `你是 MOLTOS 的對話分析引擎。MOLTOS 採用「正向分析」框架——我們衡量的是「平靜程度」，不是「焦慮程度」。
 
@@ -65,14 +63,22 @@ export async function POST(req: Request) {
     .join('\n');
 
   try {
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-    const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
+    const groq = new Groq({
+      apiKey: process.env.GROQ_API_KEY,
+    });
 
-    const result = await model.generateContent(
-      `${ANALYSIS_PROMPT}\n\n---\n對話紀錄：\n${conversationText}`
-    );
+    const message = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages: [
+        {
+          role: 'user',
+          content: `${ANALYSIS_PROMPT}\n\n---\n對話紀錄：\n${conversationText}`,
+        },
+      ],
+      temperature: 0.7,
+    });
 
-    const text = result.response.text();
+    const text = message.choices[0]?.message?.content ?? '';
     const jsonStr = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     const insight = JSON.parse(jsonStr);
 

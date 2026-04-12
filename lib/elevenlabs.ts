@@ -75,6 +75,21 @@ export const ELEVENLABS_CONFIG = {
   },
 } as const;
 
+// ─── stripEmotionTags ────────────────────────────────────────────────────────
+
+/**
+ * 去除 AI 回應中的情緒標籤（如 [laughs]、[sighs]、[幸福]），
+ * 避免這些標籤被 TTS 念出來。
+ *
+ * 規則：移除所有 [...] 形式的方括號標籤，保留其餘文字。
+ *
+ * @param text 原始 AI 回應文字
+ * @returns 去除情緒標籤後的乾淨文字
+ */
+export function stripEmotionTags(text: string): string {
+  return text.replace(/\[[^\]]*\]/g, '').trim();
+}
+
 // ─── mapConversationStatus ────────────────────────────────────────────────────
 
 /**

@@ -149,8 +149,6 @@ export const demoData: DemoData = {
       channelName: '志祺七七 X 圖文不符',
       thumbnailUrl: 'https://i.ytimg.com/vi/zhiqi_demo_001/hqdefault.jpg',
       publishedAt: '2026-04-02T10:00:00Z',
-      summary:
-        '探討台灣便當文化的起源與演變，從日治時代的鐵路便當到現代各式便當店，分析台灣人為何對便當有特殊情感。',
       url: 'https://www.youtube.com/watch?v=zhiqi_demo_001',
     },
     {
@@ -159,8 +157,6 @@ export const demoData: DemoData = {
       channelName: '阿滴英文 Ray Du English',
       thumbnailUrl: 'https://i.ytimg.com/vi/adu_demo_002/hqdefault.jpg',
       publishedAt: '2026-04-01T14:30:00Z',
-      summary:
-        '阿滴分享親身測試過的十個英文聽力訓練方法，包含影子跟讀法、精聽精讀技巧，以及如何用 Netflix 練習日常口語。',
       url: 'https://www.youtube.com/watch?v=adu_demo_002',
     },
     {
@@ -169,8 +165,6 @@ export const demoData: DemoData = {
       channelName: '彭鈺婷 Pengyu',
       thumbnailUrl: 'https://i.ytimg.com/vi/pengu_demo_003/hqdefault.jpg',
       publishedAt: '2026-03-31T09:00:00Z',
-      summary:
-        '從選麵、煮麵到醬汁製作，完整示範零失敗的義大利麵做法，附上常見新手錯誤與解決方法。',
       url: 'https://www.youtube.com/watch?v=pengu_demo_003',
     },
     {
@@ -179,8 +173,6 @@ export const demoData: DemoData = {
       channelName: '風小艾單車遊',
       thumbnailUrl: 'https://i.ytimg.com/vi/fengxiao_demo_004/hqdefault.jpg',
       publishedAt: '2026-03-30T16:00:00Z',
-      summary:
-        '介紹台灣北中南東各地最具特色的單車路線，包含難度說明、最佳騎乘季節與沿途景點推薦。',
       url: 'https://www.youtube.com/watch?v=fengxiao_demo_004',
     },
     {
@@ -189,8 +181,6 @@ export const demoData: DemoData = {
       channelName: 'SETN 三立財經台',
       thumbnailUrl: 'https://i.ytimg.com/vi/setn_demo_005/hqdefault.jpg',
       publishedAt: '2026-03-29T08:30:00Z',
-      summary:
-        '分析 2026 年台灣半導體產業的成長動能，聚焦 AI 伺服器需求帶動的供應鏈商機，以及主要廠商的法說會重點。',
       url: 'https://www.youtube.com/watch?v=setn_demo_005',
     },
   ],
