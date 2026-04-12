@@ -152,7 +152,10 @@ export default function ChatPage() {
           const history: ChatMessage[] = await res.json();
           if (history.length > previousCount) {
             // 有新資料，更新畫面並停止輪詢
-            setMessages(history);
+            const cleanedHistory = history.map((m) =>
+              m.role === 'assistant' ? { ...m, content: stripEmotionTags(m.content ?? '') } : m,
+            );
+            setMessages(cleanedHistory);
             return;
           }
         }
@@ -181,7 +184,10 @@ export default function ChatPage() {
         if (res.ok) {
           const history: ChatMessage[] = await res.json();
           if (history.length > 0) {
-            setMessages(history);
+            const cleanedHistory = history.map((m) =>
+              m.role === 'assistant' ? { ...m, content: stripEmotionTags(m.content ?? '') } : m,
+            );
+            setMessages(cleanedHistory);
             // 如果是從 Call 跳轉來的，繼續輪詢等待新的通話紀錄
             if (fromCall) {
               pollForNewMessages(history.length);

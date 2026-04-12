@@ -124,7 +124,7 @@ export function NewsCard() {
     return (
       <Card className="rounded-2xl bg-[#F5F5F5] ring-1 ring-[#E0E0E0]">
         <CardHeader>
-          <CardTitle className="text-[#9E9E9E]">今日摘要</CardTitle>
+          <CardTitle className="text-[#9E9E9E]">最新影片</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-[#9E9E9E]">{error}</p>
@@ -138,7 +138,7 @@ export function NewsCard() {
     return (
       <Card className="rounded-2xl bg-[#FAF8F4] ring-1 ring-[#EDE8E0]">
         <CardHeader>
-          <CardTitle className="text-[#2D2D2D]">今日摘要</CardTitle>
+          <CardTitle className="text-[#2D2D2D]">最新影片</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-[#8A8A8A]">今天還沒有新影片，請稍後再回來看看。</p>
@@ -150,11 +150,8 @@ export function NewsCard() {
   return (
     <Card className="w-full max-w-md rounded-2xl bg-[#FAF8F4] ring-1 ring-[#EDE8E0]">
       <CardHeader className="pb-2">
-        <CardTitle className="text-[#2D2D2D]">今日摘要</CardTitle>
-        {/* 顯示影片數量小字提示 */}
-        <p className="text-xs text-[#8A8A8A]">
-          為你整理 {videos.length} 部最新影片
-        </p>
+        <CardTitle className="text-[#2D2D2D]">最新影片</CardTitle>
+        <p className="text-xs text-[#8A8A8A]">共 {videos.length} 部最新影片</p>
       </CardHeader>
 
       <CardContent className="flex flex-col gap-4">
