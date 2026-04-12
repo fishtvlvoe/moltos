@@ -23,10 +23,12 @@ import { NextRequest } from 'next/server';
 
 const mockSaveMessage = vi.fn().mockResolvedValue(undefined);
 const mockGetCallSession = vi.fn().mockResolvedValue(null); // 預設無 call_sessions 記錄
+const mockDeleteCallSession = vi.fn().mockResolvedValue(undefined);
 
 vi.mock('@/lib/db', () => ({
   saveMessage: (...args: unknown[]) => mockSaveMessage(...args),
   getCallSession: (...args: unknown[]) => mockGetCallSession(...args),
+  deleteCallSession: (...args: unknown[]) => mockDeleteCallSession(...args),
 }));
 
 vi.mock('@/lib/supabase', () => ({

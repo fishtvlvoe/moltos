@@ -171,8 +171,9 @@ describe('fetchLatestVideos', () => {
 
   beforeEach(async () => {
     vi.resetModules();
-    // 重置所有 mock 呼叫紀錄
+    // 重置所有 mock 呼叫紀錄（包含預設值）
     vi.clearAllMocks();
+    vi.resetAllMocks();
 
     // 動態 import 確保每次取得最新的模組狀態
     const module = await import('@/lib/youtube');
