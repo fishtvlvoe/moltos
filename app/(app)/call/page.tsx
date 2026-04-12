@@ -69,6 +69,15 @@ export default function CallPage() {
       hasConnectedRef.current = true;
       // 啟動音量輪詢動畫
       startVolumePolling();
+
+      // 修復 1: 立即在 onConnect callback 內註冊 conversation_id，確保比 webhook 更早
+      if (conversationId) {
+        fetch('/api/call-sessions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ conversationId }),
+        }).catch(err => console.warn('[ElevenLabs] onConnect 內 call-sessions 註冊失敗:', err));
+      }
     },
     onDisconnect: () => {
       console.info('[ElevenLabs] 連線已中斷');

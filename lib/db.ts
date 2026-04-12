@@ -134,6 +134,8 @@ export async function getCalmIndexHistory(
   }));
 }
 
+// ─── Call Sessions ────────────────────────────────────────────────────────────
+
 /**
  * 儲存語音通話 session 對應（conversation_id → user_id）。
  * 用於 ElevenLabs webhook 收到後查詢正確的 user_id。
@@ -153,9 +155,13 @@ export async function saveCallSession(
 
 /**
  * 查詢語音通話 session 對應的 user_id。
- * 找不到回傳 null（讓 webhook 使用 fallback 邏輯）。
+ * 回傳包含 user_id 的物件；找不到回傳 null（讓 webhook 使用 fallback 邏輯）。
+ *
+ * Fix 2: 改為回傳物件型別 { user_id: string } | null，符合測試期望
  */
-export async function getCallSession(conversationId: string): Promise<string | null> {
+export async function getCallSession(
+  conversationId: string,
+): Promise<{ user_id: string } | null> {
   const { data, error } = await supabaseAdmin
     .from('call_sessions')
     .select('user_id')
@@ -163,7 +169,9 @@ export async function getCallSession(conversationId: string): Promise<string | n
     .maybeSingle();
 
   if (error) throw new Error(`getCallSession 失敗：${error.message}`);
-  return data?.user_id ?? null;
+  
+  // 回傳完整物件 { user_id: string } | null
+  return data ? { user_id: data.user_id as string } : null;
 }
 
 /**

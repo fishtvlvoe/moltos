@@ -1,0 +1,29 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "code-review-graph update --skip-flows",
+            "timeout": 5000,
+            "type": "command"
+          }
+        ],
+        "matcher": "Edit|Write|Bash"
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "code-review-graph status",
+            "timeout": 3000,
+            "type": "command"
+          }
+        ],
+        "matcher": ""
+      }
+    ]
+  },
+  "includeGitInstructions": false
+}

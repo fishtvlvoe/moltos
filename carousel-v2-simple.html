@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>fishtvlove - 打掉重練</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700&family=Noto+Sans+TC:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #f5f5f5; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+    
+    .carousel-container {
+      position: relative;
+      width: 400px;
+      height: 500px;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .slides-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .slide {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 40px 30px;
+    }
+
+    .slide.active { opacity: 1; z-index: 10; }
+
+    /* 淺色背景 */
+    .slide { background: linear-gradient(135deg, #FAF8F4 0%, #F5E8D8 100%); color: #1C1C1C; }
+
+    /* HOOK - 深色 */
+    .slide-1 { background: linear-gradient(135deg, #2C2416 0%, #3A3228 100%); color: #FAF8F4; }
+    .slide-1 h1 { color: #D4AF37; }
+
+    /* CTA - 品牌色 */
+    .slide-7 { background: linear-gradient(135deg, #1E3A5F 0%, #162A47 100%); color: #FAF8F4; }
+    .slide-7 h1 { color: #5B9EFF; font-size: 48px; }
+
+    /* TENSION */
+    .slide-5 { background: linear-gradient(135deg, #3A3228 0%, #2C2416 100%); color: #FAF8F4; }
+    .slide-5 h1 { color: #D4AF37; }
+
+    /* 深色背景的 @fishtvlove 文字 */
+    .slide-1 .header-text,
+    .slide-5 .header-text,
+    .slide-7 .header-text {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    h1 {
+      font-family: 'Noto Serif TC', serif;
+      font-size: 40px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      line-height: 1.2;
+    }
+
+    p {
+      font-family: 'Noto Sans TC', sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      margin-bottom: 6px;
+      opacity: 0.95;
+    }
+
+    .step-group {
+      margin: 8px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .step-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(212, 175, 55, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #D4AF37;
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .step-text { font-size: 12px; }
+
+    /* Header & Footer */
+    .header {
+      position: absolute;
+      top: 10px;
+      left: 12px;
+      font-size: 10px;
+      font-weight: 600;
+      z-index: 20;
+      color: rgba(0, 0, 0, 0.5);
+    }
+
+    .slide-1 .header,
+    .slide-5 .header,
+    .slide-7 .header {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .counter {
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      font-size: 10px;
+      font-weight: 600;
+      z-index: 20;
+      color: rgba(0, 0, 0, 0.5);
+    }
+
+    .slide-1 .counter,
+    .slide-5 .counter,
+    .slide-7 .counter {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .footer {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      background: rgba(255, 255, 255, 0.8);
+      border-top: 1px solid #e8e3d8;
+      z-index: 20;
+    }
+
+    .slide-1 .footer,
+    .slide-5 .footer,
+    .slide-7 .footer {
+      background: rgba(30, 26, 22, 0.9);
+      border-top-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .footer i {
+      color: #6B7280;
+      font-size: 14px;
+    }
+
+    .slide-1 .footer i,
+    .slide-5 .footer i,
+    .slide-7 .footer i {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .progress-bar {
+      position: absolute;
+      bottom: 40px;
+      width: 100%;
+      height: 2px;
+      background: rgba(212, 175, 55, 0.2);
+      z-index: 20;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: #D4AF37;
+      transition: width 0.4s ease;
+    }
+
+    .nav-arrow {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 20px;
+      cursor: pointer;
+      color: #1C1C1C;
+      opacity: 0.4;
+      z-index: 20;
+      transition: opacity 0.2s;
+    }
+
+    .slide-1 .nav-arrow,
+    .slide-5 .nav-arrow,
+    .slide-7 .nav-arrow {
+      color: #FAF8F4;
+    }
+
+    .nav-arrow:hover { opacity: 0.8; }
+    .slide:last-child .nav-arrow { display: none; }
+
+    .accent-dot {
+      width: 6px;
+      height: 6px;
+      background: #D4AF37;
+      border-radius: 50%;
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="carousel-container">
+    <div class="header">@fishtvlove</div>
+    <div class="counter"><span id="current">1</span>/7</div>
+
+    <div class="slides-container">
+      <!-- SLIDE 1: HOOK -->
+      <div class="slide slide-1 active">
+        <h1>打掉重練</h1>
+        <p>沒有開發經驗的人</p>
+        <p>也能用 AI 做出軟體工具</p>
+        <span class="nav-arrow">›</span>
+      </div>
+
+      <!-- SLIDE 2: CONTEXT -->
+      <div class="slide slide-2">
+        <h1>從文字產出<br>到影片生成</h1>
+        <div class="accent-dot"></div>
+        <p>一開始想做 AI 文字服務</p>
+        <p style="margin-top: 8px;">接了顧問案後</p>
+        <p>需求變成「圖片轉影片」</p>
+        <p style="margin-top: 8px;">於是開始研究</p>
+        <p>Claude Code 產影片</p>
+        <span class="nav-arrow">›</span>
+      </div>
+
+      <!-- SLIDE 3: BUILD #1 -->
+      <div class="slide slide-3">
+        <h1>四步驟產出<br>真人影片</h1>
+        <div class="accent-dot"></div>
+        <div class="step-group">
+          <div class="step-icon"><i class="fas fa-pen"></i></div>
+          <p class="step-text">產出穩定的影片腳本</p>
+        </div>
+        <div class="step-group">
+          <div class="step-icon"><i class="fas fa-film"></i></div>
+          <p class="step-text">畫出分鏡圖</p>
+        </div>
+        <div class="step-group">
+          <div class="step-icon"><i class="fas fa-image"></i></div>
+          <p class="step-text">匯入首尾幀影像</p>
+        </div>
+        <div class="step-group">
+          <div class="step-icon"><i class="fas fa-video"></i></div>
+          <p class="step-text">生成真人口型與狀態</p>
+        </div>
+        <span class="nav-arrow">›</span>
+      </div>
+
+      <!-- SLIDE 4: BUILD #2 -->
+      <div class="slide slide-4">
+        <h1>「重新造輪子」<br>不簡單</h1>
+        <div class="accent-dot"></div>
+        <p>說難不難</p>
+        <p>但也不算容易</p>
+        <p style="margin-top: 8px;">需要花很多時間爬文學習</p>
+        <p>技術名詞多到聽不懂</p>
+        <p style="margin-top: 8px;">但這正是成長的過程</p>
+        <span class="nav-arrow">›</span>
+      </div>
+
+      <!-- SLIDE 5: TENSION -->
+      <div class="slide slide-5">
+        <h1>我選擇用<br>白話說清楚</h1>
+        <div class="accent-dot"></div>
+        <p style="margin-top: 8px;">不想用深奧名詞來炫耀</p>
+        <p>大多數人聽不懂我在寫什麼</p>
+        <p style="margin-top: 8px;">所以儘量用白話描述，不加術語</p>
+        <p style="margin-top: 8px;">只提常見模型：</p>
+        <p>OpenAI Code、Claude Code</p>
+        <span class="nav-arrow">›</span>
+      </div>
+
+      <!-- SLIDE 6: PAYOFF -->
+      <div class="slide slide-6">
+        <h1>規格驅動開發<br>就是 SOP</h1>
+        <div class="accent-dot"></div>
+        <p>不用學過程式開發</p>
+        <p style="margin-top: 8px;">只要理解「規格驅動開發」</p>
+        <p style="opacity: 0.8;">參照規格 → 寫好規格 → 再開發</p>
+        <p style="margin-top: 8px;">普通人也能做出</p>
+        <p style="color: #D4AF37; font-weight: 600;">更棒的「輪子」</p>
+        <span class="nav-arrow">›</span>
+      </div>
+
+      <!-- SLIDE 7: CTA -->
+      <div class="slide slide-7">
+        <h1>跟我一起</h1>
+        <div class="accent-dot"></div>
+        <p style="margin-top: 8px;">每天花 10-15 小時打造工具</p>
+        <p>token 成本狂燒</p>
+        <p style="margin-top: 8px; opacity: 0.8;">但我找到了解決方案</p>
+        <p style="margin-top: 12px; font-size: 12px; opacity: 0.85;">追蹤 @fishtvlove</p>
+        <p style="font-size: 12px; opacity: 0.85;">看我怎麼做</p>
+      </div>
+    </div>
+
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress"></div>
+    </div>
+
+    <div class="footer">
+      <i class="far fa-heart"></i>
+      <i class="far fa-comment"></i>
+      <i class="fas fa-share"></i>
+      <i class="far fa-bookmark"></i>
+    </div>
+  </div>
+
+  <script>
+    let current = 0;
+    const slides = document.querySelectorAll('.slide');
+    const total = slides.length;
+
+    function show(n) {
+      slides.forEach(s => s.classList.remove('active'));
+      current = (n + total) % total;
+      slides[current].classList.add('active');
+      document.getElementById('current').textContent = current + 1;
+      document.getElementById('progress').style.width = ((current + 1) / total * 100) + '%';
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowRight') show(current + 1);
+      if (e.key === 'ArrowLeft') show(current - 1);
+    });
+
+    document.querySelectorAll('.nav-arrow').forEach(a => {
+      a.addEventListener('click', () => show(current + 1));
+    });
+
+    show(0);
+  </script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+name: ai-provider-cleanup
+title: "AI 供應商整理：移除 YouTube Gemini、改用 Groq、清除死碼"
+status: in-progress
+type: refactor
+created: 2026-04-12

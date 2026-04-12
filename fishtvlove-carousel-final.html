@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>fishtvlove - 打掉重練 IG 輪播</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&family=Noto+Sans+TC:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background: #f5f3f0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .carousel-container {
+      position: relative;
+      width: 400px;
+      height: 500px;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      border: 1px solid #e8e3d8;
+    }
+
+    .carousel-wrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .slide {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 35px 25px 60px;
+      opacity: 0;
+      transition: opacity 0.4s ease-in-out;
+      border: 1px solid #e8e3d8;
+    }
+
+    .slide.active {
+      opacity: 1;
+      z-index: 10;
+    }
+
+    /* ===== 古典雕刻風色系 ===== */
+    .slide {
+      background: linear-gradient(135deg, #FAF8F4 0%, #F5E8D8 100%);
+      color: #1C1C1C;
+    }
+
+    /* HOOK - 深色對比 */
+    .slide.slide-1 {
+      background: linear-gradient(135deg, #2C2416 0%, #3A3228 100%);
+      color: #FAF8F4;
+    }
+
+    .slide.slide-1 h1 {
+      color: #D4AF37;
+    }
+
+    /* CONTEXT - 淡色 */
+    .slide.slide-2 {
+      background: linear-gradient(135deg, #FAF8F4 0%, #F5E8D8 100%);
+      color: #1C1C1C;
+    }
+
+    /* BUILD #1 - 溫暖質感 + 背景圖 */
+    .slide.slide-3 {
+      background: linear-gradient(135deg, #F5E8D8 0%, #EDD9C8 100%);
+      color: #1C1C1C;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slide.slide-3::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500"><rect fill="%23F5E8D8" width="400" height="500"/><circle cx="80" cy="100" r="40" fill="%23D4AF37" opacity="0.1"/><circle cx="320" cy="400" r="60" fill="%23D4AF37" opacity="0.08"/></svg>');
+      opacity: 0.5;
+      z-index: 0;
+    }
+
+    .slide.slide-3 > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .slide.slide-3 .accent-dot {
+      background: #D4AF37;
+    }
+
+    /* BUILD #2 - 對比 */
+    .slide.slide-4 {
+      background: linear-gradient(135deg, #FAF8F4 0%, #F5E8D8 100%);
+      color: #1C1C1C;
+    }
+
+    /* TENSION - 戲劇性 */
+    .slide.slide-5 {
+      background: linear-gradient(135deg, #3A3228 0%, #2C2416 100%);
+      color: #FAF8F4;
+    }
+
+    .slide.slide-5 h1 {
+      color: #D4AF37;
+    }
+
+    /* PAYOFF - 乾淨 */
+    .slide.slide-6 {
+      background: linear-gradient(135deg, #FAF8F4 0%, #F5E8D8 100%);
+      color: #1C1C1C;
+    }
+
+    .slide.slide-6 .accent-box {
+      border-top: 2px solid #D4AF37;
+      border-bottom: 2px solid #D4AF37;
+      padding: 16px 0;
+      margin: 12px 0;
+    }
+
+    /* CTA - 品牌色 */
+    .slide.slide-7 {
+      background: linear-gradient(135deg, #1E3A5F 0%, #162A47 100%);
+      color: #FAF8F4;
+    }
+
+    .slide.slide-7 h1 {
+      color: #5B9EFF;
+      font-size: 48px;
+    }
+
+    .slide.slide-7 p {
+      color: #D1D5DB;
+    }
+
+    /* ===== 古典雕刻風字體 ===== */
+    .slide h1 {
+      font-family: 'Noto Serif TC', serif;
+      font-size: 38px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      line-height: 1.2;
+      letter-spacing: -1px;
+    }
+
+    .slide p {
+      font-family: 'Noto Sans TC', sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+      margin-bottom: 6px;
+      font-weight: 400;
+      opacity: 0.95;
+    }
+
+    .slide .subtitle {
+      font-size: 16px;
+      margin-top: 12px;
+      font-weight: 300;
+    }
+
+    .slide .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 8px 0;
+      font-size: 12px;
+    }
+
+    .step-icon {
+      font-size: 20px;
+      margin-bottom: 3px;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(212, 175, 55, 0.1);
+      border-radius: 50%;
+      color: #D4AF37;
+    }
+
+    /* 強調點 */
+    .accent-dot {
+      width: 6px;
+      height: 6px;
+      background: #D4AF37;
+      border-radius: 50%;
+      margin: 0 auto 12px;
+      display: inline-block;
+    }
+
+    .accent-box {
+      border-left: 3px solid #D4AF37;
+      padding-left: 12px;
+      text-align: left;
+      margin: 8px 0;
+      font-size: 13px;
+    }
+
+    /* ===== IG Frame 標識 ===== */
+    .ig-header {
+      position: absolute;
+      top: 8px;
+      left: 10px;
+      font-size: 10px;
+      color: rgba(0, 0, 0, 0.5);
+      z-index: 20;
+      font-weight: 600;
+      font-family: 'Noto Sans TC', sans-serif;
+    }
+
+    .slide.slide-1 .ig-header,
+    .slide.slide-5 .ig-header,
+    .slide.slide-7 .ig-header {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .ig-footer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 32px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      font-size: 11px;
+      z-index: 20;
+      background: rgba(255, 255, 255, 0.8);
+      border-top: 1px solid #e8e3d8;
+    }
+
+    .slide.slide-1 .ig-footer,
+    .slide.slide-5 .ig-footer,
+    .slide.slide-7 .ig-footer {
+      background: rgba(30, 26, 22, 0.9);
+      border-top-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .ig-footer span {
+      color: #6B7280;
+      font-family: 'Noto Sans TC', sans-serif;
+      font-size: 12px;
+    }
+
+    .slide.slide-1 .ig-footer span,
+    .slide.slide-5 .ig-footer span,
+    .slide.slide-7 .ig-footer span {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .ig-footer i {
+      width: 16px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .progress-bar {
+      position: absolute;
+      bottom: 32px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: rgba(212, 175, 55, 0.2);
+      z-index: 20;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: #D4AF37;
+      transition: width 0.4s ease-in-out;
+    }
+
+    .next-arrow {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 22px;
+      color: #1C1C1C;
+      cursor: pointer;
+      z-index: 20;
+      opacity: 0.4;
+      transition: opacity 0.2s;
+      font-weight: 300;
+    }
+
+    .slide.slide-1 .next-arrow,
+    .slide.slide-5 .next-arrow,
+    .slide.slide-7 .next-arrow {
+      color: #FAF8F4;
+    }
+
+    .next-arrow:hover {
+      opacity: 0.8;
+    }
+
+    .slide:last-child .next-arrow {
+      display: none;
+    }
+
+    .slide-counter {
+      position: absolute;
+      top: 8px;
+      right: 10px;
+      font-size: 10px;
+      color: rgba(0, 0, 0, 0.5);
+      z-index: 20;
+      font-family: 'Noto Sans TC', sans-serif;
+      font-weight: 600;
+    }
+
+    .slide.slide-1 .slide-counter,
+    .slide.slide-5 .slide-counter,
+    .slide.slide-7 .slide-counter {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .carousel-container {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 4/5;
+        border-radius: 0;
+      }
+
+      .slide h1 {
+        font-size: 36px;
+      }
+
+      .slide p {
+        font-size: 13px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="carousel-container">
+    <div class="ig-header">@fishtvlove</div>
+    <div class="slide-counter"><span id="current-slide">1</span>/7</div>
+
+    <div class="carousel-wrapper">
+      <!-- SLIDE 1: HOOK -->
+      <div class="slide slide-1 active">
+        <h1>打掉重練</h1>
+        <p class="subtitle">沒有開發經驗的人</p>
+        <p>也能用 AI 做出軟體工具</p>
+        <span class="next-arrow">›</span>
+      </div>
+
+      <!-- SLIDE 2: CONTEXT -->
+      <div class="slide slide-2">
+        <h1>從文字產出<br>到影片生成</h1>
+        <div class="accent-dot"></div>
+        <p>一開始想做</p>
+        <p>AI 文字服務</p>
+        <p style="margin-top: 12px; opacity: 0.8;">接了顧問案後</p>
+        <p>需求變成「圖片轉影片」</p>
+        <p style="margin-top: 12px; opacity: 0.8;">於是開始研究</p>
+        <p>Claude Code 產影片</p>
+        <span class="next-arrow">›</span>
+      </div>
+
+      <!-- SLIDE 3: BUILD #1 -->
+      <div class="slide slide-3">
+        <h1>四步驟產出<br>真人影片</h1>
+        <div class="accent-dot"></div>
+        <div class="step">
+          <div class="step-icon">
+            <i class="fas fa-pencil-alt"></i>
+          </div>
+          <span>產出穩定的影片腳本</span>
+        </div>
+        <div class="step">
+          <div class="step-icon">
+            <i class="fas fa-film"></i>
+          </div>
+          <span>畫出分鏡圖</span>
+        </div>
+        <div class="step">
+          <div class="step-icon">
+            <i class="fas fa-image"></i>
+          </div>
+          <span>匯入首尾幀影像</span>
+        </div>
+        <div class="step">
+          <div class="step-icon">
+            <i class="fas fa-video"></i>
+          </div>
+          <span>生成真人口型與狀態</span>
+        </div>
+        <span class="next-arrow">›</span>
+      </div>
+
+      <!-- SLIDE 4: BUILD #2 -->
+      <div class="slide slide-4">
+        <h1>「重新造輪子」<br>不簡單</h1>
+        <div class="accent-dot"></div>
+        <p style="margin-top: 12px;">說難不難</p>
+        <p>但也不算容易</p>
+        <p style="margin-top: 12px; opacity: 0.8;">需要花很多時間爬文學習</p>
+        <p>技術名詞多到聽不懂</p>
+        <p style="margin-top: 12px; opacity: 0.8;">但這正是成長的過程</p>
+        <span class="next-arrow">›</span>
+      </div>
+
+      <!-- SLIDE 5: TENSION -->
+      <div class="slide slide-5">
+        <h1>我選擇用<br>白話說清楚</h1>
+        <div class="accent-dot"></div>
+        <p style="margin-top: 12px;">不想用深奧名詞來炫耀</p>
+        <p>大多數人聽不懂我在寫什麼</p>
+        <p style="margin-top: 12px; opacity: 0.85;">所以儘量用白話描述</p>
+        <p>不加術語</p>
+        <p style="margin-top: 12px; opacity: 0.85;">只提常見模型：</p>
+        <p>OpenAI Code、Claude Code</p>
+        <span class="next-arrow">›</span>
+      </div>
+
+      <!-- SLIDE 6: PAYOFF -->
+      <div class="slide slide-6">
+        <h1>規格驅動開發<br>就是 SOP</h1>
+        <div class="accent-box">
+          <p style="font-size: 14px; margin: 0;">不用學過程式開發</p>
+        </div>
+        <p style="margin-top: 12px;">只要理解「規格驅動開發」</p>
+        <p style="opacity: 0.8;">參照規格 → 寫好規格 → 再開發</p>
+        <p style="margin-top: 12px; opacity: 0.8;">普通人也能做出</p>
+        <p style="font-weight: 600; color: #D4AF37;">更棒的「輪子」</p>
+        <span class="next-arrow">›</span>
+      </div>
+
+      <!-- SLIDE 7: CTA -->
+      <div class="slide slide-7">
+        <h1>跟我一起</h1>
+        <div class="accent-dot"></div>
+        <p style="margin-top: 12px;">每天花 10-15 小時打造工具</p>
+        <p>token 成本狂燒</p>
+        <p style="margin-top: 12px; opacity: 0.8;">但我找到了解決方案</p>
+        <p style="margin-top: 16px; font-size: 12px; opacity: 0.85;">追蹤 @fishtvlove</p>
+        <p style="font-size: 12px; opacity: 0.85;">看我怎麼做</p>
+      </div>
+    </div>
+
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+
+    <div class="ig-footer">
+      <span><i class="far fa-heart"></i></span>
+      <span><i class="far fa-comment"></i></span>
+      <span><i class="fas fa-share"></i></span>
+      <span style="margin-left: 8px;"><i class="far fa-bookmark"></i></span>
+    </div>
+  </div>
+
+  <script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const totalSlides = slides.length;
+
+    function showSlide(n) {
+      slides.forEach(s => s.classList.remove('active'));
+      currentSlide = (n + totalSlides) % totalSlides;
+      slides[currentSlide].classList.add('active');
+      
+      document.getElementById('current-slide').textContent = currentSlide + 1;
+      const progressPercent = ((currentSlide + 1) / totalSlides) * 100;
+      document.getElementById('progress-fill').style.width = progressPercent + '%';
+    }
+
+    // 鍵盤導航
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight') showSlide(currentSlide + 1);
+      if (e.key === 'ArrowLeft') showSlide(currentSlide - 1);
+    });
+
+    // 箭頭按鈕點擊
+    document.querySelectorAll('.next-arrow').forEach((arrow) => {
+      arrow.addEventListener('click', () => showSlide(currentSlide + 1));
+    });
+
+    // 初始化
+    showSlide(0);
+  </script>
+</body>
+</html>

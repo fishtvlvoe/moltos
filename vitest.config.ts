@@ -14,6 +14,7 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
+    testTimeout: 30000, // Fix: 增加到 30 秒，支援 webhook 延遲容忍測試
     // Phase 1 尚無測試，允許 0 test 正常退出
     passWithNoTests: true,
     coverage: {

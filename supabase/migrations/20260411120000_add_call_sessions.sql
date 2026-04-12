@@ -10,3 +10,9 @@ CREATE TABLE IF NOT EXISTS call_sessions (
 );
 
 CREATE INDEX IF NOT EXISTS idx_call_sessions_expires ON call_sessions(expires_at);
+
+-- P0-1: Add RLS to prevent cross-user access
+ALTER TABLE call_sessions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY call_sessions_user_isolation ON call_sessions
+  FOR ALL
+  USING (user_id = auth.uid()::text);

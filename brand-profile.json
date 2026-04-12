@@ -1,0 +1,27 @@
+{
+  "brand_name": "fishtvlove",
+  "ig_handle": "@fishtvlove",
+  "positioning": "幫助普通人瞭解並不用過度焦慮，運用 AI 這些工具也能夠學會開發",
+  "target_audience": "想學 AI 開發的初學者、創業者、普通人",
+  "communication_style": "溫暖、鼓勵",
+  "color_system": {
+    "primary": "#1E3A5F",
+    "primary_name": "深藍色",
+    "secondary": "#6B7280",
+    "secondary_name": "灰色",
+    "accent": "#5B9EFF",
+    "accent_name": "亮藍色",
+    "background": "#FFFFFF",
+    "background_name": "白色"
+  },
+  "typography": {
+    "headline_font": "Noto Serif TC",
+    "headline_font_name": "思源宋體（優雅）",
+    "body_font": "Noto Sans TC",
+    "body_font_name": "思源黑體（現代）",
+    "style": "混搭"
+  },
+  "content_type": "故事型",
+  "key_message": "沒有開發經驗的人，也能用 AI 做出軟體工具",
+  "story_summary": "從 AI 文字服務想法，到圖片轉影片實現，分享規格驅動開發的力量"
+}

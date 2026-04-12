@@ -126,10 +126,23 @@ export default function ChatPage() {
     }
   }, [conversation, isConnecting, isConnected, messages, session]);
 
-  // 輪詢 DB，直到筆數增加或超時（最多 10 秒，每 1.5 秒一次）
+  // 輪詢 DB，直到筆數增加或超時（20 次，總計 ~60 秒）
   async function pollForNewMessages(previousCount: number) {
-    // 漸進退避：1.5s × 2 → 2s × 2 → 3s × 2 → 4s × 2 → 5s × 2，共 10 次，上限 ~31 秒
-    const intervals = [1500, 1500, 2000, 2000, 3000, 3000, 4000, 4000, 5000, 5000];
+    // Fix 4: 漸進退避擴展至 20 次，確保等待 webhook 延遲
+    // 模式：1.5s × 2 → 2s × 2 → 3s × 2 → 4s × 2 → 5s × 2 → 5s × 10
+    // 共 20 次，上限 ~60-70 秒
+    const intervals = [
+      1500, 1500,  // 1-2
+      2000, 2000,  // 3-4
+      3000, 3000,  // 5-6
+      4000, 4000,  // 7-8
+      5000, 5000,  // 9-10
+      5000, 5000,  // 11-12
+      5000, 5000,  // 13-14
+      5000, 5000,  // 15-16
+      5000, 5000,  // 17-18
+      5000, 5000,  // 19-20
+    ];
     let attempts = 0;
 
     const poll = async () => {

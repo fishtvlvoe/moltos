@@ -14,6 +14,7 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { saveCallSession } from '@/lib/db';
+import { supabaseAdmin } from '@/lib/supabase';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest): Promise<Response> {
@@ -41,6 +42,32 @@ export async function POST(req: NextRequest): Promise<Response> {
   const userId = (session.user as { id?: string }).id;
   if (!userId) {
     return NextResponse.json({ error: '無法取得 Google ID' }, { status: 400 });
+  }
+
+  // 修復 2: 防止他人 claim 同一個 conversation_id
+  // 先查是否已被 claim，若被不同 user claim 則回 409 Conflict
+  try {
+    const { data: existing, error: queryError } = await supabaseAdmin
+      .from('call_sessions')
+      .select('user_id')
+      .eq('conversation_id', conversationId.trim())
+      .maybeSingle();
+
+    if (queryError) {
+      console.error('[POST /api/call-sessions] 查詢失敗：', queryError);
+      return NextResponse.json({ error: '查詢失敗' }, { status: 500 });
+    }
+
+    if (existing && existing.user_id !== userId) {
+      console.warn(`[POST /api/call-sessions] 重複 claim 嘗試: ${conversationId} 已被 ${existing.user_id} claim`);
+      return NextResponse.json(
+        { error: 'Conversation already claimed by another user' },
+        { status: 409 }
+      );
+    }
+  } catch (error) {
+    console.error('[POST /api/call-sessions] 重複防護檢查失敗：', error);
+    return NextResponse.json({ error: '防護檢查失敗' }, { status: 500 });
   }
 
   try {
