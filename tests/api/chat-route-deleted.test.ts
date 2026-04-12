@@ -13,7 +13,7 @@
 import { describe, it, expect } from 'vitest';
 
 describe('/api/chat route 刪除檢查 — AI Provider Cleanup', () => {
-  it('紅燈：app/api/chat/route.ts 應被刪除（目前仍存在）', () => {
+  it('綠燈：app/api/chat/route.ts 已被刪除', () => {
     let routeExists = false;
     let importError: string | null = null;
 
@@ -25,12 +25,8 @@ describe('/api/chat route 刪除檢查 — AI Provider Cleanup', () => {
       importError = (err as Error).message;
     }
 
-    // 紅燈：route 仍存在（無 import 錯誤）
-    expect(routeExists).toBe(true);
-    expect(importError).toBeNull();
-
-    // 期望行為：檔案刪除後，import 應失敗
-    // 將此測試改名為 chat-route-deletion-verification.test.ts，
-    // 並在刪除檔案後改 expect(routeExists).toBe(false)
+    // 綠燈：route 已被刪除（import 應失敗）
+    expect(routeExists).toBe(false);
+    expect(importError).not.toBeNull();
   });
 });

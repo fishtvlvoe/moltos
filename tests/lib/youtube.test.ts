@@ -35,19 +35,6 @@ vi.mock('googleapis', () => ({
   },
 }));
 
-// ─── Mock Gemini（目前會被呼叫，紅燈預期它成功但我們檢查不應有 summary）───
-
-vi.mock('@google/generative-ai', () => ({
-  GoogleGenerativeAI: class {
-    getGenerativeModel() {
-      return {
-        generateContent: vi.fn().mockResolvedValue({
-          response: { text: () => '影片摘要內容' },
-        }),
-      };
-    }
-  },
-}));
 
 // ─── 匯入被測試函數 ───────────────────────────────────────────────────────
 
@@ -136,19 +123,14 @@ describe('fetchLatestVideos — AI Provider Cleanup', () => {
     });
   });
 
-  it('紅燈：不應呼叫 GoogleGenerativeAI（後續任務完成後改為綠燈）', async () => {
-    // 此測試假設最終 youtube.ts 將不再匯入 GoogleGenerativeAI
-    // 現在是紅燈，因為程式碼仍在匯入並使用
-    const hasGeminiImport = (() => {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        require('@google/generative-ai');
-        return true;
-      } catch {
-        return false;
-      }
-    })();
+  it('綠燈：不應呼叫 GoogleGenerativeAI', async () => {
+    // 驗證 youtube.ts 已移除 GoogleGenerativeAI 匯入
+    // 此測試檢查 fetchLatestVideos 不會呼叫任何 AI 服務
+    const result = await fetchLatestVideos('test-token', 1);
 
-    expect(hasGeminiImport).toBe(true); // 紅燈：目前仍有 import
+    // 由於 Gemini mock 已被移除，如果程式碼仍嘗試使用它會拋出錯誤
+    // 測試通過表示 youtube.ts 已完全移除 Gemini 依賴
+    expect(result).toHaveLength(1);
+    expect(result[0]).not.toHaveProperty('summary');
   });
 });

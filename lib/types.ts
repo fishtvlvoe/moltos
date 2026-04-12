@@ -36,7 +36,6 @@ export interface VideoSummary {
   channelName: string;
   thumbnailUrl: string;
   publishedAt: string;
-  summary?: string;
   url: string;
 }
 
