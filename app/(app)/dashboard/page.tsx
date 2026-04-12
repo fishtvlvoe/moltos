@@ -3,11 +3,8 @@ import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/lib/auth';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { CalmIndexCard } from '@/components/dashboard/calm-index-card';
 import { TodayProgress } from '@/components/dashboard/today-progress';
-import { NewsCard } from '@/components/dashboard/news-card';
 import { WellnessCard } from '@/components/dashboard/wellness-card';
 
 // 依伺服器時間回傳對應問候語（台灣時區以 UTC+8 計算）
@@ -73,9 +70,6 @@ export default async function DashboardPage({
 
       {/* 今日進度卡片 — 靜態假資料 placeholder */}
       <TodayProgress />
-
-      {/* 今日摘要卡片 — 從 /api/youtube/feed 取得真實資料 */}
-      <NewsCard />
 
       {/* 健康追蹤卡片 — 靜態假資料 */}
       <WellnessCard />
