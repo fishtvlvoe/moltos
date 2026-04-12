@@ -23,6 +23,7 @@ import { NextRequest, NextResponse } from 'next/server';
 // @ts-ignore — opencc-js 無 @types，功能正常
 import { Converter } from 'opencc-js';
 import { saveMessage, getCallSession, deleteCallSession } from '@/lib/db';
+import { supabaseAdmin } from '@/lib/supabase';
 import type {
   ElevenLabsPostCallWebhookPayload,
   ElevenLabsPostCallTranscriptionData,
