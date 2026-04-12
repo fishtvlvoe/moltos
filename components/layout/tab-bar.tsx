@@ -66,16 +66,30 @@ export function TabBar() {
         {tabs.map((tab) => {
           // 判斷目前路徑是否為 active tab
           const isActive = pathname === tab.href || pathname.startsWith(tab.href + '/');
+          const needsHardReload = pathname === '/call' && tab.href === '/chat';
+          const className = `flex flex-col items-center justify-center gap-0.5 text-xs transition-colors ${
+            isActive ? 'text-stone-800' : 'text-gray-400 hover:text-gray-600'
+          }`;
+
+          if (needsHardReload) {
+            return (
+              <a
+                key={tab.href}
+                href={tab.href}
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = '/chat';
+                }}
+                className={className}
+              >
+                {tab.icon}
+                <span>{tab.label}</span>
+              </a>
+            );
+          }
+
           return (
-            <Link
-              key={tab.href}
-              href={tab.href}
-              className={`flex flex-col items-center justify-center gap-0.5 text-xs transition-colors ${
-                isActive
-                  ? 'text-stone-800'
-                  : 'text-gray-400 hover:text-gray-600'
-              }`}
-            >
+            <Link key={tab.href} href={tab.href} className={className}>
               {tab.icon}
               <span>{tab.label}</span>
             </Link>

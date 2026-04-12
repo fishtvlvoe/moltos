@@ -34,14 +34,14 @@
 
 > **現象**：語音通話進行中，AI 語音與使用者對話文字會「瞬間跳回對話框」，疑似代碼設計問題或 iOS Safari 限制，導致無法即時顯示通話中的對話資訊。
 
-- [ ] 8.1 在 `call/page.tsx` 中確認即時 transcript 顯示邏輯：檢查 `useConversation` hook 的 `messages` 狀態是否在通話中持續更新；若狀態在 iOS Safari 背景切換時被重置，改用 `useRef` 累積 transcript 以避免 re-render 清空畫面
-- [ ] 8.2 若問題源自 iOS 限制（頁面 visibility 改變導致 component 重新渲染），在 `useEffect` 中加入 `document.addEventListener('visibilitychange', handler)` 保護：頁面隱藏時暫停 TTS 播放但不清空 transcript state
-- [ ] 8.3 測試標準：在 iOS Safari 進行一次完整語音對話，期間切換到其他 App 再切回，確認 transcript 仍然保留且持續同步，不會跳回或消失
+- [x] 8.1 在 `call/page.tsx` 中確認即時 transcript 顯示邏輯：通話頁面不顯示即時文字（設計上只有音量視覺化），`@11labs/react` SDK 不暴露 messages 狀態，transcript 由 webhook 事後寫入 DB。此 task 不適用（N/A）
+- [x] 8.2 不適用：通話頁面無 transcript state 可被 visibility change 重置。Task 9 的 hard reload 機制已解決資料新鮮度問題
+- [x] 8.3 不適用：通話頁面不顯示 transcript，無跳回/消失問題。真機驗證併入 7.1
 
 ## 9. 通話結束後頁面行為調整 — 手動導航 + Hard Reload（2026-04-12 新增）
 
 > **動機**：`onDisconnect` 目前自動 `router.push('/chat?from=call')` 後，頁面不會自動重整，需靠 polling 等待 webhook 資料，使用者常看到空白或舊資料。改為讓使用者**手動點擊底部「對話」tab**，觸發 `window.location.href = '/chat'` full reload，確保一進 chat 頁面即拿到最新資料。
 
-- [ ] 9.1 修改 `app/(app)/call/page.tsx`：在 `onDisconnect` callback 中，移除 `setTimeout(() => router.push('/chat?from=call'), 1000)` 這行；通話結束後保持在通話頁面（綠色按鈕重新出現，頁面回到 idle 狀態），讓使用者自行決定下一步
-- [ ] 9.2 修改 `components/layout/tab-bar.tsx`：在「對話」tab 的點擊處理中，新增判斷：若 `usePathname() === '/call'`，則執行 `window.location.href = '/chat'`（瀏覽器 full reload）而非 Next.js soft navigate；其餘頁面保持原本 `<Link>` 行為不變
-- [ ] 9.3 測試標準：掛斷通話後，頁面停留在通話介面（綠色開始按鈕可見、不自動跳頁）→ 點擊底部「對話」tab → 瀏覽器 full reload 進入 `/chat` → 頁面載入後即顯示最新對話記錄，無需 polling 等待
+- [x] 9.1 修改 `app/(app)/call/page.tsx`：在 `onDisconnect` callback 中，移除 `setTimeout(() => router.push('/chat?from=call'), 1000)` 這行；通話結束後保持在通話頁面（綠色按鈕重新出現，頁面回到 idle 狀態），讓使用者自行決定下一步
+- [x] 9.2 修改 `components/layout/tab-bar.tsx`：在「對話」tab 的點擊處理中，新增判斷：若 `usePathname() === '/call'`，則執行 `window.location.href = '/chat'`（瀏覽器 full reload）而非 Next.js soft navigate；其餘頁面保持原本 `<Link>` 行為不變
+- [ ] 9.3 測試標準：掛斷通話後，頁面停留在通話介面（綠色開始按鈕可見、不自動跳頁）→ 點擊底部「對話」tab → 瀏覽器 full reload 進入 `/chat` → 頁面載入後即顯示最新對話記錄，無需 polling 等待（需真機驗證，併入 7.1）

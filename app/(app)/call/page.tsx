@@ -83,11 +83,7 @@ export default function CallPage() {
       console.info('[ElevenLabs] 連線已中斷');
       clearDialingInterval();
       stopVolumePolling();
-      // 如果曾經連線才跳轉到聊天紀錄頁
-      // 帶 ?from=call 參數，讓 Chat 頁面偵測到並輪詢 DB 等待 webhook 寫入
-      if (hasConnectedRef.current) {
-        setTimeout(() => router.push('/chat?from=call'), 1000);
-      }
+      // Stay on call page after disconnect — user navigates manually via tab bar
     },
     onError: (message: string, context?: unknown) => {
       console.error('[ElevenLabs] 錯誤:', message, context);

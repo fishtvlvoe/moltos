@@ -1,0 +1,957 @@
+# proactive-checkin Specification
+
+## Purpose
+
+TBD - created by archiving change 'moltos-core-experience-spec'. Update Purpose after archive.
+
+## Requirements
+
+### Requirement: AI sends a proactive greeting when chat loads
+
+The system SHALL automatically send a context-aware greeting from the AI when the chat page loads for the first time in a session.
+
+#### Scenario: Greeting sent on first session load
+
+- **WHEN** an authenticated user opens the chat page with no in-session messages
+- **THEN** the AI sends a greeting within 2 seconds; content varies by time of day (morning / afternoon / evening)
+
+#### Scenario: Greeting reflects calm index state
+
+- **WHEN** the user's latest calm index level is `attention` (score 0–39)
+- **THEN** the greeting uses a softer, more concerned tone and asks how the user is feeling
+
+#### Scenario: No duplicate greeting on page revisit
+
+- **WHEN** the user navigates away and returns within the same session
+- **THEN** no additional greeting is sent
+
+
+<!-- @trace
+source: moltos-core-experience-spec
+updated: 2026-04-13
+code:
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/官方附件/附件二_參賽切結書暨個資同意書.docx
+  - coverage/favicon.png
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/PROPOSAL-PART1.md
+  - docs/_external/archive/src/calm-index.ts
+  - docs/dev/specs/001-care-web-app/tasks.md
+  - .github/prompts/spectra-ingest.prompt.md
+  - docs/_external/competition/qitc — 智慧創新大賞/RESEARCH.md
+  - docs/moltos-QR.png
+  - fishtvlove-carousel-v2.html
+  - docs/3-dev — 開發文件/specs/001-care-web-app/research.md
+  - fishtvlove-facebook-post.md
+  - vitest.config.ts
+  - docs/dev/specs/001-care-web-app/research.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/官方附件/2026智慧創新大賞競賽須知.pdf
+  - .github/prompts/spectra-apply.prompt.md
+  - app/(app)/settings/page.tsx
+  - docs/dev/senticore/orchestration_prompt_en.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/Moltos_作品說明書.docx
+  - docs/_external/competition/qitc — 智慧創新大賞/charts/roadmap.html
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/emotion_skill_zh.md
+  - slide1.png
+  - coverage/lib/elevenlabs.ts.html
+  - coverage/sorter.js
+  - docs/3-dev — 開發文件/specs/001-care-web-app/checklists/requirements.md
+  - docs/_external/competition/qitc — 智慧創新大賞/charts/anxiety-cycle.html
+  - .github/prompts/spectra-propose.prompt.md
+  - docs/3-dev — 開發文件/fal-ai-api-reference.md
+  - docs/_external/archive/src/voice-emotion.ts
+  - docs/3-dev — 開發文件/elevenlabs-api-reference.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/官方附件/附件四_加分佐證文件.docx
+  - docs/3-dev — 開發文件/specs/001-care-web-app/data-model.md
+  - lib/calm-index-bridge.ts
+  - docs/_external/competition/presentation-script.md
+  - docs/_external/competition/qitc — 智慧創新大賞/官方附件/附件四_加分佐證文件.docx
+  - lib/types.ts
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/Moltos_作品說明書_v2.docx
+  - .windsurfrules
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/build_docx.py
+  - lib/gemini.ts
+  - docs/3-dev — 開發文件/specs/001-care-web-app/contracts/gemini-prompts.md
+  - docs/3-dev — 開發文件/specs/001-care-web-app/plan.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/PROPOSAL-OUTLINE.md
+  - docs/dev/general/ssh-moltos.md
+  - .github/skills/spectra-archive/SKILL.md
+  - docs/dev/handoffs/handoff-elevenlabs-chat.md
+  - carousel-v2-simple.html
+  - coverage/app/api/calm-index/route.ts.html
+  - .github/prompts/spectra-archive.prompt.md
+  - components/ui/sonner.tsx
+  - coverage/lib/gemini.ts.html
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/chart-competitive-matrix.png
+  - docs/dev/elevenlabs-full-capability.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/screenshot.js
+  - docs/_external/competition/qitc — 智慧創新大賞/官方附件/附件三_作品說明書範本.docx
+  - docs/_external/competition/moea-ai — 經濟部AI輔導/申請須知.pdf
+  - lib/proactive-checkin.ts
+  - .opencode.json
+  - lib/speech.ts
+  - docs/_external/archive/src/anomaly.ts
+  - lib/youtube.ts
+  - types/next-auth.d.ts
+  - docs/5-design — 設計文件/care-engine.pen
+  - docs/_external/competition/moea-ai — 經濟部AI輔導/申請須知.docx
+  - docs/_external/competition/demo-script.md
+  - docs/_external/competition/qitc — 智慧創新大賞/PROPOSAL-OUTLINE.md
+  - components/settings/clear-user-data-section.tsx
+  - docs/2-general — 一般文書/archive — 舊檔案/website/index.html
+  - app/(app)/review/page.tsx
+  - docs/dev/specs/001-care-web-app/checklists/requirements.md
+  - docs/dev/architecture.md
+  - lib/db.ts
+  - docs/dev/specs/001-care-web-app/contracts/api-routes.md
+  - docs/_external/competition/qitc — 智慧創新大賞/官方附件/附件二_參賽切結書暨個資同意書.docx
+  - lib/elevenlabs.ts
+  - docs/2-general — 一般文書/archive — 舊檔案/examples/basic-usage.ts
+  - coverage/app/api/elevenlabs-signed-url/index.html
+  - docs/_external/archive/examples/basic-usage.ts
+  - docs/dev/specs/001-care-web-app/contracts/gemini-prompts.md
+  - components/providers.tsx
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/官方附件/附件一_團隊基本資料.docx
+  - docs/_external/competition/qitc — 智慧創新大賞/官方附件/2026智慧創新大賞競賽須知.pdf
+  - docs/_external/competition/qitc — 智慧創新大賞/Moltos_作品說明書.docx
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/chart-market-growth.png
+  - docs/2-general — 一般文書/archive — 舊檔案/src/voice-emotion.ts
+  - app/api/call-sessions/route.ts
+  - .github/skills/spectra-ingest/SKILL.md
+  - AGENTS.md
+  - coverage/sort-arrow-sprite.png
+  - docs/_external/competition/qitc — 智慧創新大賞/PROPOSAL-PART1.md
+  - docs/_external/competition/qitc — 智慧創新大賞/images/chart-architecture.png
+  - docs/2-general — 一般文書/archive — 舊檔案/src/anomaly.ts
+  - GEMINI.md
+  - coverage/app/api/chat/message/route.ts.html
+  - docs/dev/fal-ai-api-reference.md
+  - docs/2-general — 一般文書/ssh-moltos.md
+  - app/api/chat/insight/route.ts
+  - coverage/block-navigation.js
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/screen-settings.png
+  - docs/dev/senticore/templates/CLAUDE.md
+  - coverage/app/api/elevenlabs-webhook/index.html
+  - docs/2-general — 一般文書/archive — 舊檔案/src/baseline.ts
+  - docs/2-general — 一般文書/ai.md
+  - docs/dev/general/ai.md
+  - docs/_external/competition/judging-prep.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/AI輕量化佐證說明.md
+  - docs/_external/competition/qitc — 智慧創新大賞/charts/market-growth.html
+  - docs/dev/code-guide/README.md
+  - docs/_external/competition/qitc — 智慧創新大賞/Moltos_作品說明書_v2.docx
+  - docs/4-competitors — 競品分析/snowie-ai-vs-elevenlabs.md
+  - docs/dev/specs/001-care-web-app/quickstart.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/screen-onboarding.png
+  - app/(app)/call/page.tsx
+  - docs/3-dev — 開發文件/specs/001-care-web-app/contracts/api-routes.md
+  - coverage/index.html
+  - docs/1-competition — 比賽資料/judging-prep.md
+  - docs/dev/senticore/orchestration_prompt_zh.md
+  - app/api/user/data/route.ts
+  - coverage/app/api/chat/history/route.ts.html
+  - docs/_external/competition/qitc — 智慧創新大賞/官方附件/附件一_團隊基本資料.docx
+  - docs/dev/senticore/LICENSE
+  - hooks/use-toast.ts
+  - docs/Moltos — 主動式心理健康守護 AI.pdf
+  - coverage/app/api/elevenlabs-signed-url/route.ts.html
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/LinkedIn_余啟彰_Profile.gif
+  - docs/_external/competition/qitc — 智慧創新大賞/AI輕量化佐證說明.md
+  - docs/dev/senticore/emotion_skill_zh.md
+  - coverage/coverage-final.json
+  - docs/dev/specs/001-care-web-app/data-model.md
+  - docs/dev/senticore/README.md
+  - lib/demo-data.ts
+  - docs/dev/specs/001-care-web-app/plan.md
+  - fishtvlove-carousel-final.html
+  - docs/_external/archive/src/types.ts
+  - docs/dev/senticore/tools/update_emotion_state.json
+  - docs/_external/competition/qitc — 智慧創新大賞/images/chart-market-growth.png
+  - app/api/elevenlabs-webhook/route.ts
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/screen-chat.png
+  - docs/2-general — 一般文書/PROJECT.md
+  - docs/_external/archive/demo/index.html
+  - docs/_external/competition/qitc — 智慧創新大賞/build_docx.py
+  - docs/4-competitors — 競品分析/clonevoice-ai-vs-elevenlabs.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/charts/market-growth.html
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/screen-dashboard.png
+  - docs/3-dev — 開發文件/elevenlabs-full-capability.md
+  - docs/_external/competition/qitc — 智慧創新大賞/PROPOSAL-PART2.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/chart-roadmap.png
+  - .github/prompts/spectra-debug.prompt.md
+  - .github/prompts/spectra-discuss.prompt.md
+  - .cursorrules
+  - coverage/lib/index.html
+  - docs/1-competition — 比賽資料/presentation-script.md
+  - carousel-ig-fullsize.html
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/chart-architecture.png
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/templates/sample_soul.md
+  - docs/_external/competition/qitc — 智慧創新大賞/images/chart-anxiety-cycle.png
+  - coverage/app/api/chat/message/index.html
+  - docs/dev/senticore/README_zh.md
+  - docs/3-dev — 開發文件/specs/001-care-web-app/quickstart.md
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/templates/CLAUDE.md
+  - coverage/prettify.js
+  - docs/3-dev — 開發文件/specs/001-care-web-app/spec.md
+  - coverage/base.css
+  - docs/dev/senticore/templates/sample_soul.md
+  - docs/_external/competition/qitc — 智慧創新大賞/images/screen-settings.png
+  - docs/dev/senticore/emotion_skill_en.md
+  - package.json
+  - app/api/elevenlabs-signed-url/route.ts
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/PROPOSAL-PART2.md
+  - carousel-content.md
+  - lib/gemini-prompts.ts
+  - docs/_external/competition/qitc — 智慧創新大賞/images/screen-insights.png
+  - specs/001-care-web-app/plan.md
+  - docs/README.md
+  - app/(app)/chat/page.tsx
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/orchestration_prompt_zh.md
+  - docs/_external/competition/qitc — 智慧創新大賞/PROPOSAL.md
+  - app/api/chat/route.ts
+  - docs/_external/archive/src/baseline.ts
+  - .github/skills/spectra-discuss/SKILL.md
+  - CLAUDE.md
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/tools/update_emotion_state.json
+  - .github/prompts/spectra-ask.prompt.md
+  - docs/_external/competition/qitc — 智慧創新大賞/附件四_加分佐證_Moltos.md
+  - fishtvlove-carousel.html
+  - .code-review-graphignore
+  - docs/1-competition — 比賽資料/moea-ai — 經濟部AI輔導/申請須知.docx
+  - docs/3-dev — 開發文件/specs/001-care-web-app/tasks.md
+  - coverage/clover.xml
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/remove.sh
+  - docs/_external/competition/qitc — 智慧創新大賞/REGISTRATION.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/charts/competitive-matrix.html
+  - coverage/lib/youtube.ts.html
+  - docs/_external/competition/qitc — 智慧創新大賞/images/screen-onboarding.png
+  - docs/2-general — 一般文書/archive — 舊檔案/src/types.ts
+  - docs/dev/elevenlabs-api-reference.md
+  - docs/_external/competition/qitc — 智慧創新大賞/images/screen-dashboard.png
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/emotion_skill_en.md
+  - docs/_external/competition/qitc — 智慧創新大賞/charts/competitive-matrix.html
+  - docs/_external/competition/qitc — 智慧創新大賞/images/screen-chat.png
+  - .github/skills/spectra-ask/SKILL.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/PROPOSAL.md
+  - coverage/app/api/chat/history/index.html
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/README_zh.md
+  - docs/_external/archive/src/index.ts
+  - coverage/lib/proactive-checkin.ts.html
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/screen-insights.png
+  - docs/_external/README.md
+  - .github/skills/spectra-debug/SKILL.md
+  - docs/1-competition — 比賽資料/demo-script.md
+  - docs/_external/competition/qitc — 智慧創新大賞/screenshot.js
+  - docs/_external/competition/qitc — 智慧創新大賞/LinkedIn_余啟彰_Profile.gif
+  - .github/prompts/spectra-audit.prompt.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/REGISTRATION.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/charts/roadmap.html
+  - docs/_external/competition/qitc — 智慧創新大賞/charts/architecture.html
+  - docs/_external/competition/qitc — 智慧創新大賞/images/chart-roadmap.png
+  - coverage/prettify.css
+  - docs/_external/competitors/clonevoice-ai-vs-elevenlabs.md
+  - docs/dev/decisions/001-elevenlabs-tts.md
+  - docs/dev/general/PROJECT.md
+  - docs/2-general — 一般文書/archive — 舊檔案/demo/index.html
+  - docs/_external/archive/website/index.html
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/chart-anxiety-cycle.png
+  - docs/_external/competitors/README.md
+  - coverage/lib/calm-index-bridge.ts.html
+  - docs/_external/competition/qitc — 智慧創新大賞/screenshot-charts.js
+  - docs/dev/senticore/remove.sh
+  - docs/design/care-engine.pen
+  - supabase/migrations/20260411120000_add_call_sessions.sql
+  - docs/dev/senticore/install.sh
+  - docs/dev/specs/001-care-web-app/spec.md
+  - docs/4-competitors — 競品分析/README.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/RESEARCH.md
+  - docs/2026 Best AI Awards 智慧創新大賞 競賽隊伍入圍通知.eml
+  - .spectra.yaml
+  - coverage/app/api/elevenlabs-webhook/route.ts.html
+  - .mcp.json
+  - .github/skills/spectra-apply/SKILL.md
+  - .github/skills/spectra-audit/SKILL.md
+  - brand-profile.json
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/charts/anxiety-cycle.html
+  - docs/1-competition — 比賽資料/moea-ai — 經濟部AI輔導/申請須知.pdf
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/charts/architecture.html
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/README.md
+  - components/dashboard/news-card.tsx
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/install.sh
+  - docs/2-general — 一般文書/archive — 舊檔案/src/calm-index.ts
+  - docs/_external/competition/qitc — 智慧創新大賞/images/chart-competitive-matrix.png
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/orchestration_prompt_en.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/附件四_加分佐證_Moltos.md
+  - components/ui/alert-dialog.tsx
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/LICENSE
+  - app/api/analyze-insight/route.ts
+  - .github/skills/spectra-propose/SKILL.md
+  - docs/_external/competitors/snowie-ai-vs-elevenlabs.md
+  - coverage/lib/gmail.ts.html
+  - docs/2-general — 一般文書/archive — 舊檔案/src/index.ts
+  - coverage/lib/gemini-prompts.ts.html
+  - fishtvlove-carousel-classic.html
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/官方附件/附件三_作品說明書範本.docx
+  - coverage/app/api/calm-index/index.html
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/screenshot-charts.js
+  - docs/0-code-guide — 代碼說明/README.md
+tests:
+  - tests/api/call-sessions-rls.test.ts
+  - tests/api/call-sessions-race-condition.test.ts
+  - tests/api/elevenlabs-signed-url-auth.test.ts
+  - lib/__tests__/speech.test.ts
+  - tests/api/elevenlabs-webhook-call-sessions-lookup.test.ts
+  - tests/api/elevenlabs-call-lifecycle.test.ts
+  - tests/api/calm-index.test.ts
+  - tests/api/chat-message.test.ts
+  - tests/api/fix-call-transcript-red-light.test.ts
+  - lib/__tests__/proactive-checkin.test.ts
+  - lib/__tests__/calm-index-bridge.test.ts
+  - tests/api/elevenlabs-webhook.test.ts
+  - tests/api/user-data-delete.test.ts
+  - tests/api/chat-route-deleted.test.ts
+  - tests/api/elevenlabs-signed-url.test.ts
+  - tests/api/chat-history.test.ts
+  - tests/api/call-sessions.test.ts
+  - tests/api/chat-insight.test.ts
+  - tests/api/chat-poll.test.ts
+  - tests/api/elevenlabs-webhook-user-id-fix.test.ts
+  - lib/__tests__/elevenlabs.test.ts
+  - lib/__tests__/calm-index-algo.test.ts
+  - tests/api/call-sessions-auth-fix.test.ts
+  - tests/api/elevenlabs-signed-url-call-sessions.test.ts
+  - tests/api/chat-agent.test.ts
+  - lib/__tests__/youtube.test.ts
+  - tests/lib/youtube.test.ts
+  - lib/__tests__/gemini-prompts.test.ts
+-->
+
+---
+### Requirement: Silence detection triggers proactive outreach
+
+The system SHALL detect when a user has not interacted for more than 14 days and flag them for proactive outreach.
+
+#### Scenario: Check-in triggered after 14 days of silence
+
+- **WHEN** a user's last interaction is more than 14 days ago
+- **THEN** the user is marked with status `pending_checkin`
+
+#### Scenario: Proactive message content is personalized
+
+- **WHEN** a proactive check-in message is generated
+- **THEN** it references the user's last known calm index level and does NOT use a generic template
+
+
+<!-- @trace
+source: moltos-core-experience-spec
+updated: 2026-04-13
+code:
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/官方附件/附件二_參賽切結書暨個資同意書.docx
+  - coverage/favicon.png
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/PROPOSAL-PART1.md
+  - docs/_external/archive/src/calm-index.ts
+  - docs/dev/specs/001-care-web-app/tasks.md
+  - .github/prompts/spectra-ingest.prompt.md
+  - docs/_external/competition/qitc — 智慧創新大賞/RESEARCH.md
+  - docs/moltos-QR.png
+  - fishtvlove-carousel-v2.html
+  - docs/3-dev — 開發文件/specs/001-care-web-app/research.md
+  - fishtvlove-facebook-post.md
+  - vitest.config.ts
+  - docs/dev/specs/001-care-web-app/research.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/官方附件/2026智慧創新大賞競賽須知.pdf
+  - .github/prompts/spectra-apply.prompt.md
+  - app/(app)/settings/page.tsx
+  - docs/dev/senticore/orchestration_prompt_en.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/Moltos_作品說明書.docx
+  - docs/_external/competition/qitc — 智慧創新大賞/charts/roadmap.html
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/emotion_skill_zh.md
+  - slide1.png
+  - coverage/lib/elevenlabs.ts.html
+  - coverage/sorter.js
+  - docs/3-dev — 開發文件/specs/001-care-web-app/checklists/requirements.md
+  - docs/_external/competition/qitc — 智慧創新大賞/charts/anxiety-cycle.html
+  - .github/prompts/spectra-propose.prompt.md
+  - docs/3-dev — 開發文件/fal-ai-api-reference.md
+  - docs/_external/archive/src/voice-emotion.ts
+  - docs/3-dev — 開發文件/elevenlabs-api-reference.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/官方附件/附件四_加分佐證文件.docx
+  - docs/3-dev — 開發文件/specs/001-care-web-app/data-model.md
+  - lib/calm-index-bridge.ts
+  - docs/_external/competition/presentation-script.md
+  - docs/_external/competition/qitc — 智慧創新大賞/官方附件/附件四_加分佐證文件.docx
+  - lib/types.ts
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/Moltos_作品說明書_v2.docx
+  - .windsurfrules
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/build_docx.py
+  - lib/gemini.ts
+  - docs/3-dev — 開發文件/specs/001-care-web-app/contracts/gemini-prompts.md
+  - docs/3-dev — 開發文件/specs/001-care-web-app/plan.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/PROPOSAL-OUTLINE.md
+  - docs/dev/general/ssh-moltos.md
+  - .github/skills/spectra-archive/SKILL.md
+  - docs/dev/handoffs/handoff-elevenlabs-chat.md
+  - carousel-v2-simple.html
+  - coverage/app/api/calm-index/route.ts.html
+  - .github/prompts/spectra-archive.prompt.md
+  - components/ui/sonner.tsx
+  - coverage/lib/gemini.ts.html
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/chart-competitive-matrix.png
+  - docs/dev/elevenlabs-full-capability.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/screenshot.js
+  - docs/_external/competition/qitc — 智慧創新大賞/官方附件/附件三_作品說明書範本.docx
+  - docs/_external/competition/moea-ai — 經濟部AI輔導/申請須知.pdf
+  - lib/proactive-checkin.ts
+  - .opencode.json
+  - lib/speech.ts
+  - docs/_external/archive/src/anomaly.ts
+  - lib/youtube.ts
+  - types/next-auth.d.ts
+  - docs/5-design — 設計文件/care-engine.pen
+  - docs/_external/competition/moea-ai — 經濟部AI輔導/申請須知.docx
+  - docs/_external/competition/demo-script.md
+  - docs/_external/competition/qitc — 智慧創新大賞/PROPOSAL-OUTLINE.md
+  - components/settings/clear-user-data-section.tsx
+  - docs/2-general — 一般文書/archive — 舊檔案/website/index.html
+  - app/(app)/review/page.tsx
+  - docs/dev/specs/001-care-web-app/checklists/requirements.md
+  - docs/dev/architecture.md
+  - lib/db.ts
+  - docs/dev/specs/001-care-web-app/contracts/api-routes.md
+  - docs/_external/competition/qitc — 智慧創新大賞/官方附件/附件二_參賽切結書暨個資同意書.docx
+  - lib/elevenlabs.ts
+  - docs/2-general — 一般文書/archive — 舊檔案/examples/basic-usage.ts
+  - coverage/app/api/elevenlabs-signed-url/index.html
+  - docs/_external/archive/examples/basic-usage.ts
+  - docs/dev/specs/001-care-web-app/contracts/gemini-prompts.md
+  - components/providers.tsx
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/官方附件/附件一_團隊基本資料.docx
+  - docs/_external/competition/qitc — 智慧創新大賞/官方附件/2026智慧創新大賞競賽須知.pdf
+  - docs/_external/competition/qitc — 智慧創新大賞/Moltos_作品說明書.docx
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/chart-market-growth.png
+  - docs/2-general — 一般文書/archive — 舊檔案/src/voice-emotion.ts
+  - app/api/call-sessions/route.ts
+  - .github/skills/spectra-ingest/SKILL.md
+  - AGENTS.md
+  - coverage/sort-arrow-sprite.png
+  - docs/_external/competition/qitc — 智慧創新大賞/PROPOSAL-PART1.md
+  - docs/_external/competition/qitc — 智慧創新大賞/images/chart-architecture.png
+  - docs/2-general — 一般文書/archive — 舊檔案/src/anomaly.ts
+  - GEMINI.md
+  - coverage/app/api/chat/message/route.ts.html
+  - docs/dev/fal-ai-api-reference.md
+  - docs/2-general — 一般文書/ssh-moltos.md
+  - app/api/chat/insight/route.ts
+  - coverage/block-navigation.js
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/screen-settings.png
+  - docs/dev/senticore/templates/CLAUDE.md
+  - coverage/app/api/elevenlabs-webhook/index.html
+  - docs/2-general — 一般文書/archive — 舊檔案/src/baseline.ts
+  - docs/2-general — 一般文書/ai.md
+  - docs/dev/general/ai.md
+  - docs/_external/competition/judging-prep.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/AI輕量化佐證說明.md
+  - docs/_external/competition/qitc — 智慧創新大賞/charts/market-growth.html
+  - docs/dev/code-guide/README.md
+  - docs/_external/competition/qitc — 智慧創新大賞/Moltos_作品說明書_v2.docx
+  - docs/4-competitors — 競品分析/snowie-ai-vs-elevenlabs.md
+  - docs/dev/specs/001-care-web-app/quickstart.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/screen-onboarding.png
+  - app/(app)/call/page.tsx
+  - docs/3-dev — 開發文件/specs/001-care-web-app/contracts/api-routes.md
+  - coverage/index.html
+  - docs/1-competition — 比賽資料/judging-prep.md
+  - docs/dev/senticore/orchestration_prompt_zh.md
+  - app/api/user/data/route.ts
+  - coverage/app/api/chat/history/route.ts.html
+  - docs/_external/competition/qitc — 智慧創新大賞/官方附件/附件一_團隊基本資料.docx
+  - docs/dev/senticore/LICENSE
+  - hooks/use-toast.ts
+  - docs/Moltos — 主動式心理健康守護 AI.pdf
+  - coverage/app/api/elevenlabs-signed-url/route.ts.html
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/LinkedIn_余啟彰_Profile.gif
+  - docs/_external/competition/qitc — 智慧創新大賞/AI輕量化佐證說明.md
+  - docs/dev/senticore/emotion_skill_zh.md
+  - coverage/coverage-final.json
+  - docs/dev/specs/001-care-web-app/data-model.md
+  - docs/dev/senticore/README.md
+  - lib/demo-data.ts
+  - docs/dev/specs/001-care-web-app/plan.md
+  - fishtvlove-carousel-final.html
+  - docs/_external/archive/src/types.ts
+  - docs/dev/senticore/tools/update_emotion_state.json
+  - docs/_external/competition/qitc — 智慧創新大賞/images/chart-market-growth.png
+  - app/api/elevenlabs-webhook/route.ts
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/screen-chat.png
+  - docs/2-general — 一般文書/PROJECT.md
+  - docs/_external/archive/demo/index.html
+  - docs/_external/competition/qitc — 智慧創新大賞/build_docx.py
+  - docs/4-competitors — 競品分析/clonevoice-ai-vs-elevenlabs.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/charts/market-growth.html
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/screen-dashboard.png
+  - docs/3-dev — 開發文件/elevenlabs-full-capability.md
+  - docs/_external/competition/qitc — 智慧創新大賞/PROPOSAL-PART2.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/chart-roadmap.png
+  - .github/prompts/spectra-debug.prompt.md
+  - .github/prompts/spectra-discuss.prompt.md
+  - .cursorrules
+  - coverage/lib/index.html
+  - docs/1-competition — 比賽資料/presentation-script.md
+  - carousel-ig-fullsize.html
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/chart-architecture.png
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/templates/sample_soul.md
+  - docs/_external/competition/qitc — 智慧創新大賞/images/chart-anxiety-cycle.png
+  - coverage/app/api/chat/message/index.html
+  - docs/dev/senticore/README_zh.md
+  - docs/3-dev — 開發文件/specs/001-care-web-app/quickstart.md
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/templates/CLAUDE.md
+  - coverage/prettify.js
+  - docs/3-dev — 開發文件/specs/001-care-web-app/spec.md
+  - coverage/base.css
+  - docs/dev/senticore/templates/sample_soul.md
+  - docs/_external/competition/qitc — 智慧創新大賞/images/screen-settings.png
+  - docs/dev/senticore/emotion_skill_en.md
+  - package.json
+  - app/api/elevenlabs-signed-url/route.ts
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/PROPOSAL-PART2.md
+  - carousel-content.md
+  - lib/gemini-prompts.ts
+  - docs/_external/competition/qitc — 智慧創新大賞/images/screen-insights.png
+  - specs/001-care-web-app/plan.md
+  - docs/README.md
+  - app/(app)/chat/page.tsx
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/orchestration_prompt_zh.md
+  - docs/_external/competition/qitc — 智慧創新大賞/PROPOSAL.md
+  - app/api/chat/route.ts
+  - docs/_external/archive/src/baseline.ts
+  - .github/skills/spectra-discuss/SKILL.md
+  - CLAUDE.md
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/tools/update_emotion_state.json
+  - .github/prompts/spectra-ask.prompt.md
+  - docs/_external/competition/qitc — 智慧創新大賞/附件四_加分佐證_Moltos.md
+  - fishtvlove-carousel.html
+  - .code-review-graphignore
+  - docs/1-competition — 比賽資料/moea-ai — 經濟部AI輔導/申請須知.docx
+  - docs/3-dev — 開發文件/specs/001-care-web-app/tasks.md
+  - coverage/clover.xml
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/remove.sh
+  - docs/_external/competition/qitc — 智慧創新大賞/REGISTRATION.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/charts/competitive-matrix.html
+  - coverage/lib/youtube.ts.html
+  - docs/_external/competition/qitc — 智慧創新大賞/images/screen-onboarding.png
+  - docs/2-general — 一般文書/archive — 舊檔案/src/types.ts
+  - docs/dev/elevenlabs-api-reference.md
+  - docs/_external/competition/qitc — 智慧創新大賞/images/screen-dashboard.png
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/emotion_skill_en.md
+  - docs/_external/competition/qitc — 智慧創新大賞/charts/competitive-matrix.html
+  - docs/_external/competition/qitc — 智慧創新大賞/images/screen-chat.png
+  - .github/skills/spectra-ask/SKILL.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/PROPOSAL.md
+  - coverage/app/api/chat/history/index.html
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/README_zh.md
+  - docs/_external/archive/src/index.ts
+  - coverage/lib/proactive-checkin.ts.html
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/screen-insights.png
+  - docs/_external/README.md
+  - .github/skills/spectra-debug/SKILL.md
+  - docs/1-competition — 比賽資料/demo-script.md
+  - docs/_external/competition/qitc — 智慧創新大賞/screenshot.js
+  - docs/_external/competition/qitc — 智慧創新大賞/LinkedIn_余啟彰_Profile.gif
+  - .github/prompts/spectra-audit.prompt.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/REGISTRATION.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/charts/roadmap.html
+  - docs/_external/competition/qitc — 智慧創新大賞/charts/architecture.html
+  - docs/_external/competition/qitc — 智慧創新大賞/images/chart-roadmap.png
+  - coverage/prettify.css
+  - docs/_external/competitors/clonevoice-ai-vs-elevenlabs.md
+  - docs/dev/decisions/001-elevenlabs-tts.md
+  - docs/dev/general/PROJECT.md
+  - docs/2-general — 一般文書/archive — 舊檔案/demo/index.html
+  - docs/_external/archive/website/index.html
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/chart-anxiety-cycle.png
+  - docs/_external/competitors/README.md
+  - coverage/lib/calm-index-bridge.ts.html
+  - docs/_external/competition/qitc — 智慧創新大賞/screenshot-charts.js
+  - docs/dev/senticore/remove.sh
+  - docs/design/care-engine.pen
+  - supabase/migrations/20260411120000_add_call_sessions.sql
+  - docs/dev/senticore/install.sh
+  - docs/dev/specs/001-care-web-app/spec.md
+  - docs/4-competitors — 競品分析/README.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/RESEARCH.md
+  - docs/2026 Best AI Awards 智慧創新大賞 競賽隊伍入圍通知.eml
+  - .spectra.yaml
+  - coverage/app/api/elevenlabs-webhook/route.ts.html
+  - .mcp.json
+  - .github/skills/spectra-apply/SKILL.md
+  - .github/skills/spectra-audit/SKILL.md
+  - brand-profile.json
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/charts/anxiety-cycle.html
+  - docs/1-competition — 比賽資料/moea-ai — 經濟部AI輔導/申請須知.pdf
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/charts/architecture.html
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/README.md
+  - components/dashboard/news-card.tsx
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/install.sh
+  - docs/2-general — 一般文書/archive — 舊檔案/src/calm-index.ts
+  - docs/_external/competition/qitc — 智慧創新大賞/images/chart-competitive-matrix.png
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/orchestration_prompt_en.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/附件四_加分佐證_Moltos.md
+  - components/ui/alert-dialog.tsx
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/LICENSE
+  - app/api/analyze-insight/route.ts
+  - .github/skills/spectra-propose/SKILL.md
+  - docs/_external/competitors/snowie-ai-vs-elevenlabs.md
+  - coverage/lib/gmail.ts.html
+  - docs/2-general — 一般文書/archive — 舊檔案/src/index.ts
+  - coverage/lib/gemini-prompts.ts.html
+  - fishtvlove-carousel-classic.html
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/官方附件/附件三_作品說明書範本.docx
+  - coverage/app/api/calm-index/index.html
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/screenshot-charts.js
+  - docs/0-code-guide — 代碼說明/README.md
+tests:
+  - tests/api/call-sessions-rls.test.ts
+  - tests/api/call-sessions-race-condition.test.ts
+  - tests/api/elevenlabs-signed-url-auth.test.ts
+  - lib/__tests__/speech.test.ts
+  - tests/api/elevenlabs-webhook-call-sessions-lookup.test.ts
+  - tests/api/elevenlabs-call-lifecycle.test.ts
+  - tests/api/calm-index.test.ts
+  - tests/api/chat-message.test.ts
+  - tests/api/fix-call-transcript-red-light.test.ts
+  - lib/__tests__/proactive-checkin.test.ts
+  - lib/__tests__/calm-index-bridge.test.ts
+  - tests/api/elevenlabs-webhook.test.ts
+  - tests/api/user-data-delete.test.ts
+  - tests/api/chat-route-deleted.test.ts
+  - tests/api/elevenlabs-signed-url.test.ts
+  - tests/api/chat-history.test.ts
+  - tests/api/call-sessions.test.ts
+  - tests/api/chat-insight.test.ts
+  - tests/api/chat-poll.test.ts
+  - tests/api/elevenlabs-webhook-user-id-fix.test.ts
+  - lib/__tests__/elevenlabs.test.ts
+  - lib/__tests__/calm-index-algo.test.ts
+  - tests/api/call-sessions-auth-fix.test.ts
+  - tests/api/elevenlabs-signed-url-call-sessions.test.ts
+  - tests/api/chat-agent.test.ts
+  - lib/__tests__/youtube.test.ts
+  - tests/lib/youtube.test.ts
+  - lib/__tests__/gemini-prompts.test.ts
+-->
+
+---
+### Requirement: AI responses are context-aware of user's life signals
+
+The system SHALL incorporate calm index and time-of-day signals into Gemini prompt construction.
+
+#### Scenario: Calm index context included in prompt
+
+- **WHEN** a Gemini prompt is constructed and a snapshot is available
+- **THEN** the prompt includes the user's current calm index score, level, and elevated dimensions
+
+#### Scenario: No calm index available — graceful degradation
+
+- **WHEN** no snapshot exists
+- **THEN** the prompt does NOT contain `null`, `undefined`, or placeholder text
+
+#### Scenario: Time-of-day signal injected into prompt
+
+- **WHEN** any AI response is generated
+- **THEN** the prompt includes the current time period (morning / afternoon / evening / late night)
+
+<!-- @trace
+source: moltos-core-experience-spec
+updated: 2026-04-13
+code:
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/官方附件/附件二_參賽切結書暨個資同意書.docx
+  - coverage/favicon.png
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/PROPOSAL-PART1.md
+  - docs/_external/archive/src/calm-index.ts
+  - docs/dev/specs/001-care-web-app/tasks.md
+  - .github/prompts/spectra-ingest.prompt.md
+  - docs/_external/competition/qitc — 智慧創新大賞/RESEARCH.md
+  - docs/moltos-QR.png
+  - fishtvlove-carousel-v2.html
+  - docs/3-dev — 開發文件/specs/001-care-web-app/research.md
+  - fishtvlove-facebook-post.md
+  - vitest.config.ts
+  - docs/dev/specs/001-care-web-app/research.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/官方附件/2026智慧創新大賞競賽須知.pdf
+  - .github/prompts/spectra-apply.prompt.md
+  - app/(app)/settings/page.tsx
+  - docs/dev/senticore/orchestration_prompt_en.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/Moltos_作品說明書.docx
+  - docs/_external/competition/qitc — 智慧創新大賞/charts/roadmap.html
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/emotion_skill_zh.md
+  - slide1.png
+  - coverage/lib/elevenlabs.ts.html
+  - coverage/sorter.js
+  - docs/3-dev — 開發文件/specs/001-care-web-app/checklists/requirements.md
+  - docs/_external/competition/qitc — 智慧創新大賞/charts/anxiety-cycle.html
+  - .github/prompts/spectra-propose.prompt.md
+  - docs/3-dev — 開發文件/fal-ai-api-reference.md
+  - docs/_external/archive/src/voice-emotion.ts
+  - docs/3-dev — 開發文件/elevenlabs-api-reference.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/官方附件/附件四_加分佐證文件.docx
+  - docs/3-dev — 開發文件/specs/001-care-web-app/data-model.md
+  - lib/calm-index-bridge.ts
+  - docs/_external/competition/presentation-script.md
+  - docs/_external/competition/qitc — 智慧創新大賞/官方附件/附件四_加分佐證文件.docx
+  - lib/types.ts
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/Moltos_作品說明書_v2.docx
+  - .windsurfrules
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/build_docx.py
+  - lib/gemini.ts
+  - docs/3-dev — 開發文件/specs/001-care-web-app/contracts/gemini-prompts.md
+  - docs/3-dev — 開發文件/specs/001-care-web-app/plan.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/PROPOSAL-OUTLINE.md
+  - docs/dev/general/ssh-moltos.md
+  - .github/skills/spectra-archive/SKILL.md
+  - docs/dev/handoffs/handoff-elevenlabs-chat.md
+  - carousel-v2-simple.html
+  - coverage/app/api/calm-index/route.ts.html
+  - .github/prompts/spectra-archive.prompt.md
+  - components/ui/sonner.tsx
+  - coverage/lib/gemini.ts.html
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/chart-competitive-matrix.png
+  - docs/dev/elevenlabs-full-capability.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/screenshot.js
+  - docs/_external/competition/qitc — 智慧創新大賞/官方附件/附件三_作品說明書範本.docx
+  - docs/_external/competition/moea-ai — 經濟部AI輔導/申請須知.pdf
+  - lib/proactive-checkin.ts
+  - .opencode.json
+  - lib/speech.ts
+  - docs/_external/archive/src/anomaly.ts
+  - lib/youtube.ts
+  - types/next-auth.d.ts
+  - docs/5-design — 設計文件/care-engine.pen
+  - docs/_external/competition/moea-ai — 經濟部AI輔導/申請須知.docx
+  - docs/_external/competition/demo-script.md
+  - docs/_external/competition/qitc — 智慧創新大賞/PROPOSAL-OUTLINE.md
+  - components/settings/clear-user-data-section.tsx
+  - docs/2-general — 一般文書/archive — 舊檔案/website/index.html
+  - app/(app)/review/page.tsx
+  - docs/dev/specs/001-care-web-app/checklists/requirements.md
+  - docs/dev/architecture.md
+  - lib/db.ts
+  - docs/dev/specs/001-care-web-app/contracts/api-routes.md
+  - docs/_external/competition/qitc — 智慧創新大賞/官方附件/附件二_參賽切結書暨個資同意書.docx
+  - lib/elevenlabs.ts
+  - docs/2-general — 一般文書/archive — 舊檔案/examples/basic-usage.ts
+  - coverage/app/api/elevenlabs-signed-url/index.html
+  - docs/_external/archive/examples/basic-usage.ts
+  - docs/dev/specs/001-care-web-app/contracts/gemini-prompts.md
+  - components/providers.tsx
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/官方附件/附件一_團隊基本資料.docx
+  - docs/_external/competition/qitc — 智慧創新大賞/官方附件/2026智慧創新大賞競賽須知.pdf
+  - docs/_external/competition/qitc — 智慧創新大賞/Moltos_作品說明書.docx
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/chart-market-growth.png
+  - docs/2-general — 一般文書/archive — 舊檔案/src/voice-emotion.ts
+  - app/api/call-sessions/route.ts
+  - .github/skills/spectra-ingest/SKILL.md
+  - AGENTS.md
+  - coverage/sort-arrow-sprite.png
+  - docs/_external/competition/qitc — 智慧創新大賞/PROPOSAL-PART1.md
+  - docs/_external/competition/qitc — 智慧創新大賞/images/chart-architecture.png
+  - docs/2-general — 一般文書/archive — 舊檔案/src/anomaly.ts
+  - GEMINI.md
+  - coverage/app/api/chat/message/route.ts.html
+  - docs/dev/fal-ai-api-reference.md
+  - docs/2-general — 一般文書/ssh-moltos.md
+  - app/api/chat/insight/route.ts
+  - coverage/block-navigation.js
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/screen-settings.png
+  - docs/dev/senticore/templates/CLAUDE.md
+  - coverage/app/api/elevenlabs-webhook/index.html
+  - docs/2-general — 一般文書/archive — 舊檔案/src/baseline.ts
+  - docs/2-general — 一般文書/ai.md
+  - docs/dev/general/ai.md
+  - docs/_external/competition/judging-prep.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/AI輕量化佐證說明.md
+  - docs/_external/competition/qitc — 智慧創新大賞/charts/market-growth.html
+  - docs/dev/code-guide/README.md
+  - docs/_external/competition/qitc — 智慧創新大賞/Moltos_作品說明書_v2.docx
+  - docs/4-competitors — 競品分析/snowie-ai-vs-elevenlabs.md
+  - docs/dev/specs/001-care-web-app/quickstart.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/screen-onboarding.png
+  - app/(app)/call/page.tsx
+  - docs/3-dev — 開發文件/specs/001-care-web-app/contracts/api-routes.md
+  - coverage/index.html
+  - docs/1-competition — 比賽資料/judging-prep.md
+  - docs/dev/senticore/orchestration_prompt_zh.md
+  - app/api/user/data/route.ts
+  - coverage/app/api/chat/history/route.ts.html
+  - docs/_external/competition/qitc — 智慧創新大賞/官方附件/附件一_團隊基本資料.docx
+  - docs/dev/senticore/LICENSE
+  - hooks/use-toast.ts
+  - docs/Moltos — 主動式心理健康守護 AI.pdf
+  - coverage/app/api/elevenlabs-signed-url/route.ts.html
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/LinkedIn_余啟彰_Profile.gif
+  - docs/_external/competition/qitc — 智慧創新大賞/AI輕量化佐證說明.md
+  - docs/dev/senticore/emotion_skill_zh.md
+  - coverage/coverage-final.json
+  - docs/dev/specs/001-care-web-app/data-model.md
+  - docs/dev/senticore/README.md
+  - lib/demo-data.ts
+  - docs/dev/specs/001-care-web-app/plan.md
+  - fishtvlove-carousel-final.html
+  - docs/_external/archive/src/types.ts
+  - docs/dev/senticore/tools/update_emotion_state.json
+  - docs/_external/competition/qitc — 智慧創新大賞/images/chart-market-growth.png
+  - app/api/elevenlabs-webhook/route.ts
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/screen-chat.png
+  - docs/2-general — 一般文書/PROJECT.md
+  - docs/_external/archive/demo/index.html
+  - docs/_external/competition/qitc — 智慧創新大賞/build_docx.py
+  - docs/4-competitors — 競品分析/clonevoice-ai-vs-elevenlabs.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/charts/market-growth.html
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/screen-dashboard.png
+  - docs/3-dev — 開發文件/elevenlabs-full-capability.md
+  - docs/_external/competition/qitc — 智慧創新大賞/PROPOSAL-PART2.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/chart-roadmap.png
+  - .github/prompts/spectra-debug.prompt.md
+  - .github/prompts/spectra-discuss.prompt.md
+  - .cursorrules
+  - coverage/lib/index.html
+  - docs/1-competition — 比賽資料/presentation-script.md
+  - carousel-ig-fullsize.html
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/chart-architecture.png
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/templates/sample_soul.md
+  - docs/_external/competition/qitc — 智慧創新大賞/images/chart-anxiety-cycle.png
+  - coverage/app/api/chat/message/index.html
+  - docs/dev/senticore/README_zh.md
+  - docs/3-dev — 開發文件/specs/001-care-web-app/quickstart.md
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/templates/CLAUDE.md
+  - coverage/prettify.js
+  - docs/3-dev — 開發文件/specs/001-care-web-app/spec.md
+  - coverage/base.css
+  - docs/dev/senticore/templates/sample_soul.md
+  - docs/_external/competition/qitc — 智慧創新大賞/images/screen-settings.png
+  - docs/dev/senticore/emotion_skill_en.md
+  - package.json
+  - app/api/elevenlabs-signed-url/route.ts
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/PROPOSAL-PART2.md
+  - carousel-content.md
+  - lib/gemini-prompts.ts
+  - docs/_external/competition/qitc — 智慧創新大賞/images/screen-insights.png
+  - specs/001-care-web-app/plan.md
+  - docs/README.md
+  - app/(app)/chat/page.tsx
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/orchestration_prompt_zh.md
+  - docs/_external/competition/qitc — 智慧創新大賞/PROPOSAL.md
+  - app/api/chat/route.ts
+  - docs/_external/archive/src/baseline.ts
+  - .github/skills/spectra-discuss/SKILL.md
+  - CLAUDE.md
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/tools/update_emotion_state.json
+  - .github/prompts/spectra-ask.prompt.md
+  - docs/_external/competition/qitc — 智慧創新大賞/附件四_加分佐證_Moltos.md
+  - fishtvlove-carousel.html
+  - .code-review-graphignore
+  - docs/1-competition — 比賽資料/moea-ai — 經濟部AI輔導/申請須知.docx
+  - docs/3-dev — 開發文件/specs/001-care-web-app/tasks.md
+  - coverage/clover.xml
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/remove.sh
+  - docs/_external/competition/qitc — 智慧創新大賞/REGISTRATION.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/charts/competitive-matrix.html
+  - coverage/lib/youtube.ts.html
+  - docs/_external/competition/qitc — 智慧創新大賞/images/screen-onboarding.png
+  - docs/2-general — 一般文書/archive — 舊檔案/src/types.ts
+  - docs/dev/elevenlabs-api-reference.md
+  - docs/_external/competition/qitc — 智慧創新大賞/images/screen-dashboard.png
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/emotion_skill_en.md
+  - docs/_external/competition/qitc — 智慧創新大賞/charts/competitive-matrix.html
+  - docs/_external/competition/qitc — 智慧創新大賞/images/screen-chat.png
+  - .github/skills/spectra-ask/SKILL.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/PROPOSAL.md
+  - coverage/app/api/chat/history/index.html
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/README_zh.md
+  - docs/_external/archive/src/index.ts
+  - coverage/lib/proactive-checkin.ts.html
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/screen-insights.png
+  - docs/_external/README.md
+  - .github/skills/spectra-debug/SKILL.md
+  - docs/1-competition — 比賽資料/demo-script.md
+  - docs/_external/competition/qitc — 智慧創新大賞/screenshot.js
+  - docs/_external/competition/qitc — 智慧創新大賞/LinkedIn_余啟彰_Profile.gif
+  - .github/prompts/spectra-audit.prompt.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/REGISTRATION.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/charts/roadmap.html
+  - docs/_external/competition/qitc — 智慧創新大賞/charts/architecture.html
+  - docs/_external/competition/qitc — 智慧創新大賞/images/chart-roadmap.png
+  - coverage/prettify.css
+  - docs/_external/competitors/clonevoice-ai-vs-elevenlabs.md
+  - docs/dev/decisions/001-elevenlabs-tts.md
+  - docs/dev/general/PROJECT.md
+  - docs/2-general — 一般文書/archive — 舊檔案/demo/index.html
+  - docs/_external/archive/website/index.html
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/images/chart-anxiety-cycle.png
+  - docs/_external/competitors/README.md
+  - coverage/lib/calm-index-bridge.ts.html
+  - docs/_external/competition/qitc — 智慧創新大賞/screenshot-charts.js
+  - docs/dev/senticore/remove.sh
+  - docs/design/care-engine.pen
+  - supabase/migrations/20260411120000_add_call_sessions.sql
+  - docs/dev/senticore/install.sh
+  - docs/dev/specs/001-care-web-app/spec.md
+  - docs/4-competitors — 競品分析/README.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/RESEARCH.md
+  - docs/2026 Best AI Awards 智慧創新大賞 競賽隊伍入圍通知.eml
+  - .spectra.yaml
+  - coverage/app/api/elevenlabs-webhook/route.ts.html
+  - .mcp.json
+  - .github/skills/spectra-apply/SKILL.md
+  - .github/skills/spectra-audit/SKILL.md
+  - brand-profile.json
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/charts/anxiety-cycle.html
+  - docs/1-competition — 比賽資料/moea-ai — 經濟部AI輔導/申請須知.pdf
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/charts/architecture.html
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/README.md
+  - components/dashboard/news-card.tsx
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/install.sh
+  - docs/2-general — 一般文書/archive — 舊檔案/src/calm-index.ts
+  - docs/_external/competition/qitc — 智慧創新大賞/images/chart-competitive-matrix.png
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/orchestration_prompt_en.md
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/附件四_加分佐證_Moltos.md
+  - components/ui/alert-dialog.tsx
+  - docs/3-dev — 開發文件/senticore — 情緒引擎參考/LICENSE
+  - app/api/analyze-insight/route.ts
+  - .github/skills/spectra-propose/SKILL.md
+  - docs/_external/competitors/snowie-ai-vs-elevenlabs.md
+  - coverage/lib/gmail.ts.html
+  - docs/2-general — 一般文書/archive — 舊檔案/src/index.ts
+  - coverage/lib/gemini-prompts.ts.html
+  - fishtvlove-carousel-classic.html
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/官方附件/附件三_作品說明書範本.docx
+  - coverage/app/api/calm-index/index.html
+  - docs/1-competition — 比賽資料/qitc — 智慧創新大賞/screenshot-charts.js
+  - docs/0-code-guide — 代碼說明/README.md
+tests:
+  - tests/api/call-sessions-rls.test.ts
+  - tests/api/call-sessions-race-condition.test.ts
+  - tests/api/elevenlabs-signed-url-auth.test.ts
+  - lib/__tests__/speech.test.ts
+  - tests/api/elevenlabs-webhook-call-sessions-lookup.test.ts
+  - tests/api/elevenlabs-call-lifecycle.test.ts
+  - tests/api/calm-index.test.ts
+  - tests/api/chat-message.test.ts
+  - tests/api/fix-call-transcript-red-light.test.ts
+  - lib/__tests__/proactive-checkin.test.ts
+  - lib/__tests__/calm-index-bridge.test.ts
+  - tests/api/elevenlabs-webhook.test.ts
+  - tests/api/user-data-delete.test.ts
+  - tests/api/chat-route-deleted.test.ts
+  - tests/api/elevenlabs-signed-url.test.ts
+  - tests/api/chat-history.test.ts
+  - tests/api/call-sessions.test.ts
+  - tests/api/chat-insight.test.ts
+  - tests/api/chat-poll.test.ts
+  - tests/api/elevenlabs-webhook-user-id-fix.test.ts
+  - lib/__tests__/elevenlabs.test.ts
+  - lib/__tests__/calm-index-algo.test.ts
+  - tests/api/call-sessions-auth-fix.test.ts
+  - tests/api/elevenlabs-signed-url-call-sessions.test.ts
+  - tests/api/chat-agent.test.ts
+  - lib/__tests__/youtube.test.ts
+  - tests/lib/youtube.test.ts
+  - lib/__tests__/gemini-prompts.test.ts
+-->
