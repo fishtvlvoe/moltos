@@ -25,9 +25,9 @@ export async function POST() {
       );
     }
 
-    if (!refreshToken) {
+    if (refreshToken == null) {
       console.warn(
-        '[gmail-switch-account] Google OAuth refresh token not provided, token refresh may fail',
+        'Google OAuth refresh token not provided, token refresh may fail',
       );
     }
 

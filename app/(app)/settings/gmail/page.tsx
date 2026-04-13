@@ -48,11 +48,7 @@ export default async function GmailSettingsPage() {
         </Link>
       </div>
 
-      <GmailStatus
-        statusOnly
-        email={displayGmail}
-        lastSyncTime={lastSyncTime}
-      />
+      <GmailStatus email={displayGmail} lastSyncTime={lastSyncTime} />
 
       <GmailActions isGmailConnected={connected} />
     </div>
