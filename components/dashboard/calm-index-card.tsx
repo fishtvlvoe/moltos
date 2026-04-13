@@ -202,7 +202,7 @@ export function CalmIndexCard() {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-[#9E9E9E]">
-            {error ?? '資料暫時無法載入，請稍後再試。'}
+            {error ?? '需要至少 14 天的郵件數據才能計算平靜指數'}
           </p>
         </CardContent>
       </Card>

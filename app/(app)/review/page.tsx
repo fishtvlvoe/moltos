@@ -111,12 +111,39 @@ function CalmTooltip({
   );
 }
 
+function ActiveDot({ cx, cy, onClick, payload }: { cx?: number; cy?: number; onClick: (pt: DailyPoint) => void; payload?: DailyPoint }) {
+  const handleKeyDown = (e: React.KeyboardEvent<SVGCircleElement>) => {
+    if ((e.key === 'Enter' || e.key === ' ') && payload) {
+      e.preventDefault();
+      onClick(payload);
+    }
+  };
+
+  return (
+    <circle
+      cx={cx}
+      cy={cy}
+      r={6}
+      fill="#7C5CBA"
+      stroke="#fff"
+      strokeWidth={2}
+      style={{ cursor: 'pointer' }}
+      onClick={() => payload && onClick(payload)}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
+      aria-label={payload ? `查看 ${payload.date} 詳細` : undefined}
+    />
+  );
+}
+
 export default function ReviewPage() {
   const [history, setHistory] = useState<CalmEntry[]>([]);
   const [insights, setInsights] = useState<InsightEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [analyzingRecent, setAnalyzingRecent] = useState(false);
   const [analyzeError, setAnalyzeError] = useState<string | null>(null);
+  const [selectedDay, setSelectedDay] = useState<DailyPoint | null>(null);
 
   const dailyPoints = useMemo(() => groupCalmHistoryByDay(history), [history]);
 
@@ -186,6 +213,7 @@ export default function ReviewPage() {
       }
 
       await loadInsights();
+      setSelectedDay(null);
     } catch {
       setAnalyzeError('分析失敗，請稍後再試');
     }
@@ -278,10 +306,47 @@ export default function ReviewPage() {
                     stroke="#7C5CBA"
                     strokeWidth={2}
                     dot={{ r: 3 }}
-                    activeDot={{ r: 5 }}
+                    activeDot={<ActiveDot onClick={(pt: DailyPoint) => setSelectedDay(pt)} />}
                   />
                 </LineChart>
               </ResponsiveContainer>
+            </div>
+          )}
+
+          {selectedDay && dailyPoints.length > 1 && (
+            <div className="mt-3 rounded-lg border border-[#DDD5F0] bg-[#F8F5FD] p-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-[#5B4A8A]">
+                  {selectedDay.date} 詳細
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedDay(null)}
+                  className="text-[#8A8A8A] hover:text-[#2D2D2D] text-sm px-1"
+                  aria-label="關閉詳細"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="flex items-center gap-3">
+                <div
+                  className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white"
+                  style={{ backgroundColor: scoreColor(selectedDay.score) }}
+                >
+                  {selectedDay.score}
+                </div>
+                <div>
+                  <p className="text-sm text-[#2D2D2D]">
+                    平靜指數 {selectedDay.score}
+                  </p>
+                  <p
+                    className="text-xs"
+                    style={{ color: LEVEL_COLORS[selectedDay.level] ?? '#8A8A8A' }}
+                  >
+                    {LEVEL_LABELS[selectedDay.level] ?? selectedDay.level}
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </CardContent>
@@ -307,7 +372,7 @@ export default function ReviewPage() {
               <p className="text-sm text-[#8A8A8A]">尚未有對話分析紀錄</p>
 
               <p className="text-xs text-[#B0B0B0] mt-1">
-                和小莫聊天後，在下方點「分析最近對話」就會出現在這裡
+                和小莫聊天後，在下方點「平靜分析」就會出現在這裡
               </p>
             </div>
           ) : (
@@ -319,10 +384,10 @@ export default function ReviewPage() {
                 return (
                   <div
                     key={ins.id}
-                    className="p-3 rounded-xl bg-white border border-[#EDE8E0]"
+                    className="p-2 md:p-4 rounded-lg bg-white border border-[#EDE8E0] shadow-sm"
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs text-[#8A8A8A]">{dateLabel}</span>
+                      <span className="text-xs md:text-sm text-[#8A8A8A]">{dateLabel}</span>
 
                       <div className="flex items-center gap-1.5">
                         <div
@@ -334,7 +399,7 @@ export default function ReviewPage() {
                       </div>
                     </div>
 
-                    <p className="text-sm text-[#2D2D2D] font-medium mb-1">{ins.summary}</p>
+                    <p className="text-sm md:text-base text-[#2D2D2D] font-medium mb-1">{ins.summary}</p>
 
                     <div className="flex flex-wrap gap-1.5 mb-2">
                       <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#F0EBFA] text-[#5B4A8A]">
@@ -353,7 +418,7 @@ export default function ReviewPage() {
                         <p className="text-[10px] text-[#8A8A8A] mb-0.5">內在需求</p>
 
                         {ins.inner_needs.map((need, j) => (
-                          <p key={j} className="text-xs text-[#5A5A5A]">
+                          <p key={j} className="text-xs md:text-sm text-[#5A5A5A]">
                             • {need}
                           </p>
                         ))}
@@ -365,7 +430,7 @@ export default function ReviewPage() {
                         <p className="text-[10px] text-[#8A8A8A] mb-0.5">回歸平靜的路徑</p>
 
                         {ins.growth_paths.map((path, j) => (
-                          <p key={j} className="text-xs text-[#5A5A5A]">
+                          <p key={j} className="text-xs md:text-sm text-[#5A5A5A]">
                             • {path}
                           </p>
                         ))}
@@ -382,12 +447,11 @@ export default function ReviewPage() {
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
                 disabled={analyzingRecent}
                 onClick={handleAnalyzeRecent}
-                className="rounded-full border-[#DDD5F0] bg-[#F0EBFA] text-xs text-[#5B4A8A] hover:bg-[#E4DCF4]"
+                className="rounded-full border-[#DDD5F0] bg-[#F0EBFA] px-6 py-3 text-base text-[#5B4A8A] hover:bg-[#E4DCF4]"
               >
-                {analyzingRecent ? '分析中…' : '分析最近對話'}
+                {analyzingRecent ? '分析中…' : '平靜分析'}
               </Button>
 
               {analyzeError && (
