@@ -5,6 +5,8 @@
  * 僅限在 client component 中呼叫，不需要 'use client' 宣告。
  */
 
+import type { RefObject } from "react";
+
 // ── 型別補充（Web Speech API 不在所有 TypeScript lib 中）──
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type SpeechRecognitionType = any;
@@ -13,8 +15,43 @@ type SpeechRecognitionType = any;
 // STT（語音轉文字）— SpeechRecognition
 // ─────────────────────────────────────────
 
-/** 目前使用中的辨識器實例，stopListening() 時需要存取 */
-let recognitionInstance: SpeechRecognitionType | null = null;
+/**
+ * STT 狀態隔離：以「component 的 ref.current（HTMLElement）」當作 key，避免多個元件互相污染。
+ * 非 component 情境（例如 listenUntilSilence）則使用預設 key。
+ */
+type SttKey = object;
+
+type SttState = {
+  recognitionInstance: SpeechRecognitionType | null;
+  manualStop: boolean;
+  onInterimCallback: ((text: string) => void) | null;
+  stopTimeoutId: ReturnType<typeof setTimeout> | null;
+  stopAbortController: AbortController | null;
+  hasFocused: boolean;
+};
+
+const DEFAULT_STT_KEY: SttKey = {};
+const sttStateByKey = new WeakMap<SttKey, SttState>();
+
+function getSttState(key: SttKey): SttState {
+  let state = sttStateByKey.get(key);
+  if (!state) {
+    state = {
+      recognitionInstance: null,
+      manualStop: false,
+      onInterimCallback: null,
+      stopTimeoutId: null,
+      stopAbortController: null,
+      hasFocused: false,
+    };
+    sttStateByKey.set(key, state);
+  }
+  return state;
+}
+
+function getKeyFromRef(ref: RefObject<HTMLElement>): HTMLElement | null {
+  return ref.current ?? null;
+}
 
 /**
  * 檢查瀏覽器是否支援語音辨識。
@@ -26,17 +63,25 @@ export function isSpeechRecognitionSupported(): boolean {
   return !!(w.SpeechRecognition || w.webkitSpeechRecognition);
 }
 
-/** 手動停止旗標，區分「使用者停止」和「瀏覽器自動斷線」 */
-let manualStop = false;
-
-/** 即時辨識結果回調（給 UI 即時顯示用） */
-let onInterimCallback: ((text: string) => void) | null = null;
-
 /**
- * 設定即時辨識回調 — UI 元件可透過此函式取得辨識中的暫時文字
+ * 設定即時辨識回調。
+ * - setOnInterim(ref, cb): component-level（隔離）
+ * - setOnInterim(cb): legacy/global（給非 component 使用）
  */
-export function setOnInterim(cb: ((text: string) => void) | null): void {
-  onInterimCallback = cb;
+export function setOnInterim(cb: ((text: string) => void) | null): void;
+export function setOnInterim(ref: RefObject<HTMLElement>, cb: ((text: string) => void) | null): void;
+export function setOnInterim(
+  refOrCb: RefObject<HTMLElement> | ((text: string) => void) | null,
+  cb?: ((text: string) => void) | null,
+): void {
+  if (typeof refOrCb === "function" || refOrCb === null) {
+    getSttState(DEFAULT_STT_KEY).onInterimCallback = refOrCb;
+    return;
+  }
+
+  const key = getKeyFromRef(refOrCb);
+  if (!key) return;
+  getSttState(key).onInterimCallback = cb ?? null;
 }
 
 /**
@@ -45,19 +90,42 @@ export function setOnInterim(cb: ((text: string) => void) | null): void {
  * 在使用者手動呼叫 stopListening() 時 resolve 完整文字與實例。
  * 語言：zh-TW。
  */
-export function startListening(): Promise<{ text: string; instance: SpeechRecognitionType }> {
+export function startListening(ref: RefObject<HTMLElement>): Promise<{ text: string; instance: SpeechRecognitionType }> {
   return new Promise((resolve, reject) => {
+    const key = getKeyFromRef(ref);
+    if (!key) {
+      reject(new Error("找不到語音輸入元件 ref"));
+      return;
+    }
+
+    const state = getSttState(key);
+
     if (!isSpeechRecognitionSupported()) {
       reject(new Error("此瀏覽器不支援語音辨識"));
       return;
+    }
+
+    // 只在第一次開始聆聽時嘗試 focus，避免重複搶焦點
+    if (!state.hasFocused) {
+      state.hasFocused = true;
+      try {
+        ref.current?.focus();
+      } catch {
+        // ignore
+      }
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
     const recognition = new SpeechRecognitionAPI();
-    recognitionInstance = recognition;
-    manualStop = false;
+    state.recognitionInstance = recognition;
+    state.manualStop = false;
+
+    // 若之前 stop 設了 timeout，先清掉
+    if (state.stopTimeoutId) clearTimeout(state.stopTimeoutId);
+    state.stopTimeoutId = null;
+    state.stopAbortController = null;
 
     recognition.lang = "zh-TW";
     recognition.continuous = true;       // 持續聽，不會聽到一段就停
@@ -66,8 +134,17 @@ export function startListening(): Promise<{ text: string; instance: SpeechRecogn
 
     let finalTranscript = '';
 
+    const cleanupStopTimeout = () => {
+      if (state.stopTimeoutId) clearTimeout(state.stopTimeoutId);
+      state.stopTimeoutId = null;
+      state.stopAbortController = null;
+    };
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recognition.onresult = (event: any) => {
+      // 若 state 已切到別的 instance，忽略舊事件
+      if (state.recognitionInstance !== recognition) return;
+
       let interim = '';
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const result = event.results[i];
@@ -78,29 +155,37 @@ export function startListening(): Promise<{ text: string; instance: SpeechRecogn
         }
       }
       // 回調即時文字給 UI（最終 + 暫時）
-      if (onInterimCallback) {
-        onInterimCallback(finalTranscript + interim);
-      }
+      state.onInterimCallback?.(finalTranscript + interim);
     };
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     recognition.onerror = (event: any) => {
-      if (event.error === "aborted" || event.error === "no-speech") return;
+      if (state.recognitionInstance !== recognition) return;
+
+      if (event.error === "aborted" || event.error === "no-speech") {
+        cleanupStopTimeout();
+        return;
+      }
       // not-allowed = 使用者拒絕麥克風權限
+      cleanupStopTimeout();
       reject(new Error(`語音辨識錯誤：${event.error}`));
     };
 
     recognition.onend = () => {
-      if (manualStop) {
+      if (state.recognitionInstance !== recognition) return;
+
+      cleanupStopTimeout();
+
+      if (state.manualStop) {
         // 使用者主動停止 → resolve 最終文字與實例
-        recognitionInstance = null;
+        state.recognitionInstance = null;
         resolve({ text: finalTranscript, instance: recognition });
       } else {
         // 瀏覽器自動斷線（例如短暫靜音）→ 自動重啟
         try {
           recognition.start();
         } catch {
-          recognitionInstance = null;
+          state.recognitionInstance = null;
           resolve({ text: finalTranscript, instance: recognition });
         }
       }
@@ -125,8 +210,9 @@ export function listenUntilSilence(silenceMs = 1500): Promise<string> {
     const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
     const recognition = new SpeechRecognitionAPI();
-    recognitionInstance = recognition;
-    manualStop = false;
+    const state = getSttState(DEFAULT_STT_KEY);
+    state.recognitionInstance = recognition;
+    state.manualStop = false;
 
     recognition.lang = "zh-TW";
     recognition.continuous = true;
@@ -142,7 +228,7 @@ export function listenUntilSilence(silenceMs = 1500): Promise<string> {
       silenceTimer = setTimeout(() => {
         // 有講過話才自動停止，沒講話就繼續等
         if (hasSpoken && finalTranscript.trim()) {
-          manualStop = true;
+          state.manualStop = true;
           recognition.stop();
         }
       }, silenceMs);
@@ -161,9 +247,7 @@ export function listenUntilSilence(silenceMs = 1500): Promise<string> {
           if (interim) hasSpoken = true;
         }
       }
-      if (onInterimCallback) {
-        onInterimCallback(finalTranscript + interim);
-      }
+      state.onInterimCallback?.(finalTranscript + interim);
       // 每次收到辨識結果，重設靜音計時器
       resetSilenceTimer();
     };
@@ -177,15 +261,15 @@ export function listenUntilSilence(silenceMs = 1500): Promise<string> {
 
     recognition.onend = () => {
       if (silenceTimer) clearTimeout(silenceTimer);
-      if (manualStop || finalTranscript.trim()) {
-        recognitionInstance = null;
+      if (state.manualStop || finalTranscript.trim()) {
+        state.recognitionInstance = null;
         resolve(finalTranscript);
       } else {
         // 沒講話就斷了 → 重啟
         try {
           recognition.start();
         } catch {
-          recognitionInstance = null;
+          state.recognitionInstance = null;
           resolve(finalTranscript);
         }
       }
@@ -198,16 +282,51 @@ export function listenUntilSilence(silenceMs = 1500): Promise<string> {
 }
 
 /**
- * 手動停止語音辨識。
- * 若傳入 instance 則優先停止該實例，否則停止全局 recognitionInstance。
+ * 手動停止語音辨識（component-level）。
+ *
+ * - 以 ref 隔離不同元件的 STT 狀態，避免互相污染。
+ * - 2 秒 timeout：如果 stop() 沒有觸發 onend，會改用 abort() 強制結束。
  */
-export function stopListening(instance?: SpeechRecognitionType): void {
-  manualStop = true;
-  onInterimCallback = null;
-  const target = instance || recognitionInstance;
-  if (target) {
-    target.stop(); // stop() 會觸發 onend → resolve
-    if (!instance) recognitionInstance = null; // 只清全局實例如果沒傳入 ref
+export function stopListening(ref: RefObject<HTMLElement>): void {
+  const key = getKeyFromRef(ref);
+  if (!key) return;
+
+  const state = getSttState(key);
+  state.manualStop = true;
+  state.onInterimCallback = null;
+
+  const target = state.recognitionInstance;
+  if (!target) return;
+
+  // 清掉舊的 timeout
+  if (state.stopTimeoutId) clearTimeout(state.stopTimeoutId);
+
+  const ac = new AbortController();
+  state.stopAbortController = ac;
+
+  state.stopTimeoutId = setTimeout(() => {
+    // 若 onend 已清理或已 abort，跳過
+    if (state.stopAbortController !== ac || ac.signal.aborted) return;
+
+    ac.abort();
+    try {
+      target.abort();
+    } catch {
+      // ignore
+    }
+  }, 2000);
+
+  // stop() 理論上會觸發 onend → resolve
+  try {
+    target.stop();
+  } catch {
+    // stop() 失敗就直接走 abort（會觸發 onerror: aborted）
+    try {
+      ac.abort();
+      target.abort();
+    } catch {
+      // ignore
+    }
   }
 }
 

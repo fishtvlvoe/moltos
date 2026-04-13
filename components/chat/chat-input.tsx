@@ -3,10 +3,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { startListening, stopListening, isSpeechRecognitionSupported, setOnInterim } from '@/lib/speech';
 
-/** 補充 Web Speech API 型別 */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type SpeechRecognitionType = any;
-
 interface ChatInputProps {
   onSend: (message: string) => void;
   disabled?: boolean;
@@ -24,7 +20,6 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
   const [isListening, setIsListening] = useState(false);
   const [interimText, setInterimText] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const recognitionRef = useRef<SpeechRecognitionType | null>(null);
 
   /** 瀏覽器是否支援語音辨識 */
   const [supported, setSupported] = useState(false);
@@ -74,11 +69,9 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
     setIsListening(true);
     setInterimText('');
     // 註冊即時辨識回調，讓 UI 即時顯示辨識文字
-    setOnInterim((text) => setInterimText(text));
+    setOnInterim(textareaRef, (text) => setInterimText(text));
     try {
-      const result = await startListening();
-      // 保存辨識器實例到 ref（供 handleMicStop 使用）
-      recognitionRef.current = result.instance;
+      const result = await startListening(textareaRef);
       if (result.text.trim()) {
         setValue(prev => prev ? prev + ' ' + result.text : result.text);
       }
@@ -87,13 +80,13 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
     } finally {
       setIsListening(false);
       setInterimText('');
-      setOnInterim(null);
+      setOnInterim(textareaRef, null);
     }
   }
 
   /** 停止語音辨識 */
   function handleMicStop() {
-    stopListening(recognitionRef.current);
+    stopListening(textareaRef);
     setIsListening(false);
   }
 
