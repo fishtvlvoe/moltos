@@ -112,16 +112,27 @@ function CalmTooltip({
 }
 
 function ActiveDot({ cx, cy, onClick, payload }: { cx?: number; cy?: number; onClick: (pt: DailyPoint) => void; payload?: DailyPoint }) {
+  const handleKeyDown = (e: React.KeyboardEvent<SVGCircleElement>) => {
+    if ((e.key === 'Enter' || e.key === ' ') && payload) {
+      e.preventDefault();
+      onClick(payload);
+    }
+  };
+
   return (
     <circle
       cx={cx}
       cy={cy}
-      r={5}
+      r={6}
       fill="#7C5CBA"
       stroke="#fff"
       strokeWidth={2}
       style={{ cursor: 'pointer' }}
       onClick={() => payload && onClick(payload)}
+      onKeyDown={handleKeyDown}
+      role="button"
+      tabIndex={0}
+      aria-label={payload ? `查看 ${payload.date} 詳細` : undefined}
     />
   );
 }
@@ -202,6 +213,7 @@ export default function ReviewPage() {
       }
 
       await loadInsights();
+      setSelectedDay(null);
     } catch {
       setAnalyzeError('分析失敗，請稍後再試');
     }
@@ -301,7 +313,7 @@ export default function ReviewPage() {
             </div>
           )}
 
-          {selectedDay && (
+          {selectedDay && dailyPoints.length > 1 && (
             <div className="mt-3 rounded-lg border border-[#DDD5F0] bg-[#F8F5FD] p-3">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-[#5B4A8A]">
@@ -360,7 +372,7 @@ export default function ReviewPage() {
               <p className="text-sm text-[#8A8A8A]">尚未有對話分析紀錄</p>
 
               <p className="text-xs text-[#B0B0B0] mt-1">
-                和小莫聊天後，在下方點「分析最近對話」就會出現在這裡
+                和小莫聊天後，在下方點「平靜分析」就會出現在這裡
               </p>
             </div>
           ) : (
