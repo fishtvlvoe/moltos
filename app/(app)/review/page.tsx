@@ -144,6 +144,7 @@ export default function ReviewPage() {
   const [analyzingRecent, setAnalyzingRecent] = useState(false);
   const [analyzeError, setAnalyzeError] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<DailyPoint | null>(null);
+  const [insightsExpanded, setInsightsExpanded] = useState(false);
 
   const dailyPoints = useMemo(() => groupCalmHistoryByDay(history), [history]);
 
@@ -349,17 +350,41 @@ export default function ReviewPage() {
               </div>
             </div>
           )}
+
+          {!loading && (
+            <div className="mt-4 flex flex-col items-center gap-2 border-t border-[#EDE8E0] pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={analyzingRecent}
+                onClick={handleAnalyzeRecent}
+                className="rounded-full border-[#DDD5F0] bg-[#F0EBFA] px-6 py-3 text-base text-[#5B4A8A] hover:bg-[#E4DCF4]"
+              >
+                {analyzingRecent ? '分析中…' : '平靜分析'}
+              </Button>
+
+              {analyzeError && (
+                <p className="text-center text-xs text-red-500">{analyzeError}</p>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
       {/* ── 對話洞察歷史 ── */}
       <Card className="rounded-2xl bg-[#FAF8F4] ring-1 ring-[#EDE8E0]">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-[#2D2D2D]">對話洞察</CardTitle>
+        <CardHeader
+          className="cursor-pointer select-none pb-2"
+          onClick={() => setInsightsExpanded((prev) => !prev)}
+        >
+          <CardTitle className="text-[#2D2D2D]">
+            {insightsExpanded ? '▲' : '▼'} 對話洞察{!insightsExpanded && insights.length > 0 ? `（${insights.length} 筆）` : ''}
+          </CardTitle>
 
           <p className="text-xs text-[#8A8A8A]">每次對話後的正向分析紀錄</p>
         </CardHeader>
 
+        {insightsExpanded && (
         <CardContent>
           {loading ? (
             <div className="flex flex-col gap-3 py-4">
@@ -441,25 +466,8 @@ export default function ReviewPage() {
               })}
             </div>
           )}
-
-          {!loading && (
-            <div className="mt-4 flex flex-col items-center gap-2 border-t border-[#EDE8E0] pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                disabled={analyzingRecent}
-                onClick={handleAnalyzeRecent}
-                className="rounded-full border-[#DDD5F0] bg-[#F0EBFA] px-6 py-3 text-base text-[#5B4A8A] hover:bg-[#E4DCF4]"
-              >
-                {analyzingRecent ? '分析中…' : '平靜分析'}
-              </Button>
-
-              {analyzeError && (
-                <p className="text-center text-xs text-red-500">{analyzeError}</p>
-              )}
-            </div>
-          )}
         </CardContent>
+        )}
       </Card>
     </div>
   );
