@@ -409,10 +409,10 @@ export default function ReviewPage() {
                 return (
                   <div
                     key={ins.id}
-                    className="p-2 md:p-4 rounded-lg bg-white border border-[#EDE8E0] shadow-sm"
+                    className="p-3 sm:p-4 rounded-lg bg-white border border-[#EDE8E0] shadow-sm"
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs md:text-sm text-[#8A8A8A]">{dateLabel}</span>
+                      <span className="text-sm sm:text-base text-[#8A8A8A]">{dateLabel}</span>
 
                       <div className="flex items-center gap-1.5">
                         <div
@@ -424,26 +424,26 @@ export default function ReviewPage() {
                       </div>
                     </div>
 
-                    <p className="text-sm md:text-base text-[#2D2D2D] font-medium mb-1">{ins.summary}</p>
+                    <p className="text-base sm:text-lg text-[#2D2D2D] font-medium mb-2">{ins.summary}</p>
 
                     <div className="flex flex-wrap gap-1.5 mb-2">
-                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#F0EBFA] text-[#5B4A8A]">
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-[#F0EBFA] text-[#5B4A8A]">
                         {ins.calm_state}
                       </span>
 
                       {ins.emotional_tone && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#FFF8E1] text-[#8A7000]">
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-[#FFF8E1] text-[#8A7000]">
                           {ins.emotional_tone}
                         </span>
                       )}
                     </div>
 
                     {ins.inner_needs?.length > 0 && (
-                      <div className="mb-1.5">
-                        <p className="text-[10px] text-[#8A8A8A] mb-0.5">內在需求</p>
+                      <div className="mb-2">
+                        <p className="text-xs sm:text-sm text-[#8A8A8A] mb-1 font-medium">內在需求</p>
 
                         {ins.inner_needs.map((need, j) => (
-                          <p key={j} className="text-xs md:text-sm text-[#5A5A5A]">
+                          <p key={j} className="text-sm sm:text-base text-[#5A5A5A] mb-0.5">
                             • {need}
                           </p>
                         ))}
@@ -452,10 +452,10 @@ export default function ReviewPage() {
 
                     {ins.growth_paths?.length > 0 && (
                       <div>
-                        <p className="text-[10px] text-[#8A8A8A] mb-0.5">回歸平靜的路徑</p>
+                        <p className="text-xs sm:text-sm text-[#8A8A8A] mb-1 font-medium">回歸平靜的路徑</p>
 
                         {ins.growth_paths.map((path, j) => (
-                          <p key={j} className="text-xs md:text-sm text-[#5A5A5A]">
+                          <p key={j} className="text-sm sm:text-base text-[#5A5A5A] mb-0.5">
                             • {path}
                           </p>
                         ))}

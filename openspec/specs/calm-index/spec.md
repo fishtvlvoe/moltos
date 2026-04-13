@@ -1269,3 +1269,51 @@ tests:
   - tests/lib/youtube.test.ts
   - lib/__tests__/gemini-prompts.test.ts
 -->
+
+---
+### Requirement: Data Insufficient Message
+
+The system SHALL display a clear message when calm index data is unavailable due to insufficient history.
+
+#### Scenario: Error state on new account
+
+- **WHEN** user requests calm index data but has fewer than 14 days of email history
+- **THEN** the system SHALL:
+  - Return HTTP 422 Unprocessable Entity with the message
+  - Frontend SHALL display: "需要至少 14 天的郵件數據才能計算平靜指數"
+  - NOT display generic "資料暫時無法載入"
+  - Include optional guidance on enabling Gmail integration
+
+#### Scenario: Loading state
+
+- **WHEN** system is fetching calm index data
+- **THEN** frontend SHALL:
+  - Display a skeleton loader or loading state
+  - Not jump to error message prematurely
+  - Timeout after 10 seconds and display the insufficient data message
+
+<!-- @trace
+source: review-page-redesign
+updated: 2026-04-14
+code:
+  - .spectra.yaml
+  - docs/dev/voicebox-integration-analysis.md
+  - app/(app)/chat/page.tsx
+  - app/(app)/review/page.tsx
+  - docs/修改bug/截圖 2026-04-13 下午3.28.18.png
+  - components/chat/chat-input.tsx
+  - docs/修改bug/截圖 2026-04-13 凌晨4.49.01.png
+  - docs/新功能增加/截圖 2026-04-13 下午6.15.48.png
+  - docs/dev/ab-test-plan-elevenlabs-voicebox.md
+  - docs/新功能增加/截圖 2026-04-13 下午4.11.06.png
+  - lib/speech.ts
+  - docs/新功能增加/截圖 2026-04-13 下午6.15.54.png
+  - components/dashboard/calm-index-card.tsx
+  - docs/修改bug/截圖 2026-04-13 下午6.26.19.png
+  - docs/修改bug/C99A818A-2DDE-435D-8284-3A2826113A77.png
+  - next-env.d.ts
+  - docs/新功能增加/截圖 2026-04-13 下午6.16.03.png
+  - docs/修改bug/D24514BC-492D-444F-82CA-C87F8E3E5837.png
+tests:
+  - lib/__tests__/speech.test.ts
+-->
