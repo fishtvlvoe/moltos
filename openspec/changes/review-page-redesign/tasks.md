@@ -36,7 +36,7 @@ Note: Optional/future — include if timeline permits.
 - [x] 5.2 Run `npm run lint` to check code style
 - [x] 5.3 Take mobile screenshot showing updated button and card layout
 - [x] 5.4 Take desktop screenshot showing no layout regressions
-- [ ] 5.5 Commit with message: `feat(review): improve button size, text, and mobile card layout`
+- [x] 5.5 Commit with message: `feat(review): improve button size, text, and mobile card layout`
 
 ## 6. Deployment
 
