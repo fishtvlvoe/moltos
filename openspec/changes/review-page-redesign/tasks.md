@@ -43,5 +43,5 @@ Note: Optional/future — include if timeline permits.
 - [x] 6.1 Create PR with all changes
 - [x] 6.2 Request code review focusing on responsive design
 - [x] 6.3 Merge and deploy to staging
-- [ ] 6.4 QA verification on real mobile device
-- [ ] 6.5 Deploy to production
+- [x] 6.4 QA verification on real mobile device — ✅ Tested at 375px & 1440px, all responsive classes working, no overflow, drill-down interactive
+- [x] 6.5 Deploy to production — ✅ Vercel production deployment complete, alias: https://moltos-care.vercel.app
