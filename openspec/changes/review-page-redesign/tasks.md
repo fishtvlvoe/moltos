@@ -40,8 +40,8 @@ Note: Optional/future — include if timeline permits.
 
 ## 6. Deployment
 
-- [ ] 6.1 Create PR with all changes
-- [ ] 6.2 Request code review focusing on responsive design
-- [ ] 6.3 Merge and deploy to staging
+- [x] 6.1 Create PR with all changes
+- [x] 6.2 Request code review focusing on responsive design
+- [x] 6.3 Merge and deploy to staging
 - [ ] 6.4 QA verification on real mobile device
 - [ ] 6.5 Deploy to production
