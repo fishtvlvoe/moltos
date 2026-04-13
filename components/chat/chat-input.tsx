@@ -69,9 +69,9 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
     setIsListening(true);
     setInterimText('');
     // 註冊即時辨識回調，讓 UI 即時顯示辨識文字
-    setOnInterim(textareaRef, (text) => setInterimText(text));
+    setOnInterim(textareaRef as any, (text) => setInterimText(text));
     try {
-      const result = await startListening(textareaRef);
+      const result = await startListening(textareaRef as any);
       if (result.text.trim()) {
         setValue(prev => prev ? prev + ' ' + result.text : result.text);
       }
@@ -80,13 +80,13 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
     } finally {
       setIsListening(false);
       setInterimText('');
-      setOnInterim(textareaRef, null);
+      setOnInterim(textareaRef as any, null);
     }
   }
 
   /** 停止語音辨識 */
   function handleMicStop() {
-    stopListening(textareaRef);
+    stopListening(textareaRef as any);
     setIsListening(false);
   }
 
