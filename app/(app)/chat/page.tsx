@@ -106,6 +106,7 @@ export default function ChatPage() {
 
       await conversation.startSession({
         signedUrl,
+        textOnly: true,  // Chat 頁面純文字模式，無需麥克風
         dynamicVariables: {
           user_id: googleId,  // 已確認非空，不用 ?? ''
           conversation_history: historyText,
