@@ -25,6 +25,12 @@ export async function POST() {
       );
     }
 
+    if (!refreshToken) {
+      console.warn(
+        '[gmail-switch-account] Google OAuth refresh token not provided, token refresh may fail',
+      );
+    }
+
     await upsertUser(
       session.user.email,
       session.user.name ?? undefined,
