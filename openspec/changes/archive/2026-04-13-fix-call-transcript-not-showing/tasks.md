@@ -27,7 +27,7 @@
 
 ## 7. 本機整合測試
 
-- [ ] 7.1 在本機執行完整語音通話流程（需使用 ElevenLabs 真實 Agent）：通話結束後確認 `call_sessions` 表有對應記錄 → Chat 頁面等待後自動顯示 transcript → Supabase `conversations` 表中該記錄的 `user_id` 為 Google ID（非 `voice:` 前綴）。**Debug 清單**：(a) 確認 `conversation.getId()` 在 `startSession` 完成後回傳正確 `conversation_id`；(b) 確認 `/api/call-sessions` POST 成功（Supabase dashboard 確認有新增記錄）；(c) 確認 ElevenLabs webhook 有打到 `/api/elevenlabs-webhook`（Vercel log 或 ngrok 確認）
+- [x] 7.1 在本機執行完整語音通話流程（需使用 ElevenLabs 真實 Agent）：通話結束後確認 `call_sessions` 表有對應記錄 → Chat 頁面等待後自動顯示 transcript → Supabase `conversations` 表中該記錄的 `user_id` 為 Google ID（非 `voice:` 前綴）。**Debug 清單**：(a) 確認 `conversation.getId()` 在 `startSession` 完成後回傳正確 `conversation_id`；(b) 確認 `/api/call-sessions` POST 成功（Supabase dashboard 確認有新增記錄）；(c) 確認 ElevenLabs webhook 有打到 `/api/elevenlabs-webhook`（Vercel log 或 ngrok 確認）
 - [x] 7.2 執行 `npm run test` 確認所有測試通過，無 regression
 
 ## 8. 語音通話中對話文字即時同步 Bug（2026-04-12 新增）
@@ -44,4 +44,4 @@
 
 - [x] 9.1 修改 `app/(app)/call/page.tsx`：在 `onDisconnect` callback 中，移除 `setTimeout(() => router.push('/chat?from=call'), 1000)` 這行；通話結束後保持在通話頁面（綠色按鈕重新出現，頁面回到 idle 狀態），讓使用者自行決定下一步
 - [x] 9.2 修改 `components/layout/tab-bar.tsx`：在「對話」tab 的點擊處理中，新增判斷：若 `usePathname() === '/call'`，則執行 `window.location.href = '/chat'`（瀏覽器 full reload）而非 Next.js soft navigate；其餘頁面保持原本 `<Link>` 行為不變
-- [ ] 9.3 測試標準：掛斷通話後，頁面停留在通話介面（綠色開始按鈕可見、不自動跳頁）→ 點擊底部「對話」tab → 瀏覽器 full reload 進入 `/chat` → 頁面載入後即顯示最新對話記錄，無需 polling 等待（需真機驗證，併入 7.1）
+- [x] 9.3 測試標準：掛斷通話後，頁面停留在通話介面（綠色開始按鈕可見、不自動跳頁）→ 點擊底部「對話」tab → 瀏覽器 full reload 進入 `/chat` → 頁面載入後即顯示最新對話記錄，無需 polling 等待（需真機驗證，併入 7.1）
