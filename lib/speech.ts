@@ -20,9 +20,10 @@ let recognitionInstance: SpeechRecognitionType | null = null;
  * 檢查瀏覽器是否支援語音辨識。
  */
 export function isSpeechRecognitionSupported(): boolean {
+  if (typeof window === "undefined") return false;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return typeof window !== "undefined" &&
-    !!((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition);
+  const w = window as any;
+  return !!(w.SpeechRecognition || w.webkitSpeechRecognition);
 }
 
 /** 手動停止旗標，區分「使用者停止」和「瀏覽器自動斷線」 */
@@ -40,10 +41,11 @@ export function setOnInterim(cb: ((text: string) => void) | null): void {
 
 /**
  * 開始語音辨識（持續模式）。
- * 回傳 Promise<string>，在使用者手動呼叫 stopListening() 時 resolve 完整文字。
+ * 回傳 Promise<{ text: string; instance: SpeechRecognitionType }>
+ * 在使用者手動呼叫 stopListening() 時 resolve 完整文字與實例。
  * 語言：zh-TW。
  */
-export function startListening(): Promise<string> {
+export function startListening(): Promise<{ text: string; instance: SpeechRecognitionType }> {
   return new Promise((resolve, reject) => {
     if (!isSpeechRecognitionSupported()) {
       reject(new Error("此瀏覽器不支援語音辨識"));
@@ -90,16 +92,16 @@ export function startListening(): Promise<string> {
 
     recognition.onend = () => {
       if (manualStop) {
-        // 使用者主動停止 → resolve 最終文字
+        // 使用者主動停止 → resolve 最終文字與實例
         recognitionInstance = null;
-        resolve(finalTranscript);
+        resolve({ text: finalTranscript, instance: recognition });
       } else {
         // 瀏覽器自動斷線（例如短暫靜音）→ 自動重啟
         try {
           recognition.start();
         } catch {
           recognitionInstance = null;
-          resolve(finalTranscript);
+          resolve({ text: finalTranscript, instance: recognition });
         }
       }
     };
@@ -197,13 +199,15 @@ export function listenUntilSilence(silenceMs = 1500): Promise<string> {
 
 /**
  * 手動停止語音辨識。
+ * 若傳入 instance 則優先停止該實例，否則停止全局 recognitionInstance。
  */
-export function stopListening(): void {
+export function stopListening(instance?: SpeechRecognitionType): void {
   manualStop = true;
   onInterimCallback = null;
-  if (recognitionInstance) {
-    recognitionInstance.stop(); // stop() 會觸發 onend → resolve
-    recognitionInstance = null;
+  const target = instance || recognitionInstance;
+  if (target) {
+    target.stop(); // stop() 會觸發 onend → resolve
+    if (!instance) recognitionInstance = null; // 只清全局實例如果沒傳入 ref
   }
 }
 

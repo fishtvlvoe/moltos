@@ -3,6 +3,10 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { startListening, stopListening, isSpeechRecognitionSupported, setOnInterim } from '@/lib/speech';
 
+/** 補充 Web Speech API 型別 */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SpeechRecognitionType = any;
+
 interface ChatInputProps {
   onSend: (message: string) => void;
   disabled?: boolean;
@@ -20,10 +24,19 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
   const [isListening, setIsListening] = useState(false);
   const [interimText, setInterimText] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const recognitionRef = useRef<SpeechRecognitionType | null>(null);
 
   /** 瀏覽器是否支援語音辨識 */
   const [supported, setSupported] = useState(false);
   useEffect(() => { setSupported(isSpeechRecognitionSupported()); }, []);
+
+  /** 焦點管理：語音模式結束時恢復 textarea 焦點 */
+  useEffect(() => {
+    if (!isListening && textareaRef.current && document.activeElement !== textareaRef.current) {
+      // 只在 textarea 沒被其他元素搶走焦點時才恢復
+      textareaRef.current.focus();
+    }
+  }, [isListening]);
 
   /** 送出訊息 */
   const handleSend = useCallback(() => {
@@ -63,9 +76,11 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
     // 註冊即時辨識回調，讓 UI 即時顯示辨識文字
     setOnInterim((text) => setInterimText(text));
     try {
-      const text = await startListening();
-      if (text.trim()) {
-        setValue(prev => prev ? prev + ' ' + text : text);
+      const result = await startListening();
+      // 保存辨識器實例到 ref（供 handleMicStop 使用）
+      recognitionRef.current = result.instance;
+      if (result.text.trim()) {
+        setValue(prev => prev ? prev + ' ' + result.text : result.text);
       }
     } catch {
       // 靜默處理
@@ -78,7 +93,7 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
 
   /** 停止語音辨識 */
   function handleMicStop() {
-    stopListening();
+    stopListening(recognitionRef.current);
     setIsListening(false);
   }
 
