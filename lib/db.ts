@@ -39,6 +39,67 @@ export async function upsertUser(
   return data.id as string;
 }
 
+/**
+ * 依 email 判斷 DB 是否仍存有 Gmail access token（代表已連接 Gmail 整合）。
+ * 若查詢失敗（例如尚未 migration），回傳 true，避免誤顯示「未連接」中斷既有流程。
+ */
+export async function isUserGmailConnectedByEmail(
+  email: string,
+): Promise<boolean> {
+  const { connected } = await getGmailConnectionState(email);
+
+  return connected;
+}
+
+/**
+ * Gmail link state + gmail_email + gmail_last_sync (settings UI).
+ */
+export async function getGmailConnectionState(
+  email: string,
+): Promise<{
+  connected: boolean;
+  gmailEmail: string | null;
+  lastSyncAt: string | null;
+}> {
+  const { data, error } = await supabaseAdmin
+    .from('users')
+    .select('gmail_access_token, gmail_email, gmail_last_sync')
+    .eq('email', email)
+    .maybeSingle();
+
+  if (error) {
+    console.warn(
+      `[getGmailConnectionState] 失敗（可能尚未 migration）：${error.message}`,
+    );
+
+    return { connected: true, gmailEmail: null, lastSyncAt: null };
+  }
+
+  const token = data?.gmail_access_token as string | null | undefined;
+
+  return {
+    connected: Boolean(token),
+    gmailEmail: (data?.gmail_email as string | null) ?? null,
+    lastSyncAt: (data?.gmail_last_sync as string | null) ?? null,
+  };
+}
+
+/**
+ * Clear Gmail OAuth tokens only (calm_index_history unchanged).
+ */
+export async function clearGmailTokensByEmail(email: string): Promise<void> {
+  const { error } = await supabaseAdmin
+    .from('users')
+    .update({
+      gmail_access_token: null,
+      gmail_refresh_token: null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('email', email);
+
+  if (error) throw new Error(`clearGmailTokensByEmail 失敗：${error.message}`);
+}
+
 // ─── Conversations ────────────────────────────────────────────────────────────
 
 /**

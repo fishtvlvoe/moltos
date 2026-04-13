@@ -1,39 +1,60 @@
-// T045: Gmail 設定子頁面 — Server Component，整合 GmailStatus + 操作按鈕
+// T045: Gmail 設定子��面 — Server Component
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { GmailStatus } from '@/components/settings/gmail-status';
 import { GmailActions } from '@/components/settings/gmail-actions';
+import { getGmailConnectionState } from '@/lib/db';
+
+function formatLastSyncLabel(iso: string | null): string | null {
+  if (!iso) return null;
+
+  const d = new Date(iso);
+
+  if (Number.isNaN(d.getTime())) return null;
+
+  const pad = (n: number) => String(n).padStart(2, '0');
+
+  return `\u4e0a\u6b21\u540c\u6b65\uff1a${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 export default async function GmailSettingsPage() {
-  // 伺服器端驗證 session
   const session = await getServerSession(authOptions);
 
-  if (!session) {
-    // 未登入 → 導向 onboarding
+  if (!session?.user?.email) {
     redirect('/onboarding');
   }
 
+  const userEmail = session.user.email;
+
+  const { connected, gmailEmail, lastSyncAt } =
+    await getGmailConnectionState(userEmail);
+
+  const displayGmail =
+    connected && gmailEmail ? gmailEmail : connected ? userEmail : null;
+
+  const lastSyncTime = connected ? formatLastSyncLabel(lastSyncAt) : null;
+
   return (
     <div className="flex flex-col gap-4 py-2">
-      {/* 頂部返回導航列 */}
       <div className="flex items-center gap-2 pt-2">
         <Link
           href="/settings"
           className="flex items-center gap-1 text-gray-500 hover:text-gray-700 text-sm"
         >
-          {/* 左箭頭 */}
           <span className="text-base">←</span>
           <span>Gmail 整合</span>
         </Link>
       </div>
 
-      {/* Gmail 連接狀態元件 */}
-      <GmailStatus email={session.user?.email} />
+      <GmailStatus
+        statusOnly
+        email={displayGmail}
+        lastSyncTime={lastSyncTime}
+      />
 
-      {/* 重新授權 / 解除綁定按鈕（Client Component） */}
-      <GmailActions />
+      <GmailActions isGmailConnected={connected} />
     </div>
   );
 }
