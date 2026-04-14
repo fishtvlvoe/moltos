@@ -13,6 +13,7 @@ import {
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { X, ChevronDown, ChevronUp } from 'lucide-react';
 import type { ChatMessage } from '@/lib/types';
 
 type CalmEntry = { score: number; level: string; createdAt: string };
@@ -323,10 +324,10 @@ export default function ReviewPage() {
                 <button
                   type="button"
                   onClick={() => setSelectedDay(null)}
-                  className="text-[#8A8A8A] hover:text-[#2D2D2D] text-sm px-1"
+                  className="text-[#8A8A8A] hover:text-[#2D2D2D] px-1 flex items-center"
                   aria-label="關閉詳細"
                 >
-                  ✕
+                  <X className="h-4 w-4" />
                 </button>
               </div>
               <div className="flex items-center gap-3">
@@ -376,9 +377,22 @@ export default function ReviewPage() {
         <CardHeader
           className="cursor-pointer select-none pb-2"
           onClick={() => setInsightsExpanded((prev) => !prev)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setInsightsExpanded((prev) => !prev);
+            }
+          }}
         >
-          <CardTitle className="text-[#2D2D2D]">
-            {insightsExpanded ? '▲' : '▼'} 對話洞察{!insightsExpanded && insights.length > 0 ? `（${insights.length} 筆）` : ''}
+          <CardTitle className="text-[#2D2D2D] flex items-center gap-1">
+            {insightsExpanded ? (
+              <ChevronUp className="h-5 w-5 inline" />
+            ) : (
+              <ChevronDown className="h-5 w-5 inline" />
+            )}
+            對話洞察{!insightsExpanded && insights.length > 0 ? `（${insights.length} 筆）` : ''}
           </CardTitle>
 
           <p className="text-xs text-[#8A8A8A]">每次對話後的正向分析紀錄</p>

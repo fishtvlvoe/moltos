@@ -3,11 +3,13 @@
 // 純展示元件，不使用 hooks，不需要 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Footprints, Moon, Droplet } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 // ─── 健康指標型別 ─────────────────────────────────────────────────────────────
 interface WellnessItem {
-  /** Unicode emoji icon */
-  icon: string;
+  /** Lucide icon component */
+  icon: LucideIcon;
   /** 指標標籤 */
   label: string;
   /** 目前數值（字串，含單位） */
@@ -21,21 +23,21 @@ interface WellnessItem {
 // ─── 靜態假資料（MVP placeholder，日後可接穿戴裝置 API）────────────────────
 const WELLNESS_ITEMS: WellnessItem[] = [
   {
-    icon: '🚶',
+    icon: Footprints,
     label: '步數',
     value: '6,234 步',
     percentage: 62,   // 目標 10,000 步，6,234 / 10,000 ≈ 62%
     goal: '10,000 步',
   },
   {
-    icon: '😴',
+    icon: Moon,
     label: '睡眠',
     value: '7.2 小時',
     percentage: 90,   // 目標 8 小時，7.2 / 8 = 90%
     goal: '8 小時',
   },
   {
-    icon: '💧',
+    icon: Droplet,
     label: '飲水',
     value: '1,200 ml',
     percentage: 60,   // 目標 2,000 ml，1,200 / 2,000 = 60%
@@ -47,20 +49,23 @@ const WELLNESS_ITEMS: WellnessItem[] = [
 const ACCENT_COLOR = '#C67A52';
 
 // ─── 單行健康指標元件 ─────────────────────────────────────────────────────────
-function WellnessRow({ icon, label, value, percentage, goal }: WellnessItem) {
+function WellnessRow({ icon: IconComponent, label, value, percentage, goal }: WellnessItem) {
   return (
     <div className="flex flex-col gap-2 py-2">
       {/* 上方：icon + 標籤 / 數值 + 目標 */}
       <div className="flex items-center justify-between">
         {/* 左側：icon + 標籤 */}
         <div className="flex items-center gap-3">
-          <span
-            className="flex h-9 w-9 items-center justify-center rounded-xl text-lg"
+          <div
+            className="flex h-9 w-9 items-center justify-center rounded-xl"
             style={{ backgroundColor: '#F0EBE4' }}
-            aria-hidden="true"
           >
-            {icon}
-          </span>
+            <IconComponent
+              className="h-5 w-5"
+              style={{ color: '#8A8A8A' }}
+              aria-hidden="true"
+            />
+          </div>
           <span className="text-sm text-[#5A5A5A]">{label}</span>
         </div>
 

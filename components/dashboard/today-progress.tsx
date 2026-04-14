@@ -3,11 +3,13 @@
 // 純展示元件，不使用 hooks，不需要 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Mail, Clock, Moon } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 // ─── 進度項目型別 ─────────────────────────────────────────────────────────────
 interface ProgressItem {
-  /** Unicode emoji icon */
-  icon: string;
+  /** Lucide icon component */
+  icon: LucideIcon;
   /** 項目標籤文字 */
   label: string;
   /** 顯示數值（字串，含單位） */
@@ -17,35 +19,38 @@ interface ProgressItem {
 // ─── 靜態假資料（MVP placeholder，日後由 API 取代） ──────────────────────────
 const PROGRESS_ITEMS: ProgressItem[] = [
   {
-    icon: '📧',
+    icon: Mail,
     label: '已處理郵件',
     value: '12 封',
   },
   {
-    icon: '⏰',
+    icon: Clock,
     label: '平均回覆時間',
     value: '2.5 小時',
   },
   {
-    icon: '🌙',
+    icon: Moon,
     label: '深夜活動',
     value: '15 分鐘',
   },
 ];
 
 // ─── 單行進度項目元件 ─────────────────────────────────────────────────────────
-function ProgressRow({ icon, label, value }: ProgressItem) {
+function ProgressRow({ icon: IconComponent, label, value }: ProgressItem) {
   return (
     <div className="flex items-center justify-between py-2">
       {/* 左側：icon + 標籤 */}
       <div className="flex items-center gap-3">
-        <span
-          className="flex h-9 w-9 items-center justify-center rounded-xl text-lg"
+        <div
+          className="flex h-9 w-9 items-center justify-center rounded-xl"
           style={{ backgroundColor: '#F0EBE4' }}
-          aria-hidden="true"
         >
-          {icon}
-        </span>
+          <IconComponent
+            className="h-5 w-5"
+            style={{ color: '#8A8A8A' }}
+            aria-hidden="true"
+          />
+        </div>
         <span className="text-sm text-[#5A5A5A]">{label}</span>
       </div>
       {/* 右側：數值 */}
