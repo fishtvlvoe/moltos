@@ -41,13 +41,13 @@
 
 ## 6. Marketing HTML — Replace social interaction emoji
 
-- [ ] 6.1 Replace `♡♥❤️` emoji with `Heart` icon SVG in `docs/_external/archive/demo/fishtvlove-carousel.html` (per 使用 Lucide icon 作為主要替換方案; part of design decision "phase 2：marketing html（預計 1-2 小時）" implementing "分階段替換，避免一次性大改")
-- [ ] 6.2 Replace `💬` emoji with `MessageCircle` icon SVG in carousel files (per 社交互動 icon 替換)
-- [ ] 6.3 Replace `📤` emoji with `Share` icon SVG in carousel files
-- [ ] 6.4 Replace `🔖📌` emoji with `Bookmark` icon SVG in carousel files
-- [ ] 6.5 Replace `➤⌘` emoji with `Play` and `Command` icon SVG in carousel files
-- [ ] 6.6 Test carousel interactions and icon clicks on desktop and mobile
-- [ ] 6.7 Verify no CDN caching issues with updated HTML files
+- [x] 6.1 Replace `♡♥❤️` emoji with `Heart` icon SVG in `docs/_external/archive/demo/fishtvlove-carousel.html` (per 使用 Lucide icon 作為主要替換方案; part of design decision "phase 2：marketing html（預計 1-2 小時）" implementing "分階段替換，避免一次性大改")
+- [x] 6.2 Replace `💬` emoji with `MessageCircle` icon SVG in carousel files (per 社交互動 icon 替換)
+- [x] 6.3 Replace `📤` emoji with `Share` icon SVG in carousel files
+- [x] 6.4 Replace `🔖📌` emoji with `Bookmark` icon SVG in carousel files
+- [x] 6.5 Replace `➤⌘` emoji with `Play` and `Command` icon SVG in carousel files
+- [x] 6.6 Test carousel interactions and icon clicks on desktop and mobile
+- [x] 6.7 Verify no CDN caching issues with updated HTML files
 
 ## 7. Testing and Documentation
 
