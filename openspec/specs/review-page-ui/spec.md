@@ -310,29 +310,90 @@ tests:
 ---
 ### Requirement: Collapsible insights section
 
-The system SHALL display a collapsible insights section with visual toggle indicators using SVG icons.
+The system SHALL display a collapsible insights section with visual toggle indicators using SVG icons instead of emoji characters.
 
 #### Scenario: Insights expanded state shows chevron down
 
 - **WHEN** user views the expanded insights section
-- **THEN** system displays `ChevronDown` SVG icon from Lucide to indicate expanded state
+- **THEN** system displays `ChevronDown` SVG icon from Lucide to indicate expanded state (previously `▼`)
 
 #### Scenario: Insights collapsed state shows chevron up
 
 - **WHEN** user views the collapsed insights section
-- **THEN** system displays `ChevronUp` SVG icon from Lucide to indicate collapsed state
+- **THEN** system displays `ChevronUp` SVG icon from Lucide to indicate collapsed state (previously `▲`)
 
 #### Scenario: Icon click toggles insights visibility
 
 - **WHEN** user clicks on the chevron icon
 - **THEN** insights section toggles visibility with smooth animation
 
+
+<!-- @trace
+source: replace-emoji-with-svg
+updated: 2026-04-14
+code:
+  - components/icons/index.ts
+  - components/dashboard/today-progress.tsx
+  - next-env.d.ts
+  - components/chat/message-bubble.tsx
+  - fishtvlove-carousel-v2.html.bak
+  - fishtvlove-carousel-classic.html
+  - docs/api/settings.md
+  - app/globals.css
+  - components/dashboard/wellness-card.tsx
+  - components/icons/custom-icons.tsx
+  - fishtvlove-carousel-classic.html.bak
+  - lib/icon-mapping.ts
+  - fishtvlove-carousel.html.bak
+  - app/(app)/review/page.tsx
+  - fishtvlove-carousel.html
+  - fishtvlove-carousel-v2.html
+tests:
+  - __tests__/e2e/settings-flow.test.ts
+  - components/icons/custom-icons.test.tsx
+  - tests/components/wellness-card-icons.test.tsx
+  - tests/components/review-page-icons.test.tsx
+  - tests/components/message-bubble.test.tsx
+  - lib/icon-mapping.test.ts
+  - tests/components/today-progress-icons.test.tsx
+-->
+
 ---
 ### Requirement: Error state indicators
 
-The system SHALL indicate error or invalid states using SVG icons.
+The system SHALL indicate error or invalid states using SVG icons instead of emoji.
 
 #### Scenario: Error state shows X icon
 
 - **WHEN** system encounters an error condition requiring visual indication
-- **THEN** system displays `X` icon from Lucide to mark error state
+- **THEN** system displays `X` icon from Lucide (previously `✕`) to mark error state
+
+<!-- @trace
+source: replace-emoji-with-svg
+updated: 2026-04-14
+code:
+  - components/icons/index.ts
+  - components/dashboard/today-progress.tsx
+  - next-env.d.ts
+  - components/chat/message-bubble.tsx
+  - fishtvlove-carousel-v2.html.bak
+  - fishtvlove-carousel-classic.html
+  - docs/api/settings.md
+  - app/globals.css
+  - components/dashboard/wellness-card.tsx
+  - components/icons/custom-icons.tsx
+  - fishtvlove-carousel-classic.html.bak
+  - lib/icon-mapping.ts
+  - fishtvlove-carousel.html.bak
+  - app/(app)/review/page.tsx
+  - fishtvlove-carousel.html
+  - fishtvlove-carousel-v2.html
+tests:
+  - __tests__/e2e/settings-flow.test.ts
+  - components/icons/custom-icons.test.tsx
+  - tests/components/wellness-card-icons.test.tsx
+  - tests/components/review-page-icons.test.tsx
+  - tests/components/message-bubble.test.tsx
+  - lib/icon-mapping.test.ts
+  - tests/components/today-progress-icons.test.tsx
+-->
