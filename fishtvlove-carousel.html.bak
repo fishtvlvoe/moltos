@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>fishtvlove - 打掉重練 IG 輪播</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&Noto+Sans+TC:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .carousel-container {
+            width: 100%;
+            max-width: 540px;
+            aspect-ratio: 4/5;
+            position: relative;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        .carousel-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 60px 40px 80px;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            background: linear-gradient(135deg, #1E3A5F 0%, #2A4A7C 100%);
+        }
+
+        .slide.active {
+            opacity: 1;
+        }
+
+        /* Slide 1: HOOK */
+        .slide.slide-1 {
+            background: linear-gradient(135deg, #1E3A5F 0%, #0F1F3A 100%);
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .slide.slide-1 .slide-title {
+            font-size: 72px;
+            font-weight: 700;
+            color: #5B9EFF;
+            margin-bottom: 20px;
+            font-family: 'Noto Serif TC', serif;
+        }
+
+        .slide.slide-1 .slide-subtitle {
+            font-size: 18px;
+            color: #FFFFFF;
+            font-weight: 400;
+            line-height: 1.6;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+
+        /* Slide 2: CONTEXT */
+        .slide.slide-2 {
+            background: linear-gradient(135deg, #FFFFFF 0%, #F3F4F6 100%);
+        }
+
+        .slide.slide-2 .slide-title {
+            color: #1E3A5F;
+            font-size: 32px;
+            margin-bottom: 24px;
+            font-family: 'Noto Serif TC', serif;
+        }
+
+        .slide.slide-2 .slide-content {
+            color: #4B5563;
+            font-size: 16px;
+            line-height: 1.8;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+
+        /* Slide 3: BUILD #1 */
+        .slide.slide-3 {
+            background: linear-gradient(135deg, #1E3A5F 0%, #2A4A7C 100%);
+        }
+
+        .slide.slide-3 .slide-title {
+            color: #5B9EFF;
+            font-size: 36px;
+            margin-bottom: 28px;
+            font-family: 'Noto Serif TC', serif;
+        }
+
+        .slide.slide-3 .step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            color: #FFFFFF;
+            font-size: 15px;
+            line-height: 1.6;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+
+        .slide.slide-3 .step-emoji {
+            margin-right: 12px;
+            font-size: 18px;
+            min-width: 24px;
+        }
+
+        /* Slide 4: BUILD #2 */
+        .slide.slide-4 {
+            background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
+        }
+
+        .slide.slide-4 .slide-title {
+            color: #1E3A5F;
+            font-size: 32px;
+            margin-bottom: 24px;
+            font-family: 'Noto Serif TC', serif;
+        }
+
+        .slide.slide-4 .slide-content {
+            color: #4B5563;
+            font-size: 15px;
+            line-height: 1.8;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+
+        /* Slide 5: TENSION */
+        .slide.slide-5 {
+            background: linear-gradient(135deg, #1E3A5F 0%, #2A4A7C 100%);
+        }
+
+        .slide.slide-5 .slide-title {
+            color: #5B9EFF;
+            font-size: 36px;
+            margin-bottom: 28px;
+            font-family: 'Noto Serif TC', serif;
+        }
+
+        .slide.slide-5 .slide-content {
+            color: #FFFFFF;
+            font-size: 15px;
+            line-height: 1.8;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+
+        /* Slide 6: PAYOFF */
+        .slide.slide-6 {
+            background: linear-gradient(135deg, #FFFFFF 0%, #F3F4F6 100%);
+        }
+
+        .slide.slide-6 .slide-title {
+            color: #5B9EFF;
+            font-size: 32px;
+            margin-bottom: 24px;
+            font-family: 'Noto Serif TC', serif;
+        }
+
+        .slide.slide-6 .slide-content {
+            color: #4B5563;
+            font-size: 15px;
+            line-height: 1.8;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+
+        /* Slide 7: CTA */
+        .slide.slide-7 {
+            background: linear-gradient(135deg, #1E3A5F 0%, #0F1F3A 100%);
+            justify-content: flex-start;
+            padding-top: 100px;
+        }
+
+        .slide.slide-7 .slide-title {
+            color: #5B9EFF;
+            font-size: 48px;
+            margin-bottom: 32px;
+            font-family: 'Noto Serif TC', serif;
+        }
+
+        .slide.slide-7 .slide-content {
+            color: #E5E7EB;
+            font-size: 15px;
+            line-height: 1.8;
+            margin-bottom: 32px;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+
+        .slide.slide-7 .cta-button {
+            background: #5B9EFF;
+            color: #FFFFFF;
+            padding: 14px 32px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Noto Sans TC', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .slide.slide-7 .cta-button:hover {
+            background: #4A90E2;
+            transform: translateY(-2px);
+        }
+
+        /* IG Frame Elements */
+        .ig-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: white;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            border-bottom: 1px solid #E5E7EB;
+            z-index: 10;
+            box-sizing: border-box;
+        }
+
+        .ig-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #5B9EFF, #1E3A5F);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            margin-right: 12px;
+        }
+
+        .ig-username {
+            flex: 1;
+        }
+
+        .ig-username .name {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1F2937;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+
+        .ig-username .handle {
+            font-size: 12px;
+            color: #9CA3AF;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+
+        .ig-menu {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            color: #6B7280;
+        }
+
+        .ig-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            border-top: 1px solid #E5E7EB;
+            z-index: 10;
+            box-sizing: border-box;
+        }
+
+        .ig-icons {
+            display: flex;
+            gap: 16px;
+            font-size: 20px;
+        }
+
+        .progress-bar {
+            position: absolute;
+            bottom: 60px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #E5E7EB;
+            z-index: 5;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #5B9EFF;
+            transition: width 0.5s ease;
+        }
+
+        .slide-counter {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.4);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 20;
+            font-family: 'Noto Sans TC', sans-serif;
+        }
+
+        /* Controls */
+        .carousel-controls {
+            position: absolute;
+            bottom: 80px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 15;
+            pointer-events: none;
+        }
+
+        .carousel-arrow {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
+            font-size: 20px;
+            transition: all 0.3s ease;
+            pointer-events: auto;
+            user-select: none;
+        }
+
+        .carousel-arrow:hover {
+            background: rgba(91, 158, 255, 0.6);
+            border-color: rgba(91, 158, 255, 0.8);
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .carousel-container {
+                max-width: 100%;
+                border-radius: 0;
+            }
+
+            .slide {
+                padding: 50px 30px 70px;
+            }
+
+            .slide.slide-1 .slide-title {
+                font-size: 56px;
+            }
+
+            .slide.slide-1 .slide-subtitle {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="carousel-container">
+        <!-- IG Header -->
+        <div class="ig-header">
+            <div class="ig-avatar">F</div>
+            <div class="ig-username">
+                <div class="name">fishtvlove</div>
+                <div class="handle">AI 開發之旅</div>
+            </div>
+            <div class="ig-menu">⋯</div>
+        </div>
+
+        <!-- Carousel Wrapper -->
+        <div class="carousel-wrapper">
+            <!-- Slide 1: HOOK -->
+            <div class="slide slide-1 active">
+                <div class="slide-title">打掉重練</div>
+                <div class="slide-subtitle">沒有開發經驗的人<br>也能用 AI 做出軟體工具</div>
+            </div>
+
+            <!-- Slide 2: CONTEXT -->
+            <div class="slide slide-2">
+                <div class="slide-title">從文字產出<br>到影片生成</div>
+                <div class="slide-content">
+                    一開始想做 AI 文字服務<br><br>
+                    接了顧問案後<br>
+                    需求變成「圖片轉影片」<br><br>
+                    於是開始研究怎麼讓<br>
+                    Claude Code 產影片
+                </div>
+            </div>
+
+            <!-- Slide 3: BUILD #1 -->
+            <div class="slide slide-3">
+                <div class="slide-title">四步驟產出<br>真人影片</div>
+                <div class="step">
+                    <span class="step-emoji">1️⃣</span>
+                    <span>產出穩定的影片腳本</span>
+                </div>
+                <div class="step">
+                    <span class="step-emoji">2️⃣</span>
+                    <span>畫出分鏡圖</span>
+                </div>
+                <div class="step">
+                    <span class="step-emoji">3️⃣</span>
+                    <span>匯入首尾幀影像</span>
+                </div>
+                <div class="step">
+                    <span class="step-emoji">4️⃣</span>
+                    <span>生成真人口型與整體狀態</span>
+                </div>
+            </div>
+
+            <!-- Slide 4: BUILD #2 -->
+            <div class="slide slide-4">
+                <div class="slide-title">「重新造輪子」<br>不簡單</div>
+                <div class="slide-content">
+                    說難不難<br>
+                    但也不算容易<br><br>
+                    需要花很多時間爬文學習<br>
+                    技術名詞多到聽不懂<br><br>
+                    但這正是成長的過程
+                </div>
+            </div>
+
+            <!-- Slide 5: TENSION -->
+            <div class="slide slide-5">
+                <div class="slide-title">我選擇用<br>白話說清楚</div>
+                <div class="slide-content">
+                    不想用深奧名詞來炫耀<br>
+                    大多數人聽不懂我在寫什麼<br><br>
+                    所以儘量用白話描述<br>
+                    不加術語<br><br>
+                    只提常見模型：<br>
+                    OpenAI Code、Claude Code
+                </div>
+            </div>
+
+            <!-- Slide 6: PAYOFF -->
+            <div class="slide slide-6">
+                <div class="slide-title">規格驅動開發<br>就是 SOP</div>
+                <div class="slide-content">
+                    不用學過程式開發<br>
+                    只要理解「規格驅動開發」<br><br>
+                    參照規格 → 寫好規格<br>
+                    → 再開發<br><br>
+                    普通人也能做出<br>
+                    更棒的「輪子」
+                </div>
+            </div>
+
+            <!-- Slide 7: CTA -->
+            <div class="slide slide-7">
+                <div class="slide-title">跟我一起</div>
+                <div class="slide-content">
+                    每天花 10-15 小時打造工具<br>
+                    token 成本狂燒<br><br>
+                    但我找到了解決方案<br><br>
+                    追蹤 @fishtvlove<br>
+                    看我怎麼做
+                </div>
+                <button class="cta-button">追蹤</button>
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <!-- Slide Counter -->
+        <div class="slide-counter">
+            <span id="currentSlide">1</span> / 7
+        </div>
+
+        <!-- Controls -->
+        <div class="carousel-controls">
+            <div class="carousel-arrow" id="prevBtn">‹</div>
+            <div class="carousel-arrow" id="nextBtn">›</div>
+        </div>
+
+        <!-- IG Footer -->
+        <div class="ig-footer">
+            <div class="ig-icons">
+                <span style="cursor: pointer;">♡</span>
+                <span style="cursor: pointer;">💬</span>
+                <span style="cursor: pointer;">➤</span>
+            </div>
+            <span style="font-size: 16px; cursor: pointer;">⌘</span>
+        </div>
+    </div>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+
+        function updateCarousel() {
+            slides.forEach((slide, index) => {
+                slide.classList.remove('active');
+                if (index === currentSlide) {
+                    slide.classList.add('active');
+                }
+            });
+
+            document.getElementById('currentSlide').textContent = currentSlide + 1;
+            document.getElementById('progressFill').style.width = ((currentSlide + 1) / totalSlides * 100) + '%';
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            updateCarousel();
+        }
+
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            updateCarousel();
+        }
+
+        document.getElementById('nextBtn').addEventListener('click', nextSlide);
+        document.getElementById('prevBtn').addEventListener('click', prevSlide);
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+
+        // Initialize
+        updateCarousel();
+    </script>
+</body>
+</html>
