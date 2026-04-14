@@ -148,3 +148,21 @@ body {
     @apply font-sans;
   }
 }
+/* 遊標閃爍動畫 - 替換原本的 ▌ emoji */
+@keyframes cursor-blink {
+  0%, 49% {
+    opacity: 1;
+  }
+  50%, 99% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@layer utilities {
+  .animate-cursor-blink {
+    animation: cursor-blink 1s step-start infinite;
+  }
+}

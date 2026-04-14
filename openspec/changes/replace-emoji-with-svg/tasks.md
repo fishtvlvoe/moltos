@@ -33,11 +33,11 @@
 
 ## 5. Chat Message UI — Replace streaming cursor
 
-- [ ] 5.1 Integrate custom `BlockCursor` SVG component in `components/chat/message-bubble.tsx` (per Streaming message cursor indicator requirement)
-- [ ] 5.2 Implement cursor animation matching original `▌` blinking behavior (per Streaming cursor animates smoothly requirement)
-- [ ] 5.3 Ensure cursor displays only during streaming and disappears on completion (per Cursor disappears when streaming completes requirement)
-- [ ] 5.4 Test cursor visibility on different message types and screen sizes
-- [ ] 5.5 Write unit tests for cursor animation and lifecycle
+- [x] 5.1 Integrate custom `BlockCursor` SVG component in `components/chat/message-bubble.tsx` (per Streaming message cursor indicator requirement)
+- [x] 5.2 Implement cursor animation matching original `▌` blinking behavior (per Streaming cursor animates smoothly requirement)
+- [x] 5.3 Ensure cursor displays only during streaming and disappears on completion (per Cursor disappears when streaming completes requirement)
+- [x] 5.4 Test cursor visibility on different message types and screen sizes
+- [x] 5.5 Write unit tests for cursor animation and lifecycle
 
 ## 6. Marketing HTML — Replace social interaction emoji
 

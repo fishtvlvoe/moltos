@@ -1,6 +1,7 @@
 'use client';
 
 import type { ChatMessage } from '@/lib/types';
+import { BlockCursor } from '@/components/icons/custom-icons';
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -63,11 +64,10 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           {/* 串流閃爍游標 */}
           {message.isStreaming && (
             <span
-              className="inline-block ml-0.5 animate-pulse"
-              style={{ color: isUser ? 'rgba(255,255,255,0.8)' : '#C67A52' }}
+              className={`ml-0.5 inline-flex items-center ${isUser ? 'text-white/80' : 'text-[#C67A52]'}`}
               aria-hidden="true"
             >
-              ▌
+              <BlockCursor className="inline-block align-middle animate-[block-cursor-blink_1s_linear_infinite]" />
             </span>
           )}
         </div>
@@ -77,6 +77,18 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           {formatTime(message.timestamp)}
         </span>
       </div>
+
+      <style jsx>{`
+        @keyframes block-cursor-blink {
+          0%,
+          100% {
+            opacity: 0;
+          }
+          50% {
+            opacity: 1;
+          }
+        }
+      `}</style>
     </div>
   );
 }
