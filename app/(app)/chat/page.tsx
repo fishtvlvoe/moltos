@@ -29,13 +29,7 @@ export default function ChatPage() {
       console.info('[ElevenLabs Chat] 連線建立，conversation_id:', conversationId);
       setIsConnected(true);
       setIsConnecting(false);
-
-      // 若有待送訊息，連線後立即送出
-      if (pendingMessageRef.current) {
-        const text = pendingMessageRef.current;
-        pendingMessageRef.current = null;
-        conversation.sendUserMessage(text);
-      }
+      // 待送訊息由下方 useEffect 監聽 isConnected 處理（避免閉包陷阱）
     },
     onDisconnect: () => {
       console.info('[ElevenLabs Chat] 連線已中斷');
@@ -170,6 +164,16 @@ export default function ChatPage() {
     // 第一次等 1.5 秒再開始，讓 webhook 有時間寫入
     setTimeout(poll, 1500);
   }
+
+  // 連線建立後，若有待送訊息立即送出（避免 onConnect 閉包抓到舊 conversation）
+  useEffect(() => {
+    if (isConnected && pendingMessageRef.current) {
+      const text = pendingMessageRef.current;
+      pendingMessageRef.current = null;
+      console.log('[Chat Debug] useEffect 送出待送訊息', text);
+      conversation.sendUserMessage(text);
+    }
+  }, [isConnected, conversation]);
 
   // 進入頁面時：載入 DB 歷史 → 觸發問候
   useEffect(() => {
