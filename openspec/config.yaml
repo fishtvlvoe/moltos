@@ -1,20 +1,128 @@
 schema: spec-driven
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+# ─────────────────────────────────────────────────────────────────────
+# 專案說明（Project Context）
+# 對應 Spectra GUI「專案設定 → 專案說明」分頁。
+# 建立任何 artifact（proposal / design / specs / tasks）時，AI 會讀這段當背景知識。
+# 內容要簡潔但關鍵，不寫廢話、不寫未定事實。
+# ─────────────────────────────────────────────────────────────────────
+context: |
+  # 產品定位
+  MOLTOS Care 是職場心理健康 AI 陪伴 Web App，品牌名「小默」。
+  核心體驗：用戶透過語音通話 / 文字對話與 AI 小默互動，系統讀取 Gmail 元資料（不讀信件內文）計算「平靜指數」，主動關懷用戶。
+  目標用戶：需要情緒支持但不方便找真人諮商的職場工作者。
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+  # Tech Stack
+  - Runtime: Node.js 20+
+  - Framework: Next.js 16 (App Router, React 19)
+  - Language: TypeScript 5.x
+  - Styling: Tailwind CSS 4 + shadcn/ui + Radix UI primitives
+  - Database: Supabase (Postgres 15 + Auth)
+  - Auth: NextAuth.js 4 (Google OAuth) + Supabase Auth 雙軌
+  - AI:
+    - 對話：ElevenLabs Conversational AI（Agent: 小默，語音 + 文字模式）
+    - 洞察：Groq（跑對話洞察分析）
+  - Email 發送：toSend (AWS SES 底層，規劃中)
+  - 排程：Vercel Cron（規劃中）
+  - 部署：Vercel (Production 走 main、Preview 走 staging)
+  - 測試：Vitest + jsdom
+  - Icon：Lucide React（禁用 Emoji）
+
+  # 程式碼規範
+  - 程式碼用英文，註解用繁體中文
+  - 檔案命名 kebab-case，React 元件 PascalCase
+  - API route 檔名固定為 route.ts（Next.js App Router 慣例）
+  - UI 一律用 Lucide SVG icon，禁止 Emoji
+  - shadcn/ui 元件放在 components/ui/，業務元件放在 components/<domain>/
+  - `lib/` 放純邏輯（不依賴 React），`app/` 放 routing 與 UI
+
+  # 目錄結構（重點）
+  - app/(app)/... — 登入後的主 App 路由
+  - app/api/... — API routes（RESTful 風格）
+  - lib/ — 純邏輯（db、auth、notifications、email、calm-index）
+  - components/ — UI 元件（ui/ 放 shadcn primitives）
+  - supabase/migrations/ — 資料庫 migration SQL（時間戳前綴）
+  - openspec/ — Spectra SDD 工作區（本目錄）
+
+  # 資料表命名慣例
+  - 表名：複數 snake_case（users, notifications, voice_transcripts）
+  - 欄位：snake_case（created_at, user_id, reminder_schedule）
+  - JSONB 欄位用於彈性設定（notification_preferences, reminder_schedule, source_priorities, privacy_settings）
+  - 外鍵 ON DELETE CASCADE 避免孤兒資料
+
+  # 環境變數命名慣例
+  - `NEXT_PUBLIC_*` 前綴僅用於前端可見的非 secret
+  - 第三方服務 API Key 用 `<SERVICE>_API_KEY` 格式（如 TOSEND_API_KEY）
+  - Cron 驗證用 CRON_SECRET
+  - Supabase Service Role Key 僅伺服器端使用，禁止洩漏到前端
+
+  # 安全原則
+  - 所有 API route 先驗證 session（next-auth getServerSession），未登入回 401
+  - 用戶資料操作一律以當前 session 的 user 為範圍，避免 IDOR
+  - 外部 webhook / cron endpoint 需驗證 Secret header
+  - Gmail 只讀 metadata，禁止讀取信件 body
+
+  # 部署流程
+  - 開發分支：staging
+  - 正式分支：main
+  - staging push → Vercel Preview build（可能因 env var 不全 build fail，不影響 production）
+  - main push → Vercel Production 自動部署（約 1-2 分鐘）
+  - 每次完成 Spectra change 後走 merge staging → main 上線
+
+# ─────────────────────────────────────────────────────────────────────
+# 產出規則（Per-artifact Rules）
+# 對應 Spectra GUI「專案設定 → 產出規則」分頁。
+# 約束每個 artifact 的內容格式。AI 寫 artifact 時會遵守這些規則。
+# ─────────────────────────────────────────────────────────────────────
+rules:
+  # ── Proposal ────────────────────────────────────────────────
+  proposal:
+    - 以繁體中文撰寫
+    - Why 段落限 1-3 句話，說明問題與急迫性
+    - What Changes 用 bullet list，每條以動詞起頭（「新增」「修改」「移除」），具體到檔案或 API 層級
+    - 破壞性變更必須加粗標示 **BREAKING**
+    - Non-Goals 段落必填：明確列出本次不做的事，避免 scope creep
+    - Capabilities 章節要與 specs/ 目錄的名稱完全一致（kebab-case）
+    - Impact 段落必含：Affected specs、Affected code（完整檔案路徑清單）、Dependencies 新增、環境變數新增
+
+  # ── Design ──────────────────────────────────────────────────
+  design:
+    - 以繁體中文撰寫
+    - 僅在以下情況建立：跨模組變更、新外部依賴、新資料模型、效能或安全複雜度高
+    - Decisions 每條必須包含 Alternatives Considered（至少列 2 個被否決的方案 + 理由）
+    - Risks / Trade-offs 用「[Risk] → Mitigation」格式
+    - Migration Plan 必含部署步驟 + 回滾策略
+    - 禁用「可能」「或許」「看情況」；不確定的事放進 Open Questions 明列
+    - 涉及時區的邏輯必須明確寫 Asia/Taipei，禁止用「當地時間」
+    - 涉及 DB schema 必須列 SQL DDL 含 index
+
+  # ── Specs ───────────────────────────────────────────────────
+  specs:
+    - 使用英文撰寫（normative language：SHALL / MUST / WHEN / THEN）
+    - 每個 Requirement 至少一個 Scenario，Scenario 用 WHEN/THEN 格式
+    - Scenario 用 exactly 4 hashtags（####），使用 3 個或 bullet 會 silently fail
+    - 禁用 should / may / might / consider / possibly / TBD / TODO
+    - MODIFIED 需求必須複製完整 requirement block 再編輯，不可只寫 delta
+    - 邊界條件必寫：空輸入、最大限制、錯誤情境
+    - 每個涉及 API 的 requirement 必須明確標示 HTTP method + path + status code
+
+  # ── Tasks ───────────────────────────────────────────────────
+  tasks:
+    - 以繁體中文撰寫
+    - 每個 task 用 checkbox 格式：`- [ ] X.Y 任務描述`
+    - 每個 task 必須標記 `[Tool: <agent>]`，可選：codex / copilot-codex / copilot-gen / cursor / kimi / sonnet
+    - 可並行任務加 `[P]` 標記（對應 .spectra.yaml 的 parallel_tasks: true）
+    - 每個 task 描述必須包含對應的 spec Requirement name（完整字串）或 design Decision 標題，analyzer 會做 substring 比對
+    - 每個 task 粒度：單人 30 分鐘內完成，超過必須拆
+    - TDD 模式下測試任務（X.1）必須在實作任務（X.2）之前
+    - Review 任務獨立成 group，指派 kimi MCP 處理 3+ 檔案分析
+    - 部署任務必列於最末 group，驗證項目：env var 已設、build 通過、Production 實測
+    - 每個 group 末尾必有驗收條件（可跑的指令或可觀察的結果）
+
+# ─────────────────────────────────────────────────────────────────────
+# 參考連結
+# - Spectra 官方文件：https://github.com/spectra-app/spectra
+# - 全域規則：~/.claude/rules/routing.md（路由分工）
+# - 全域規則：~/.claude/lessons.md（踩坑記錄）
+# - 專案 CLAUDE.md：./CLAUDE.md（專案細則）
+# ─────────────────────────────────────────────────────────────────────
