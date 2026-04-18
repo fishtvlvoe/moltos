@@ -231,8 +231,8 @@ export default function ChatPage() {
       body: JSON.stringify({ role: 'user', content: text }),
     }).catch((err) => console.warn('[Chat] 存用戶訊息失敗：', err));
 
-    if (conversation.status === 'connected') {
-      // 已連線：直接送出
+    if (isConnected) {
+      // 已連線：直接送出（用自家維護的 isConnected，避免 SDK status 同步延遲）
       conversation.sendUserMessage(text);
     } else {
       // 未連線：暫存訊息，連線後自動送出
