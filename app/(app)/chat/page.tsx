@@ -214,6 +214,8 @@ export default function ChatPage() {
 
   // ─── 使用者送出訊息 ───────────────────────────────────────────────────────────
   function handleSend(text: string) {
+    console.log('[Chat Debug] handleSend 呼叫', { text, isConnected, status: conversation.status });
+
     // 加入使用者訊息到畫面
     const userMsg: ChatMessage = {
       id: crypto.randomUUID(),
@@ -224,18 +226,23 @@ export default function ChatPage() {
     setMessages((prev) => [...prev, userMsg]);
 
     // 非同步存入 DB（非關鍵路徑，失敗不阻斷，但需 log）
-    // 問題 2：catch 空函式改為記錄 warning，方便 debug
     fetch('/api/chat/message', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ role: 'user', content: text }),
     }).catch((err) => console.warn('[Chat] 存用戶訊息失敗：', err));
 
-    if (isConnected) {
-      // 已連線：直接送出（用自家維護的 isConnected，避免 SDK status 同步延遲）
-      conversation.sendUserMessage(text);
+    // 修正：用 SDK status 判斷（更準），並無條件嘗試送出，失敗才排隊
+    if (conversation.status === 'connected') {
+      console.log('[Chat Debug] 呼叫 sendUserMessage');
+      try {
+        conversation.sendUserMessage(text);
+        console.log('[Chat Debug] sendUserMessage 完成');
+      } catch (err) {
+        console.error('[Chat Debug] sendUserMessage 錯誤:', err);
+      }
     } else {
-      // 未連線：暫存訊息，連線後自動送出
+      console.log('[Chat Debug] 未連線，排隊並觸發 connect', { sdkStatus: conversation.status });
       pendingMessageRef.current = text;
       connectToAgent();
     }
