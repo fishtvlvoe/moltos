@@ -76,7 +76,7 @@
 
 ## 12. 部署與收尾 — 依 design.md 部署步驟完成上線
 
-- [ ] 12.1 [Tool: codex] 依 design.md 部署步驟第 4 步於 Vercel Production 設定 `TOSEND_API_KEY`、`TOSEND_FROM_EMAIL`、`CRON_SECRET` 三個環境變數
-- [ ] 12.2 [Tool: codex] 依 design.md 部署步驟第 6 步 merge staging → main、等待 Vercel Production 部署成功
-- [ ] 12.3 [Tool: codex] 依 design.md 部署步驟第 7 步於 Production 執行首次驗證：設 Fish 自己帳號 `reminder_schedule` 為下一個整點、確認實際收到 Email + 站內紅點
-- [ ] 12.4 [Tool: codex] 更新 `README.md` 或 `docs/` 記錄通知系統架構（lib/email、lib/notifications、cron endpoint、必備 env var）
+- [x] 12.1 [Tool: codex] 於 Vercel Production 設 `TOSEND_API_KEY`、`TOSEND_FROM_EMAIL`、`TOSEND_FROM_NAME`、`CRON_SECRET` 四個環境變數（`vercel env add ... production`），`vercel env ls` 確認全部 Encrypted
+- [x] 12.2 [Tool: codex] `git push origin main` 三筆 commit（feat + refactor CR + migration UUID fix），Vercel Production 部署觸發中
+- [ ] 12.3 [Tool: codex] 等 Vercel 部署完 → 下次 TPE 09:00 或 20:00 整點觀察 Vercel Cron Logs 與實際收信（首次整點 cron 會自動觸發；或現在去 Production 臨時設 enabled:true time:'<下一個整點>' 測試一次）
+- [ ] 12.4 [Tool: codex] 更新 `docs/` 記錄通知系統架構（延後，非阻斷性）
