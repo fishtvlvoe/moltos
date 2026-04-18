@@ -4,7 +4,7 @@
 
 CREATE TABLE IF NOT EXISTS notifications (
   id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id    TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id    UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   type       TEXT NOT NULL,                          -- 'calm_reminder' | 未來擴充
   title      TEXT NOT NULL,
   body       TEXT NOT NULL,
@@ -33,11 +33,11 @@ ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY notifications_user_select ON notifications
   FOR SELECT
-  USING (user_id = auth.uid()::text);
+  USING (user_id = auth.uid());
 
 CREATE POLICY notifications_user_update ON notifications
   FOR UPDATE
-  USING (user_id = auth.uid()::text);
+  USING (user_id = auth.uid());
 
 -- 顯式封鎖非 service role 的 INSERT / DELETE（防禦縱深）
 CREATE POLICY notifications_no_insert ON notifications

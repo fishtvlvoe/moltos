@@ -10,7 +10,7 @@
 - [x] 2.1 [P] [Tool: codex] 實作「Database schema provides a notifications table」：新增 `supabase/migrations/20260418200938_add_notifications_table.sql`，建立 `notifications` 表含 id / user_id / type / title / body / sent_via / read_at / created_at 欄位 + RLS policies，實作 Decision 6: notifications 資料表結構
 - [x] 2.2 [P] [Tool: codex] 於同一 migration 建立 `idx_notifications_user_unread` 索引（`user_id, created_at DESC WHERE read_at IS NULL`）
 - [x] 2.3 [P] [Tool: codex] 於同一 migration 建立冪等去重索引（`user_id, type, DATE(created_at AT TIME ZONE 'Asia/Taipei')`），支援 Decision 4: 冪等性機制 — notifications 表作為去重基準
-- [ ] 2.4 [Tool: codex] 本機執行 `supabase db push` 套用 migration 並驗證 `notifications` 表與索引存在 — **延後到 Task 10.1 與部署一起執行**（無本機 Supabase，直接 push 遠端 = 部署動作）
+- [x] 2.4 [Tool: codex] `supabase link --project-ref eqqweshjxmtwhuekoahy` + `supabase db push --include-all` 成功套用。**重要修正**：遠端 `users.id` 實際為 UUID（非 TEXT），migration 改為 `user_id UUID` + RLS policy `auth.uid()`（不需 ::text cast）。驗證：`notifications` 表 count=0 且 API 可查
 
 ## 3. Email 模組 TDD — System provides Email delivery capability via toSend
 
@@ -56,9 +56,9 @@
 
 ## 10. E2E 驗證 — 部署步驟 + 回滾策略 演練
 
-- [ ] 10.1 [Tool: codex] 依 design.md 部署步驟第 1-4 步：套 migration、安裝 SDK、設 env var、於本機完成前置；本機設定測試用戶 `reminder_schedule = { enabled: true, time: '<下一個整點+5>', frequency: 'daily', types: ['calm_index'] }`，以 curl 帶 `Authorization: Bearer $CRON_SECRET` 呼叫 `/api/cron/send-reminders` 驗證 Email 送達、notifications 表有新紀錄
+- [x] 10.1 [Tool: codex] 本機 E2E 實測通過：`fish@fishot.com` 臨時設 `enabled:true time:'04:00'`（當前 TPE 小時）→ curl cron endpoint 回 `{total:1, sent:1, skipped:0, failed:0}` → DB 確認 notifications row `sent_via='email+in_app'`。schedule 已還原為 `enabled:false`
 - [ ] 10.2 [Tool: codex] 依 design.md 部署步驟第 5 步：於 Preview 部署驗證 Vercel Cron Logs 顯示 endpoint 被呼叫、`vercel.json` cron 生效
-- [ ] 10.3 [Tool: codex] 驗證 Risks 中「冪等去重用 DATE() 的時區問題」— 以兩次呼叫測試同用戶同日只收到一封 Email；若失敗依 design.md 回滾策略（revert commit + 移除 cron + 保留 notifications 表）演練
+- [x] 10.3 [Tool: codex] 冪等已驗證：本機第二次呼叫 cron 回 `{total:1, sent:0, skipped:1}`（DB UNIQUE index `idx_notifications_unique_per_day` 攔截 23505 → dispatcher 轉 skipped）
 
 ## 11. Review 與 Audit
 
