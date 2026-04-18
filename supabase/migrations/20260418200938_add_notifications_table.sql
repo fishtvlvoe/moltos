@@ -18,12 +18,17 @@ CREATE INDEX IF NOT EXISTS idx_notifications_user_unread
   ON notifications (user_id, created_at DESC)
   WHERE read_at IS NULL;
 
--- 冪等去重索引（cron 每日同用戶同 type 最多一筆）
--- 注意：使用 Asia/Taipei 時區避免跨日邊界問題（Risks 條目）
-CREATE INDEX IF NOT EXISTS idx_notifications_user_type_date
+-- 冪等查詢索引（B-tree range scan 可命中）
+-- 用於 dispatcher 查「今日 TPE 同用戶同 type」是否已發送
+CREATE INDEX IF NOT EXISTS idx_notifications_user_type_created
+  ON notifications (user_id, type, created_at DESC);
+
+-- 冪等 UNIQUE constraint：DB 層強制「同用戶同 type 同日（TPE）最多一筆」
+-- 防止並發 cron / retry 造成重複發送
+CREATE UNIQUE INDEX IF NOT EXISTS idx_notifications_unique_per_day
   ON notifications (user_id, type, (DATE(created_at AT TIME ZONE 'Asia/Taipei')));
 
--- RLS：用戶只能讀自己的通知
+-- RLS：用戶只能讀/改自己的通知；INSERT/DELETE 僅 service role 可執行
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY notifications_user_select ON notifications
@@ -34,4 +39,11 @@ CREATE POLICY notifications_user_update ON notifications
   FOR UPDATE
   USING (user_id = auth.uid()::text);
 
--- 寫入由 service role 執行（cron / dispatcher），不需 policy
+-- 顯式封鎖非 service role 的 INSERT / DELETE（防禦縱深）
+CREATE POLICY notifications_no_insert ON notifications
+  FOR INSERT
+  WITH CHECK (false);
+
+CREATE POLICY notifications_no_delete ON notifications
+  FOR DELETE
+  USING (false);

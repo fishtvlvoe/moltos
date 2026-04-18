@@ -18,16 +18,14 @@ function currentTpeHourString(): string {
 }
 
 function mockEligibleUsersQuery(users: unknown[], error: { message: string } | null = null) {
-  const eqReturn = {
-    eq: vi.fn().mockResolvedValue({ data: users, error }),
-  };
-  const selectReturn = {
-    select: vi.fn().mockReturnValue(eqReturn),
-  };
   (supabaseAdmin.from as unknown as MockInstance).mockImplementation(
-    () => selectReturn as never
+    () =>
+      ({
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockResolvedValue({ data: users, error }),
+        }),
+      }) as never
   );
-  return { selectReturn, eqReturn };
 }
 
 describe('GET /api/cron/send-reminders', () => {
@@ -35,7 +33,7 @@ describe('GET /api/cron/send-reminders', () => {
 
   beforeEach(() => {
     vi.resetAllMocks();
-    process.env = { ...originalEnv, CRON_SECRET: 'test_secret_123' };
+    process.env = { ...originalEnv, CRON_SECRET: 'test_secret_123456789' };
   });
 
   afterEach(() => {
@@ -53,8 +51,8 @@ describe('GET /api/cron/send-reminders', () => {
     expect(response.status).toBe(401);
   });
 
-  it('returns 401 with wrong bearer token', async () => {
-    const response = await GET(makeReq('Bearer wrong'));
+  it('returns 401 with wrong bearer token (same length for timing-safe path)', async () => {
+    const response = await GET(makeReq('Bearer wrong_secret_with_padding')); // 30 chars
     expect(response.status).toBe(401);
   });
 
@@ -77,14 +75,11 @@ describe('GET /api/cron/send-reminders', () => {
       sentVia: 'email+in_app',
     });
 
-    const response = await GET(makeReq('Bearer test_secret_123'));
+    const response = await GET(makeReq('Bearer test_secret_123456789'));
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body).toHaveProperty('total');
-    expect(body).toHaveProperty('sent');
-    expect(body).toHaveProperty('skipped');
-    expect(body).toHaveProperty('failed');
+    expect(body).toEqual({ total: 1, sent: 1, skipped: 0, failed: 0 });
   });
 
   it('isolates single-user dispatcher throw so batch keeps running', async () => {
@@ -92,12 +87,20 @@ describe('GET /api/cron/send-reminders', () => {
       {
         id: 'u1',
         email: 'u1@example.com',
-        reminder_schedule: { enabled: true, time: currentTpeHourString(), frequency: 'daily' },
+        reminder_schedule: {
+          enabled: true,
+          time: currentTpeHourString(),
+          frequency: 'daily',
+        },
       },
       {
         id: 'u2',
         email: 'u2@example.com',
-        reminder_schedule: { enabled: true, time: currentTpeHourString(), frequency: 'daily' },
+        reminder_schedule: {
+          enabled: true,
+          time: currentTpeHourString(),
+          frequency: 'daily',
+        },
       },
     ]);
 
@@ -105,12 +108,20 @@ describe('GET /api/cron/send-reminders', () => {
       .mockRejectedValueOnce(new Error('boom on u1'))
       .mockResolvedValueOnce({ status: 'sent', sentVia: 'email+in_app' });
 
-    const response = await GET(makeReq('Bearer test_secret_123'));
+    const response = await GET(makeReq('Bearer test_secret_123456789'));
     const body = await response.json();
 
     expect(response.status).toBe(200);
     expect(body.total).toBe(2);
     expect(body.failed).toBe(1);
     expect(body.sent).toBe(1);
+  });
+
+  it('returns 500 with generic error on DB failure (no leakage)', async () => {
+    mockEligibleUsersQuery([], { message: 'relation "users" does not exist' });
+    const response = await GET(makeReq('Bearer test_secret_123456789'));
+    const body = await response.json();
+    expect(response.status).toBe(500);
+    expect(body).toEqual({ error: 'internal_error' });
   });
 });

@@ -50,30 +50,29 @@ export async function GET(request: Request): Promise<Response> {
       : await query;
 
     if (error) {
-      return NextResponse.json(
-        { error: `query_failed: ${error.message}` },
-        { status: 500 }
-      );
+      console.error('[GET /api/notifications count] query_failed:', error);
+      return NextResponse.json({ error: 'internal_error' }, { status: 500 });
     }
 
     return NextResponse.json({ count: count ?? 0 }, { status: 200 });
   }
 
-  // 列表查詢
+  // 列表查詢（最多 100 筆，避免無 LIMIT 回傳過大）
   const baseQuery = supabaseAdmin
     .from('notifications')
     .select('id, type, title, body, sent_via, read_at, created_at')
     .eq('user_id', userId);
 
   const { data, error } = unread
-    ? await baseQuery.is('read_at', null).order('created_at', { ascending: false })
-    : await baseQuery.order('created_at', { ascending: false });
+    ? await baseQuery
+        .is('read_at', null)
+        .order('created_at', { ascending: false })
+        .limit(100)
+    : await baseQuery.order('created_at', { ascending: false }).limit(100);
 
   if (error) {
-    return NextResponse.json(
-      { error: `query_failed: ${error.message}` },
-      { status: 500 }
-    );
+    console.error('[GET /api/notifications list] query_failed:', error);
+    return NextResponse.json({ error: 'internal_error' }, { status: 500 });
   }
 
   return NextResponse.json({ notifications: data ?? [] }, { status: 200 });

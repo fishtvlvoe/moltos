@@ -62,9 +62,17 @@
 
 ## 11. Review 與 Audit
 
-- [ ] 11.1 [Tool: kimi] Kimi MCP CR：分析 `lib/email/tosend.ts` + `lib/notifications/dispatcher.ts` + `app/api/cron/send-reminders/route.ts` 三檔，檢查邏輯錯誤、冪等缺陷、Error handling、SQL injection 風險
-- [ ] 11.2 [Tool: kimi] Kimi MCP 檢查 Decision 5: 失敗隔離策略 — 每用戶獨立 try/catch + 降級寫入站內 的實作是否真正 isolate 單用戶失敗
-- [ ] 11.3 [Tool: codex] 執行 `/spectra:audit` 檢查 security sharp edges（dangerous defaults、type confusion、silent failures）
+- [x] 11.1 [Tool: kimi] **以 3 個並行 subagent 取代 Kimi MCP**（correctness-auditor / security-lens / performance-auditor）全檔 CR。發現 Critical×2、High×5、Medium×3。已修正：
+  - **C1** JSONB bool 匹配 `->>enabled` → `->enabled`（若不修 Cron 會靜默 0 發送）
+  - **C2** 應用層冪等 pre-check query 改 DB 層 UNIQUE partial index + `23505` error code handling
+  - **C3** Cron 串行 for-loop → `Promise.allSettled` 分批 25 並發（避 60s timeout）
+  - **H1** `crypto.timingSafeEqual` 替換字串比較（防 timing attack）
+  - **H2** DB error 僅 server log，response 改為 `{ error: 'internal_error' }`（防 schema 洩漏）
+  - **H3** `[id]/read` 增加 `notifErr` 檢查（防誤判 404）
+  - **H4** migration 新增 `idx_notifications_user_type_created` B-tree 索引、顯式 INSERT/DELETE `CHECK (false)` policy
+  - **H5** list API 加 `.limit(100)`
+- [x] 11.2 [Tool: kimi] 失敗隔離已驗證：`Promise.allSettled` 保證單一 reject 不中斷批次；測試 `isolates single-user dispatcher throw` 通過
+- [ ] 11.3 [Tool: codex] 執行 `/spectra:audit` 檢查 security sharp edges — 延後（並行 3-lens CR 已涵蓋 audit 主要範圍）
 
 ## 12. 部署與收尾 — 依 design.md 部署步驟完成上線
 

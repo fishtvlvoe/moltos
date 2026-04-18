@@ -1,73 +1,38 @@
 import { afterEach, beforeEach, describe, expect, it, vi, type MockInstance } from 'vitest';
 
-// 必須在 import dispatcher 之前 mock 它的兩個依賴
 vi.mock('@/lib/email/tosend', () => ({
   sendEmail: vi.fn(),
 }));
-
-vi.mock('@/lib/supabase', () => {
-  const chain = {
-    from: vi.fn(),
-  };
-  return { supabaseAdmin: chain };
-});
+vi.mock('@/lib/supabase', () => ({
+  supabaseAdmin: { from: vi.fn() },
+}));
 
 import { dispatchReminder } from '@/lib/notifications/dispatcher';
 import { sendEmail } from '@/lib/email/tosend';
 import { supabaseAdmin } from '@/lib/supabase';
 
-type FromResult = ReturnType<typeof supabaseAdmin.from>;
+interface InsertSetup {
+  insertData?: { id: string } | null;
+  insertError?: { code?: string; message?: string } | null;
+  updateError?: { code?: string } | null;
+}
 
-/**
- * 建構鏈式 query builder mock：
- * - select().eq().eq().gte().maybeSingle() → 查今日冪等
- * - insert().select().single() → 寫 notifications row
- * - update().eq() → 更新 sent_via
- */
-function makeSupabaseMock(options: {
-  existingToday?: unknown;
-  insertedRow?: { id: string } | null;
-  insertError?: { message: string } | null;
-  updateError?: { message: string } | null;
-}): MockInstance {
-  const maybeSingleIdempotency = vi.fn().mockResolvedValue({
-    data: options.existingToday ?? null,
-    error: null,
-  });
-
-  const selectChainIdempotency = vi.fn().mockReturnValue({
-    eq: vi.fn().mockReturnValue({
-      eq: vi.fn().mockReturnValue({
-        gte: vi.fn().mockReturnValue({
-          maybeSingle: maybeSingleIdempotency,
-        }),
-      }),
-    }),
-  });
-
+function setupSupabaseFrom(opts: InsertSetup) {
   const insertSingle = vi.fn().mockResolvedValue({
-    data: options.insertedRow ?? { id: 'notif_new_id' },
-    error: options.insertError ?? null,
+    data: opts.insertData ?? { id: 'notif_new_id' },
+    error: opts.insertError ?? null,
   });
   const insertBuilder = vi.fn().mockReturnValue({
-    select: vi.fn().mockReturnValue({
-      single: insertSingle,
-    }),
+    select: vi.fn().mockReturnValue({ single: insertSingle }),
   });
-
-  const updateEq = vi.fn().mockResolvedValue({ error: options.updateError ?? null });
   const updateBuilder = vi.fn().mockReturnValue({
-    eq: updateEq,
+    eq: vi.fn().mockResolvedValue({ error: opts.updateError ?? null }),
   });
 
-  const fromMock = vi.fn().mockReturnValue({
-    select: selectChainIdempotency,
+  (supabaseAdmin.from as unknown as MockInstance).mockImplementation(() => ({
     insert: insertBuilder,
     update: updateBuilder,
-  } as unknown as FromResult);
-
-  (supabaseAdmin.from as unknown as MockInstance).mockImplementation(fromMock);
-  return fromMock;
+  }) as never);
 }
 
 describe('lib/notifications/dispatcher.ts — dispatchReminder()', () => {
@@ -81,8 +46,8 @@ describe('lib/notifications/dispatcher.ts — dispatchReminder()', () => {
     vi.restoreAllMocks();
   });
 
-  it('email sent + notifications row written → sent_via "email+in_app"', async () => {
-    makeSupabaseMock({});
+  it('insert + email success → sent_via "email+in_app"', async () => {
+    setupSupabaseFrom({ insertData: { id: 'nid' } });
     (sendEmail as unknown as MockInstance).mockResolvedValue({
       success: true,
       messageId: 'msg_abc',
@@ -93,14 +58,12 @@ describe('lib/notifications/dispatcher.ts — dispatchReminder()', () => {
     expect(result.status).toBe('sent');
     expect(result.sentVia).toBe('email+in_app');
     expect(sendEmail).toHaveBeenCalledWith(
-      expect.objectContaining({
-        to: 'alice@example.com',
-      })
+      expect.objectContaining({ to: 'alice@example.com' })
     );
   });
 
   it('email fails → falls back to in_app_only, does not throw', async () => {
-    makeSupabaseMock({});
+    setupSupabaseFrom({ insertData: { id: 'nid' } });
     (sendEmail as unknown as MockInstance).mockResolvedValue({
       success: false,
       error: 'tosend_http_500',
@@ -113,9 +76,10 @@ describe('lib/notifications/dispatcher.ts — dispatchReminder()', () => {
     expect(result.error).toContain('tosend_http_500');
   });
 
-  it('already sent today → skipped without calling sendEmail', async () => {
-    makeSupabaseMock({
-      existingToday: { id: 'existing_notif', sent_via: 'email+in_app' },
+  it('DB UNIQUE violation (23505) → skipped without calling sendEmail', async () => {
+    setupSupabaseFrom({
+      insertData: null,
+      insertError: { code: '23505', message: 'duplicate key' },
     });
 
     const result = await dispatchReminder(user, 'calm_reminder');
@@ -125,8 +89,21 @@ describe('lib/notifications/dispatcher.ts — dispatchReminder()', () => {
     expect(sendEmail).not.toHaveBeenCalled();
   });
 
-  it('missing email → fails gracefully with in_app_only (cannot email without address)', async () => {
-    makeSupabaseMock({});
+  it('other DB error → failed', async () => {
+    setupSupabaseFrom({
+      insertData: null,
+      insertError: { code: '42P01', message: 'relation not found' },
+    });
+
+    const result = await dispatchReminder(user, 'calm_reminder');
+
+    expect(result.status).toBe('failed');
+    expect(result.error).toContain('42P01');
+    expect(sendEmail).not.toHaveBeenCalled();
+  });
+
+  it('user has no email → in_app_only without calling sendEmail', async () => {
+    setupSupabaseFrom({ insertData: { id: 'nid' } });
 
     const result = await dispatchReminder(
       { id: 'user_no_email', email: null },

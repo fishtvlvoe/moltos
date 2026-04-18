@@ -24,8 +24,8 @@ function chainResolvingTo(result: { data: unknown; error: unknown }) {
     }),
   };
 
-  // notifications list: from().select().eq().order()
-  // unread filter:      from().select().eq().is().order()
+  // notifications list: from().select().eq().order().limit()
+  // unread filter:      from().select().eq().is().order().limit()
   // count_only:         from().select('*', { count: 'exact', head: true }).eq()
   const notificationsChain = {
     select: vi.fn().mockImplementation((_cols: string, opts?: { head?: boolean }) => {
@@ -36,7 +36,8 @@ function chainResolvingTo(result: { data: unknown; error: unknown }) {
           }),
         };
       }
-      const order = vi.fn().mockResolvedValue(result);
+      const limit = vi.fn().mockResolvedValue(result);
+      const order = vi.fn().mockReturnValue({ limit });
       const isMethod = vi.fn().mockReturnValue({ order });
       return {
         eq: vi.fn().mockReturnValue({

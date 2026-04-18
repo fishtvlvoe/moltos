@@ -32,13 +32,17 @@ export async function POST(_request: Request, context: RouteContext): Promise<Re
   const userId = (userRow.id as string) ?? '';
 
   // 驗證通知歸屬
-  const { data: notif } = await supabaseAdmin
+  const { data: notif, error: notifErr } = await supabaseAdmin
     .from('notifications')
     .select('id, user_id')
     .eq('id', notificationId)
     .eq('user_id', userId)
     .maybeSingle();
 
+  if (notifErr) {
+    console.error('[POST /api/notifications/:id/read] query_failed:', notifErr);
+    return NextResponse.json({ error: 'internal_error' }, { status: 500 });
+  }
   if (!notif) {
     return NextResponse.json({ error: 'not_found' }, { status: 404 });
   }
@@ -50,10 +54,8 @@ export async function POST(_request: Request, context: RouteContext): Promise<Re
     .eq('id', notificationId);
 
   if (updateError) {
-    return NextResponse.json(
-      { error: `update_failed: ${updateError.message}` },
-      { status: 500 }
-    );
+    console.error('[POST /api/notifications/:id/read] update_failed:', updateError);
+    return NextResponse.json({ error: 'internal_error' }, { status: 500 });
   }
 
   return NextResponse.json({ success: true }, { status: 200 });

@@ -1,7 +1,9 @@
 /**
  * 通知分派器（Reminder 專用）
  * 對應 openspec/changes/notification-delivery-mvp/design.md：
- *  - Decision 4: 冪等性機制 — notifications 表作為去重基準
+ *  - Decision 4: 冪等性機制 — 依靠 notifications 表 UNIQUE 索引
+ *    (user_id, type, DATE(created_at AT TIME ZONE 'Asia/Taipei'))
+ *    INSERT 重複時 DB 回 23505，轉為 skipped
  *  - Decision 5: 失敗隔離策略 — 每用戶獨立 try/catch + 降級寫入站內
  */
 
@@ -25,41 +27,18 @@ export interface DispatchResult {
   notificationId?: string;
 }
 
-/**
- * 回傳今日台北時區的 00:00 UTC ISO 字串。
- * 用於冪等查詢：只需檢查 created_at >= 今日 TPE 00:00（約等於昨日 UTC 16:00）。
- */
-function getTpeDayStartUtcIso(): string {
-  // 當下台北時間
-  const now = new Date();
-  const tpeNow = new Date(now.getTime() + 8 * 3600_000);
-  tpeNow.setUTCHours(0, 0, 0, 0);
-  // 換算回 UTC（TPE 00:00 = UTC 前一日 16:00）
-  const utcEquivalent = new Date(tpeNow.getTime() - 8 * 3600_000);
-  return utcEquivalent.toISOString();
-}
+// Postgres unique_violation error code
+const PG_UNIQUE_VIOLATION = '23505';
 
 export async function dispatchReminder(
   user: DispatchUser,
   type: NotificationType
 ): Promise<DispatchResult> {
-  // Step 1: 冪等查詢 — 今日同 user + type 是否已發送
-  const existing = await supabaseAdmin
-    .from('notifications')
-    .select('id, sent_via')
-    .eq('user_id', user.id)
-    .eq('type', type)
-    .gte('created_at', getTpeDayStartUtcIso())
-    .maybeSingle();
-
-  if (existing.data) {
-    return { status: 'skipped', reason: 'already_sent_today' };
-  }
-
-  // Step 2: 建立通知內容
+  // Step 1: 建立通知內容
   const template = buildCalmReminderTemplate();
 
-  // Step 3: 先寫 notifications row（sent_via 先標 in_app_only，email 成功再 update）
+  // Step 2: 寫 notifications row（sent_via 先標 in_app_only，email 成功再 update）
+  // UNIQUE 索引會在同日重複 INSERT 時回 23505 → 視為 skipped（冪等）
   const inserted = await supabaseAdmin
     .from('notifications')
     .insert({
@@ -72,16 +51,22 @@ export async function dispatchReminder(
     .select('id')
     .single();
 
-  if (inserted.error || !inserted.data) {
+  if (inserted.error) {
+    if (inserted.error.code === PG_UNIQUE_VIOLATION) {
+      return { status: 'skipped', reason: 'already_sent_today' };
+    }
     return {
       status: 'failed',
-      error: `insert_notification_failed: ${inserted.error?.message ?? 'unknown'}`,
+      error: `insert_notification_failed: ${inserted.error.code ?? 'unknown'}`,
     };
   }
 
-  const notificationId = inserted.data.id as string;
+  const notificationId = inserted.data?.id as string | undefined;
+  if (!notificationId) {
+    return { status: 'failed', error: 'insert_returned_no_id' };
+  }
 
-  // Step 4: 若有 email → 嘗試送 Email，成功則升級 sent_via
+  // Step 3: 若有 email → 嘗試送 Email，成功則升級 sent_via
   if (!user.email) {
     return {
       status: 'sent',
@@ -108,7 +93,7 @@ export async function dispatchReminder(
     };
   }
 
-  // Step 5: Email 成功 → 升級 sent_via 為 email+in_app
+  // Step 4: Email 成功 → 升級 sent_via 為 email+in_app
   const { error: updateError } = await supabaseAdmin
     .from('notifications')
     .update({ sent_via: 'email+in_app' })
@@ -117,7 +102,7 @@ export async function dispatchReminder(
   if (updateError) {
     // 更新失敗不影響 email 已送出，記 log 不 throw
     console.warn(
-      `[dispatcher] update sent_via failed (non-fatal): ${updateError.message}`
+      `[dispatcher] update sent_via failed (non-fatal): ${updateError.code ?? 'unknown'}`
     );
   }
 
