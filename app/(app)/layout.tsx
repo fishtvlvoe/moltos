@@ -1,5 +1,6 @@
 // T017: App route group layout — 有底部 TabBar 的頁面共用 layout
 import { TabBar } from '@/components/layout/tab-bar';
+import { NotificationBadge } from '@/components/notification-badge';
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -8,6 +9,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <main className="flex-1 pb-20 px-4 pt-4">
         {children}
       </main>
+      <NotificationBadge />
       <TabBar />
     </>
   );
