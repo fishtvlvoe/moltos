@@ -8,7 +8,7 @@ TBD - created by archiving change 'notification-delivery-mvp'. Update Purpose af
 
 ### Requirement: Database schema provides a notifications table
 
-The system SHALL create a `notifications` table with the following columns: `id` (UUID primary key, default `gen_random_uuid()`), `user_id` (TEXT, foreign key to `users.id` with `ON DELETE CASCADE`), `type` (TEXT, not null), `title` (TEXT, not null), `body` (TEXT, not null), `sent_via` (TEXT, not null, one of `'email'`, `'in_app_only'`, `'email+in_app'`), `read_at` (TIMESTAMPTZ, nullable), and `created_at` (TIMESTAMPTZ, not null, default `NOW()`). The table SHALL include an index on `(user_id, created_at DESC) WHERE read_at IS NULL` for unread queries, and an index supporting idempotency lookups by `(user_id, type, DATE(created_at AT TIME ZONE 'Asia/Taipei'))`.
+The system SHALL create a `notifications` table with the following columns: `id` (UUID primary key, default `gen_random_uuid()`), `user_id` (TEXT, foreign key to `users.id` with `ON DELETE CASCADE`), `type` (TEXT, not null), `title` (TEXT, not null), `body` (TEXT, not null), `sent_via` (TEXT, not null, CHECK constraint restricting to `'email'`, `'in_app_only'`, `'email+in_app'`), `read_at` (TIMESTAMPTZ, nullable), and `created_at` (TIMESTAMPTZ, not null, default `NOW()`). The table SHALL include an index on `(user_id, created_at DESC) WHERE read_at IS NULL` for unread queries, and an index supporting idempotency lookups by `(user_id, type, DATE(created_at AT TIME ZONE 'Asia/Taipei'))`.
 
 #### Scenario: Migration creates table and indexes
 

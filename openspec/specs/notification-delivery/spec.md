@@ -182,7 +182,7 @@ tests:
 ---
 ### Requirement: System exposes a protected Cron endpoint for reminder dispatch
 
-The system SHALL expose `POST /api/cron/send-reminders` that: (a) verifies the request via `Authorization: Bearer <CRON_SECRET>` header, (b) queries all users whose `reminder_schedule.enabled = true` AND whose `reminder_schedule.time` hour matches the current Asia/Taipei hour AND whose `reminder_schedule.frequency` permits delivery today, and (c) invokes the dispatcher for each matched user. The endpoint SHALL return a JSON summary with `{ total, sent, skipped, failed }` counts.
+The system SHALL expose `POST /api/cron/send-reminders` that: (a) verifies the request via `Authorization: Bearer <CRON_SECRET>` header AND validates `X-Vercel-Cron-Signature` when running on Vercel, (b) queries all users whose `reminder_schedule.enabled = true` AND whose `reminder_schedule.time` hour matches the current Asia/Taipei hour AND whose `reminder_schedule.frequency` permits delivery today (for `daily`: every day; for `weekly`: only when current day-of-week is Monday; for `monthly`: only when current day-of-month is 1), and (c) invokes the dispatcher for matched users using `Promise.allSettled` with concurrency limit of 10 to stay within Vercel function timeout. The `users` table SHALL have a partial index on `((reminder_schedule->>'enabled')::boolean) WHERE (reminder_schedule->>'enabled')::boolean = true` to avoid full table scans. The endpoint SHALL set `maxDuration: 55` and return a JSON summary with `{ total, sent, skipped, failed }` counts.
 
 #### Scenario: Valid cron request processes all matched users
 

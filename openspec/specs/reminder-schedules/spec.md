@@ -456,7 +456,7 @@ tests:
 ---
 ### Requirement: Reminder content uses a fixed template for MVP
 
-The system SHALL generate reminder Email and in-app content using a fixed template. The Email subject SHALL be `「記得關心一下自己」— 小默提醒你`. The Email and in-app body SHALL contain a short supportive message (approximately 30–80 zh-TW characters) and a link back to the app. The system SHALL NOT invoke any AI summarization or dynamic content generation for reminders in this MVP.
+The system SHALL generate reminder Email and in-app content using a fixed template. The Email subject SHALL be `「記得關心一下自己」— 小默提醒你`. The Email and in-app body SHALL contain a short supportive message (approximately 30–80 zh-TW characters) and a link back to the app. The body SHALL NOT contain any user privacy data (calm index values, conversation content, Gmail metadata). The system SHALL NOT invoke any AI summarization or dynamic content generation for reminders in this MVP.
 
 #### Scenario: Reminder email uses fixed subject and template
 
